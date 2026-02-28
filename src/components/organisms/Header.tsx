@@ -82,7 +82,7 @@ export function Header() {
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-sena-green-dark border-t border-sena-white/20 mt-3 pt-2 animate-in slide-in-from-top-2">
+        <div className="md:hidden bg-sena-green border-t border-sena-white/20 mt-3 pt-2 animate-in slide-in-from-top-2">
           <div className="space-y-1">
             <button
               onClick={() => {
