@@ -26,5 +26,12 @@
     "fecha": "2026-02-28T21:32:21.079Z",
     "puntaje": 0,
     "aprobado": false
+  },
+  {
+    "cedula": "123456",
+    "nombre": "Mauricio A Vargas R",
+    "fecha": "2026-02-28T21:43:34.766Z",
+    "puntaje": 11,
+    "aprobado": false
   }
 ]

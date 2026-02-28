@@ -85,7 +85,6 @@ export async function POST(req: Request) {
     const { data, error } = await resend.emails.send({
       from: `EvalTIC SENA <${process.env.NEXT_PUBLIC_SENDER_EMAIL || "onboarding@resend.dev"}>`,
       to: [INSTRUCTOR_EMAIL],
-      cc: [correo],
       subject: `Resultados Evaluación - ${nombres} ${apellidos} - Ficha ${ficha}`,
       html: htmlContent,
     });
