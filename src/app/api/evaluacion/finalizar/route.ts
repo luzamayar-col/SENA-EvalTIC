@@ -75,16 +75,23 @@ export async function POST(request: Request) {
 
     completadas.push(nuevoRegistro);
 
-    // Asegurar que el directorio exista
-    const dir = path.dirname(COMPLETED_EVALUATIONS_FILE);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
+    // Asegurar que el directorio exista (con try-catch para Vercel/Serverless)
+    try {
+      const dir = path.dirname(COMPLETED_EVALUATIONS_FILE);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
 
-    fs.writeFileSync(
-      COMPLETED_EVALUATIONS_FILE,
-      JSON.stringify(completadas, null, 2),
-    );
+      fs.writeFileSync(
+        COMPLETED_EVALUATIONS_FILE,
+        JSON.stringify(completadas, null, 2),
+      );
+    } catch (fsError) {
+      console.warn(
+        "No se pudo guardar la evaluación en disco (sistema de archivos de solo lectura). Retornando resultados en memoria.",
+        fsError,
+      );
+    }
 
     // 4. Retornar el resultado de la evaluación junto con las preguntas originales
     // para que el cliente pueda mostrar cuáles eran las opciones correctas en los detalles.
