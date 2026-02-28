@@ -1,0 +1,1362 @@
+{
+  "meta": {
+    "version": "1.0.0",
+    "competencia": {
+      "codigo": "38199",
+      "nombre": "ORIENTAR INVESTIGACIÓN FORMATIVA SEGÚN REFERENTES TÉCNICOS"
+    },
+    "resultadoAprendizaje": {
+      "codigo": "580873",
+      "nombre": "PROPONER SOLUCIONES A LAS NECESIDADES DEL CONTEXTO SEGÚN RESULTADOS DE LA INVESTIGACIÓN"
+    },
+    "programaFormacion": "Implementación de Infraestructura de Tecnologías de la Información y las Comunicaciones",
+    "codigoPrograma": "228116 v1",
+    "tiempoLimiteMinutos": 15,
+    "porcentajeAprobacion": 65,
+    "totalPreguntas": 50
+  },
+  "preguntas": [
+    {
+      "id": 1,
+      "tipo": "seleccion_unica",
+      "tema": "Fundamentos de investigación",
+      "enunciado": "¿Cuál es la principal característica que diferencia la investigación aplicada de la investigación básica?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "Se enfoca exclusivamente en generar conocimiento teórico sin aplicación práctica"
+        },
+        {
+          "id": "b",
+          "texto": "Está orientada a resolver problemas prácticos concretos del contexto real"
+        },
+        {
+          "id": "c",
+          "texto": "Solo se realiza en laboratorios con equipos especializados"
+        },
+        {
+          "id": "d",
+          "texto": "No requiere seguir una metodología científica formal"
+        }
+      ],
+      "respuestaCorrecta": ["b"],
+      "retroalimentacion": "La investigación aplicada se distingue porque está orientada a resolver problemas prácticos específicos, generando conocimiento útil e inmediato para la toma de decisiones."
+    },
+    {
+      "id": 2,
+      "tipo": "seleccion_unica",
+      "tema": "Proceso investigativo",
+      "enunciado": "¿Cuál es el orden correcto de las etapas fundamentales del proceso investigativo?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "Recolección de datos → Identificación del problema → Diseño metodológico → Comunicación"
+        },
+        {
+          "id": "b",
+          "texto": "Identificación del problema → Revisión bibliográfica → Diseño metodológico → Recolección → Análisis → Comunicación"
+        },
+        {
+          "id": "c",
+          "texto": "Comunicación → Análisis → Recolección → Diseño metodológico → Revisión"
+        },
+        {
+          "id": "d",
+          "texto": "Diseño metodológico → Identificación del problema → Análisis → Comunicación → Recolección"
+        }
+      ],
+      "respuestaCorrecta": ["b"],
+      "retroalimentacion": "El proceso investigativo sigue un orden lógico: primero se identifica el problema, luego se revisa la bibliografía, se diseña la metodología, se recolectan datos, se analizan y finalmente se comunican los resultados."
+    },
+    {
+      "id": 3,
+      "tipo": "seleccion_unica",
+      "tema": "Tipos de conocimiento",
+      "enunciado": "Un técnico en redes identifica la causa de un problema de conectividad basándose en patrones que ha reconocido inconscientemente a lo largo de su experiencia, sin poder explicar de inmediato su razonamiento. ¿Qué tipo de conocimiento está aplicando?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "Conocimiento científico"
+        },
+        {
+          "id": "b",
+          "texto": "Conocimiento filosófico"
+        },
+        {
+          "id": "c",
+          "texto": "Conocimiento intuitivo"
+        },
+        {
+          "id": "d",
+          "texto": "Conocimiento empírico"
+        }
+      ],
+      "respuestaCorrecta": ["c"],
+      "retroalimentacion": "El conocimiento intuitivo surge por medio de corazonadas o intuiciones basadas en patrones reconocidos inconscientemente, sin un razonamiento lógico evidente."
+    },
+    {
+      "id": 4,
+      "tipo": "seleccion_unica",
+      "tema": "SENNOVA",
+      "enunciado": "¿Cuál es el propósito principal de SENNOVA dentro del SENA?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "Administrar los recursos financieros de todos los centros de formación"
+        },
+        {
+          "id": "b",
+          "texto": "Promover y articular la investigación aplicada, el desarrollo tecnológico y la innovación en los Centros de Formación"
+        },
+        {
+          "id": "c",
+          "texto": "Gestionar las inscripciones y matrículas de los aprendices"
+        },
+        {
+          "id": "d",
+          "texto": "Desarrollar exclusivamente investigación básica para publicaciones académicas"
+        }
+      ],
+      "respuestaCorrecta": ["b"],
+      "retroalimentacion": "SENNOVA es el sistema del SENA que promueve y articula la investigación aplicada, el desarrollo tecnológico y la innovación en los Centros de Formación, buscando transformar el entorno productivo."
+    },
+    {
+      "id": 5,
+      "tipo": "seleccion_unica",
+      "tema": "Matriz de Vester",
+      "enunciado": "En la Matriz de Vester, un problema clasificado como 'ACTIVO' se caracteriza por tener:",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "Alta dependencia y baja influencia"
+        },
+        {
+          "id": "b",
+          "texto": "Baja influencia y baja dependencia"
+        },
+        {
+          "id": "c",
+          "texto": "Alta influencia y baja dependencia"
+        },
+        {
+          "id": "d",
+          "texto": "Alta influencia y alta dependencia"
+        }
+      ],
+      "respuestaCorrecta": ["c"],
+      "retroalimentacion": "Los problemas ACTIVOS tienen alta influencia y baja dependencia: son causas principales que desencadenan otros problemas pero no son muy afectados por ellos. Son prioridad de intervención."
+    },
+    {
+      "id": 6,
+      "tipo": "seleccion_unica",
+      "tema": "Árbol de problemas",
+      "enunciado": "En la analogía del árbol de problemas con un árbol natural, ¿qué representan las 'raíces'?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "Los efectos directos del problema central"
+        },
+        {
+          "id": "b",
+          "texto": "El problema central que se quiere resolver"
+        },
+        {
+          "id": "c",
+          "texto": "Las causas directas e indirectas del problema"
+        },
+        {
+          "id": "d",
+          "texto": "Las soluciones propuestas para el problema"
+        }
+      ],
+      "respuestaCorrecta": ["c"],
+      "retroalimentacion": "En el árbol de problemas, las raíces representan las causas (directas e indirectas) del problema, el tronco es el problema central, y las ramas son los efectos."
+    },
+    {
+      "id": 7,
+      "tipo": "seleccion_unica",
+      "tema": "Objetivos SMART",
+      "enunciado": "Según la metodología SMART, ¿qué significa la letra 'A' en el acrónimo?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "Analítico: el objetivo debe poder ser analizado cuantitativamente"
+        },
+        {
+          "id": "b",
+          "texto": "Alcanzable: el objetivo debe ser realista y posible de lograr con los recursos disponibles"
+        },
+        {
+          "id": "c",
+          "texto": "Adaptable: el objetivo puede modificarse en cualquier momento"
+        },
+        {
+          "id": "d",
+          "texto": "Abstracto: el objetivo debe formularse en términos generales"
+        }
+      ],
+      "respuestaCorrecta": ["b"],
+      "retroalimentacion": "En SMART, la A significa Alcanzable (Achievable): los objetivos deben ser realistas y posibles de lograr con los recursos, tiempo y conocimientos disponibles."
+    },
+    {
+      "id": 8,
+      "tipo": "seleccion_unica",
+      "tema": "Pregunta de investigación",
+      "enunciado": "¿Cuál de las siguientes es una pregunta de investigación bien formulada para un proyecto de redes?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "¿La red de la empresa es mala?"
+        },
+        {
+          "id": "b",
+          "texto": "¿Por qué las redes no funcionan?"
+        },
+        {
+          "id": "c",
+          "texto": "¿Cuáles son las causas principales del bajo rendimiento de la red en horas pico en la empresa ACME?"
+        },
+        {
+          "id": "d",
+          "texto": "¿Se puede mejorar la red?"
+        }
+      ],
+      "respuestaCorrecta": ["c"],
+      "retroalimentacion": "Una buena pregunta de investigación debe ser específica, clara, enfocada, medible, abierta y factible. La opción correcta cumple con todos estos criterios al delimitar el problema, el contexto y lo que se busca identificar."
+    },
+    {
+      "id": 9,
+      "tipo": "seleccion_unica",
+      "tema": "Marco teórico",
+      "enunciado": "¿Cuál es la función principal del marco teórico en un proyecto de investigación?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "Presentar los resultados finales de la investigación"
+        },
+        {
+          "id": "b",
+          "texto": "Sustentar científicamente el problema y orientar el diseño metodológico del proyecto"
+        },
+        {
+          "id": "c",
+          "texto": "Describir las actividades que se realizarán durante el proyecto"
+        },
+        {
+          "id": "d",
+          "texto": "Listar los recursos económicos necesarios para ejecutar la investigación"
+        }
+      ],
+      "respuestaCorrecta": ["b"],
+      "retroalimentacion": "El marco teórico integra teorías, conceptos, principios y estudios previos para sustentar la investigación, evitar duplicar estudios, identificar vacíos de conocimiento y orientar el diseño metodológico."
+    },
+    {
+      "id": 10,
+      "tipo": "seleccion_unica",
+      "tema": "Metodología de Marco Lógico",
+      "enunciado": "En la Metodología de Marco Lógico (MML), ¿qué nivel de la estructura corresponde al objetivo general del proyecto?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "Nivel de Fines"
+        },
+        {
+          "id": "b",
+          "texto": "Nivel de Propósito"
+        },
+        {
+          "id": "c",
+          "texto": "Nivel de Componentes"
+        },
+        {
+          "id": "d",
+          "texto": "Nivel de Actividades"
+        }
+      ],
+      "respuestaCorrecta": ["b"],
+      "retroalimentacion": "En la MML, el Propósito corresponde al objetivo general del proyecto (el cambio directo esperado al finalizar). Los Fines son impactos a largo plazo, los Componentes son resultados/objetivos específicos, y las Actividades son tareas concretas."
+    },
+    {
+      "id": 11,
+      "tipo": "seleccion_multiple",
+      "tema": "Características del proceso investigativo",
+      "enunciado": "Seleccione las características que definen al proceso investigativo según los fundamentos estudiados:",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "Es consciente: implica una búsqueda intencional y deliberada"
+        },
+        {
+          "id": "b",
+          "texto": "Es aleatorio: no requiere seguir una estructura definida"
+        },
+        {
+          "id": "c",
+          "texto": "Es organizado: tiene una estructura clara y secuencial"
+        },
+        {
+          "id": "d",
+          "texto": "Es metodológico: sigue procedimientos validados"
+        },
+        {
+          "id": "e",
+          "texto": "Es subjetivo: depende exclusivamente de las opiniones del investigador"
+        }
+      ],
+      "respuestaCorrecta": ["a", "c", "d"],
+      "retroalimentacion": "El proceso investigativo se caracteriza por ser consciente (búsqueda intencional), organizado (estructura secuencial), metodológico (procedimientos validados) y orientado a respuestas concretas."
+    },
+    {
+      "id": 12,
+      "tipo": "seleccion_multiple",
+      "tema": "Componentes del anteproyecto",
+      "enunciado": "¿Cuáles de los siguientes elementos forman parte de la estructura de un anteproyecto de investigación según la metodología SENA?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "Título del proyecto"
+        },
+        {
+          "id": "b",
+          "texto": "Pregunta de investigación"
+        },
+        {
+          "id": "c",
+          "texto": "Código fuente del software desarrollado"
+        },
+        {
+          "id": "d",
+          "texto": "Justificación del proyecto"
+        },
+        {
+          "id": "e",
+          "texto": "Objetivo General y Objetivos Específicos"
+        }
+      ],
+      "respuestaCorrecta": ["a", "b", "d", "e"],
+      "retroalimentacion": "Un anteproyecto incluye: título, pregunta de investigación, antecedentes (estado del arte), justificación, objetivo general, objetivos específicos y resultados esperados. El código fuente es un producto de desarrollo, no parte de la formulación."
+    },
+    {
+      "id": 13,
+      "tipo": "seleccion_multiple",
+      "tema": "Fuentes de información",
+      "enunciado": "¿Cuáles de los siguientes son ejemplos de fuentes primarias de información?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "Encuestas aplicadas directamente a usuarios de una red"
+        },
+        {
+          "id": "b",
+          "texto": "Un libro de texto sobre fundamentos de redes"
+        },
+        {
+          "id": "c",
+          "texto": "Datos obtenidos de pruebas de laboratorio con equipos de red"
+        },
+        {
+          "id": "d",
+          "texto": "Entrevistas con un consultor de ciberseguridad"
+        },
+        {
+          "id": "e",
+          "texto": "Una enciclopedia de telecomunicaciones"
+        }
+      ],
+      "respuestaCorrecta": ["a", "c", "d"],
+      "retroalimentacion": "Las fuentes primarias son la primera constancia formal de resultados: entrevistas, datos obtenidos directamente, experimentos originales. Los libros de texto y enciclopedias son fuentes secundarias y terciarias respectivamente."
+    },
+    {
+      "id": 14,
+      "tipo": "seleccion_multiple",
+      "tema": "Criterios de evaluación de alternativas",
+      "enunciado": "Al comparar alternativas de solución en un proyecto de investigación, ¿cuáles de los siguientes son criterios válidos de evaluación?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "Factibilidad técnica y económica"
+        },
+        {
+          "id": "b",
+          "texto": "Pertinencia e impacto en los beneficiarios"
+        },
+        {
+          "id": "c",
+          "texto": "La preferencia personal del investigador sin sustento técnico"
+        },
+        {
+          "id": "d",
+          "texto": "Recursos disponibles (materiales, financieros, humanos)"
+        },
+        {
+          "id": "e",
+          "texto": "Tiempo de implementación y riesgos asociados"
+        }
+      ],
+      "respuestaCorrecta": ["a", "b", "d", "e"],
+      "retroalimentacion": "Los criterios objetivos incluyen: factibilidad técnica/económica, pertinencia e impacto, recursos disponibles, y tiempo/riesgos. La preferencia personal sin sustento no es un criterio válido."
+    },
+    {
+      "id": 15,
+      "tipo": "seleccion_multiple",
+      "tema": "Tecnologías emergentes en telecomunicaciones",
+      "enunciado": "¿Cuáles de las siguientes tecnologías emergentes son transversales al área de telecomunicaciones y han sido impulsadas por la investigación aplicada?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "Internet de las Cosas (IoT)"
+        },
+        {
+          "id": "b",
+          "texto": "Redes Definidas por Software (SDN)"
+        },
+        {
+          "id": "c",
+          "texto": "Máquinas de escribir mecánicas"
+        },
+        {
+          "id": "d",
+          "texto": "Network Functions Virtualization (NFV)"
+        },
+        {
+          "id": "e",
+          "texto": "Edge Computing (computación perimetral)"
+        }
+      ],
+      "respuestaCorrecta": ["a", "b", "d", "e"],
+      "retroalimentacion": "IoT, SDN, NFV y Edge Computing son tecnologías emergentes impulsadas por investigación aplicada que están transformando las telecomunicaciones. Las máquinas de escribir son tecnología obsoleta no relacionada."
+    },
+    {
+      "id": 16,
+      "tipo": "seleccion_multiple",
+      "tema": "Aplicaciones de IA en telecomunicaciones",
+      "enunciado": "Seleccione las aplicaciones válidas de Inteligencia Artificial en el campo de redes y telecomunicaciones:",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "Optimización de tráfico de red mediante algoritmos de Machine Learning"
+        },
+        {
+          "id": "b",
+          "texto": "Predicción de fallas mediante modelos predictivos"
+        },
+        {
+          "id": "c",
+          "texto": "Gestión de calidad de servicio (QoS) en tiempo real"
+        },
+        {
+          "id": "d",
+          "texto": "Ciberseguridad automatizada y detección de amenazas"
+        },
+        {
+          "id": "e",
+          "texto": "Reemplazo total del criterio humano en todas las decisiones de diseño de red"
+        }
+      ],
+      "respuestaCorrecta": ["a", "b", "c", "d"],
+      "retroalimentacion": "La IA tiene aplicaciones válidas en optimización de tráfico, predicción de fallas, gestión de QoS y ciberseguridad. Sin embargo, la IA complementa el criterio humano, no lo reemplaza totalmente."
+    },
+    {
+      "id": 17,
+      "tipo": "seleccion_multiple",
+      "tema": "Características de una buena pregunta de investigación",
+      "enunciado": "Según los referentes estudiados, una buena pregunta de investigación debe cumplir con las siguientes características:",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "Relevante: alineada con el problema práctico"
+        },
+        {
+          "id": "b",
+          "texto": "Clara: todos deben interpretarla de la misma manera"
+        },
+        {
+          "id": "c",
+          "texto": "Cerrada: debe responderse con 'sí' o 'no'"
+        },
+        {
+          "id": "d",
+          "texto": "Enfocada: aborda un aspecto delimitado del problema"
+        },
+        {
+          "id": "e",
+          "texto": "Factible: puede responderse con los recursos disponibles"
+        }
+      ],
+      "respuestaCorrecta": ["a", "b", "d", "e"],
+      "retroalimentacion": "Una buena pregunta de investigación debe ser relevante, clara, enfocada, medible, abierta (no de sí/no) y factible. Las preguntas cerradas de sí/no no son adecuadas para investigación aplicada."
+    },
+    {
+      "id": 18,
+      "tipo": "seleccion_multiple",
+      "tema": "Estructura Analítica del Proyecto",
+      "enunciado": "¿Cuáles son los niveles jerárquicos de la Estructura Analítica del Proyecto (EAP) en la Metodología de Marco Lógico?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "Fines del proyecto (impactos a largo plazo)"
+        },
+        {
+          "id": "b",
+          "texto": "Propósito del proyecto (objetivo general)"
+        },
+        {
+          "id": "c",
+          "texto": "Hipótesis de investigación"
+        },
+        {
+          "id": "d",
+          "texto": "Componentes o resultados del proyecto"
+        },
+        {
+          "id": "e",
+          "texto": "Actividades necesarias para obtener los resultados"
+        }
+      ],
+      "respuestaCorrecta": ["a", "b", "d", "e"],
+      "retroalimentacion": "La EAP tiene cuatro niveles: Fines (impactos a largo plazo), Propósito (objetivo general), Componentes (resultados/objetivos específicos) y Actividades (tareas concretas). La hipótesis no es un nivel de la EAP."
+    },
+    {
+      "id": 19,
+      "tipo": "seleccion_multiple",
+      "tema": "Productos esperados de investigación SENA",
+      "enunciado": "¿Cuáles de los siguientes son productos esperados de la investigación en el SENA a través de SENNOVA?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "Artículos científicos"
+        },
+        {
+          "id": "b",
+          "texto": "Patentes"
+        },
+        {
+          "id": "c",
+          "texto": "Contenidos de formación"
+        },
+        {
+          "id": "d",
+          "texto": "Servicios tecnológicos"
+        },
+        {
+          "id": "e",
+          "texto": "Certificados de participación en redes sociales"
+        }
+      ],
+      "respuestaCorrecta": ["a", "b", "c", "d"],
+      "retroalimentacion": "Los productos esperados de SENNOVA incluyen artículos científicos, publicaciones, patentes, manuales y protocolos, contenidos de formación, servicios tecnológicos y prácticas especializadas."
+    },
+    {
+      "id": 20,
+      "tipo": "seleccion_multiple",
+      "tema": "Componentes de la justificación",
+      "enunciado": "La justificación de un proyecto de investigación debe incluir los siguientes elementos:",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "Descripción de la solución propuesta al problema con razones que la justifiquen"
+        },
+        {
+          "id": "b",
+          "texto": "La pertinencia del proyecto y su alineación con necesidades del contexto"
+        },
+        {
+          "id": "c",
+          "texto": "El presupuesto detallado línea por línea de todo el proyecto"
+        },
+        {
+          "id": "d",
+          "texto": "La viabilidad técnica, financiera y operativa"
+        },
+        {
+          "id": "e",
+          "texto": "El impacto esperado: beneficios o cambios positivos que generará"
+        }
+      ],
+      "respuestaCorrecta": ["a", "b", "d", "e"],
+      "retroalimentacion": "La justificación incluye: solución propuesta, pertinencia, viabilidad e impacto esperado. El presupuesto detallado es un elemento del plan operativo, no de la justificación."
+    },
+    {
+      "id": 21,
+      "tipo": "emparejamiento",
+      "tema": "Tipos de conocimiento",
+      "enunciado": "Empareje cada tipo de conocimiento con su ejemplo aplicado al campo de las redes y telecomunicaciones:",
+      "pares": [
+        {
+          "izquierda": "Conocimiento empírico",
+          "derecha": "Aprender a configurar un router practicando repetidamente e identificando patrones de comportamiento"
+        },
+        {
+          "izquierda": "Conocimiento científico",
+          "derecha": "Conocer los principios de TCP/IP a partir de estudios experimentales documentados en RFCs"
+        },
+        {
+          "izquierda": "Conocimiento intuitivo",
+          "derecha": "Intuir la causa de un problema de conectividad basándose en experiencia previa sin explicación inmediata"
+        },
+        {
+          "izquierda": "Conocimiento filosófico",
+          "derecha": "Razonamiento sobre principios lógicos de diseño de arquitecturas de red"
+        }
+      ],
+      "retroalimentacion": "Empírico: experiencia directa. Científico: métodos sistemáticos y evidencia. Intuitivo: patrones reconocidos inconscientemente. Filosófico: reflexión lógica y razonamiento abstracto."
+    },
+    {
+      "id": 22,
+      "tipo": "emparejamiento",
+      "tema": "Clasificación de problemas en Matriz de Vester",
+      "enunciado": "Empareje cada tipo de problema de la Matriz de Vester con su característica principal:",
+      "pares": [
+        {
+          "izquierda": "Problemas ACTIVOS",
+          "derecha": "Alta influencia, baja dependencia: son causas principales que desencadenan otros problemas"
+        },
+        {
+          "izquierda": "Problemas PASIVOS",
+          "derecha": "Alta dependencia, baja influencia: son principalmente efectos o síntomas"
+        },
+        {
+          "izquierda": "Problemas CRÍTICOS",
+          "derecha": "Alta influencia y alta dependencia: se comportan tanto como causa y como efecto"
+        },
+        {
+          "izquierda": "Problemas INDIFERENTES",
+          "derecha": "Baja influencia y baja dependencia: son problemas aislados de poco impacto sistémico"
+        }
+      ],
+      "retroalimentacion": "La clasificación de Vester permite priorizar intervenciones: activos son raíces a resolver, pasivos son síntomas, críticos requieren estrategias especiales, e indiferentes tienen menor prioridad."
+    },
+    {
+      "id": 23,
+      "tipo": "emparejamiento",
+      "tema": "Árbol de problemas vs Árbol de objetivos",
+      "enunciado": "Empareje cada elemento del árbol de problemas con su correspondiente en el árbol de objetivos:",
+      "pares": [
+        {
+          "izquierda": "Problema central (tronco)",
+          "derecha": "Objetivo general / Propósito del proyecto"
+        },
+        {
+          "izquierda": "Causas directas (raíces inmediatas)",
+          "derecha": "Medios directos / Objetivos específicos"
+        },
+        {
+          "izquierda": "Causas indirectas (raíces profundas)",
+          "derecha": "Medios indirectos / Actividades de apoyo"
+        },
+        {
+          "izquierda": "Efectos directos e indirectos (ramas)",
+          "derecha": "Fines directos e indirectos / Resultados esperados e impactos"
+        }
+      ],
+      "retroalimentacion": "El árbol de objetivos es la contrapartida positiva del árbol de problemas: cada situación negativa se transforma en una afirmación positiva que describe la situación futura deseada."
+    },
+    {
+      "id": 24,
+      "tipo": "emparejamiento",
+      "tema": "Taxonomía de Bloom aplicada a redes",
+      "enunciado": "Empareje cada nivel de la Taxonomía de Bloom con el ejemplo aplicado a redes de telecomunicaciones:",
+      "pares": [
+        {
+          "izquierda": "Recordar",
+          "derecha": "Identificar los componentes de una red LAN"
+        },
+        {
+          "izquierda": "Analizar",
+          "derecha": "Diagnosticar las causas de la congestión en la red"
+        },
+        {
+          "izquierda": "Aplicar",
+          "derecha": "Configurar un switch para segmentar en VLANs"
+        },
+        {
+          "izquierda": "Crear",
+          "derecha": "Diseñar un plan de optimización de infraestructura de red"
+        }
+      ],
+      "retroalimentacion": "La Taxonomía de Bloom establece niveles cognitivos ascendentes: recordar (identificar), comprender (explicar), aplicar (configurar), analizar (diagnosticar), evaluar (justificar) y crear (diseñar)."
+    },
+    {
+      "id": 25,
+      "tipo": "emparejamiento",
+      "tema": "Fuentes de información",
+      "enunciado": "Empareje cada tipo de fuente de información con sus características y ejemplos:",
+      "pares": [
+        {
+          "izquierda": "Fuentes primarias",
+          "derecha": "Primera constancia formal de resultados: entrevistas, datos de campo, experimentos originales"
+        },
+        {
+          "izquierda": "Fuentes secundarias",
+          "derecha": "Interpretaciones y evaluaciones de fuentes primarias: artículos científicos, libros académicos, tesis"
+        },
+        {
+          "izquierda": "Fuentes terciarias",
+          "derecha": "Resúmenes e informaciones generales basadas en primarias y secundarias: enciclopedias, índices, bibliografías"
+        },
+        {
+          "izquierda": "Herramientas de acceso",
+          "derecha": "Servicios y plataformas para ubicar recursos: bases de datos académicas, repositorios, motores de búsqueda"
+        }
+      ],
+      "retroalimentacion": "Las fuentes primarias son originales, las secundarias analizan las primarias, las terciarias resumen ambas, y las herramientas de acceso son plataformas para encontrarlas."
+    },
+    {
+      "id": 26,
+      "tipo": "emparejamiento",
+      "tema": "Evolución de arquitecturas de red",
+      "enunciado": "Empareje cada generación de red móvil con su principal característica tecnológica:",
+      "pares": [
+        {
+          "izquierda": "2G",
+          "derecha": "Conmutación de circuitos, tecnología GSM, servicio de voz exclusivo"
+        },
+        {
+          "izquierda": "3G",
+          "derecha": "Conmutación de paquetes, internet móvil y contenido multimedia"
+        },
+        {
+          "izquierda": "4G",
+          "derecha": "LTE All-IP, alta velocidad de datos y streaming"
+        },
+        {
+          "izquierda": "5G",
+          "derecha": "Network Slicing, NFV, SDN, virtualización e IoT masivo"
+        }
+      ],
+      "retroalimentacion": "Las generaciones de redes muestran la evolución desde voz analógica (2G) hasta la convergencia total de servicios con virtualización (5G), impulsada por décadas de investigación aplicada."
+    },
+    {
+      "id": 27,
+      "tipo": "emparejamiento",
+      "tema": "Niveles de la EAP y Marco Lógico",
+      "enunciado": "Empareje cada nivel de la Estructura Analítica del Proyecto con su descripción correcta:",
+      "pares": [
+        {
+          "izquierda": "Fines",
+          "derecha": "Impactos a largo plazo que trascienden la duración del proyecto"
+        },
+        {
+          "izquierda": "Propósito",
+          "derecha": "Objetivo central del proyecto: el cambio tangible esperado al terminarlo"
+        },
+        {
+          "izquierda": "Componentes",
+          "derecha": "Entregables clave asociados a objetivos específicos: productos, servicios o capacidades"
+        },
+        {
+          "izquierda": "Actividades",
+          "derecha": "Acciones concretas necesarias para obtener cada componente: consumen recursos y tienen secuencia temporal"
+        }
+      ],
+      "retroalimentacion": "La EAP garantiza coherencia: actividades generan componentes, componentes logran el propósito, y el propósito contribuye a los fines de desarrollo más amplios."
+    },
+    {
+      "id": 28,
+      "tipo": "emparejamiento",
+      "tema": "Conceptos esenciales de investigación",
+      "enunciado": "Empareje cada concepto con su definición correcta:",
+      "pares": [
+        {
+          "izquierda": "Metodología de investigación",
+          "derecha": "Sistema de procedimientos estructurados que guían el proceso de obtención de conocimiento científico"
+        },
+        {
+          "izquierda": "Enfoque de investigación",
+          "derecha": "Perspectiva epistemológica: cualitativo, cuantitativo o mixto"
+        },
+        {
+          "izquierda": "Alcance de investigación",
+          "derecha": "Extensión y profundidad del estudio que define sus límites temporales, espaciales y conceptuales"
+        },
+        {
+          "izquierda": "Vigilancia científico-tecnológica",
+          "derecha": "Seguimiento sistemático de avances, tendencias y desarrollos en un área específica"
+        }
+      ],
+      "retroalimentacion": "Estos conceptos son fundamentales para estructurar cualquier proyecto de investigación en el marco de la formación SENA."
+    },
+    {
+      "id": 29,
+      "tipo": "seleccion_unica",
+      "tema": "Escala de valoración Matriz de Vester",
+      "enunciado": "En la Matriz de Vester, ¿qué valor se asigna cuando existe una influencia directa o relación causal fuerte entre dos variables?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "0"
+        },
+        {
+          "id": "b",
+          "texto": "1"
+        },
+        {
+          "id": "c",
+          "texto": "2"
+        },
+        {
+          "id": "d",
+          "texto": "3"
+        }
+      ],
+      "respuestaCorrecta": ["d"],
+      "retroalimentacion": "La escala de Vester es: 0 = sin influencia, 1 = influencia débil, 2 = influencia media, 3 = influencia fuerte (directa). Además, la matriz NO es simétrica."
+    },
+    {
+      "id": 30,
+      "tipo": "seleccion_unica",
+      "tema": "Objetivos específicos",
+      "enunciado": "¿Cuántos objetivos específicos se recomienda formular como máximo en un proyecto de investigación del SENA?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "1 objetivo específico"
+        },
+        {
+          "id": "b",
+          "texto": "3 a 4 objetivos específicos"
+        },
+        {
+          "id": "c",
+          "texto": "8 a 10 objetivos específicos"
+        },
+        {
+          "id": "d",
+          "texto": "No hay límite recomendado"
+        }
+      ],
+      "respuestaCorrecta": ["b"],
+      "retroalimentacion": "Se recomienda entre 3 y 4 objetivos específicos como máximo. Estos deben descomponer el objetivo general en metas parciales, cada una abordando un aspecto clave del problema."
+    },
+    {
+      "id": 31,
+      "tipo": "seleccion_unica",
+      "tema": "Semilleros de investigación",
+      "enunciado": "¿Cuál es el nombre del grupo de investigación del CEET SENA?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "GICS - Grupo de Investigación CEET SENA"
+        },
+        {
+          "id": "b",
+          "texto": "INNOTECH - Innovación Tecnológica SENA"
+        },
+        {
+          "id": "c",
+          "texto": "REDTIC - Red de Telecomunicaciones SENA"
+        },
+        {
+          "id": "d",
+          "texto": "CEETLAB - Laboratorio de Investigación CEET"
+        }
+      ],
+      "respuestaCorrecta": ["a"],
+      "retroalimentacion": "GICS (Grupo de Investigación CEET SENA) tiene líneas de investigación en Electricidad, Electrónica, Telecomunicaciones, Teleinformática, Pedagogía, Vigilancia Tecnológica e Inteligencia Organizacional."
+    },
+    {
+      "id": 32,
+      "tipo": "seleccion_unica",
+      "tema": "Estado del arte",
+      "enunciado": "¿Cuál es el propósito principal de construir un estado del arte en un proyecto de investigación?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "Crear una base de datos con todos los artículos disponibles sobre cualquier tema"
+        },
+        {
+          "id": "b",
+          "texto": "Conocer qué se ha investigado previamente, evitar duplicar esfuerzos y definir la contribución original del proyecto"
+        },
+        {
+          "id": "c",
+          "texto": "Reemplazar la necesidad de formular una pregunta de investigación"
+        },
+        {
+          "id": "d",
+          "texto": "Demostrar que el investigador ha leído muchos libros y artículos"
+        }
+      ],
+      "respuestaCorrecta": ["b"],
+      "retroalimentacion": "El estado del arte permite saber qué se ha hecho, cómo se encuentra el tema actualmente, evitar duplicar esfuerzos, fundamentar el trabajo en conocimiento existente y definir la contribución original."
+    },
+    {
+      "id": 33,
+      "tipo": "seleccion_unica",
+      "tema": "Palabras clave",
+      "enunciado": "¿Cuál de las siguientes NO es una buena práctica al seleccionar palabras clave para un proyecto de investigación?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "Usar tesauros especializados como UNESCO o MeSH"
+        },
+        {
+          "id": "b",
+          "texto": "Combinar términos específicos y generales"
+        },
+        {
+          "id": "c",
+          "texto": "Copiar exactamente las palabras del título del proyecto"
+        },
+        {
+          "id": "d",
+          "texto": "Preferir sustantivos o frases sustantivadas"
+        }
+      ],
+      "respuestaCorrecta": ["c"],
+      "retroalimentacion": "No se deben copiar las palabras exactas del título; se recomienda usar sinónimos o términos relacionados. Las buenas prácticas incluyen usar tesauros, combinar términos y preferir sustantivos."
+    },
+    {
+      "id": 34,
+      "tipo": "seleccion_unica",
+      "tema": "Problema práctico vs. problema de investigación",
+      "enunciado": "¿Cuál es la diferencia fundamental entre un problema práctico y un problema de investigación?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "El problema práctico es real y el de investigación es ficticio"
+        },
+        {
+          "id": "b",
+          "texto": "El problema práctico requiere acción inmediata; el de investigación busca generar conocimiento para entender las causas"
+        },
+        {
+          "id": "c",
+          "texto": "No existe diferencia, son sinónimos"
+        },
+        {
+          "id": "d",
+          "texto": "El problema de investigación siempre es más importante que el práctico"
+        }
+      ],
+      "respuestaCorrecta": ["b"],
+      "retroalimentacion": "Un problema práctico es concreto y requiere acción inmediata (ej: no hay señal Wi-Fi). Un problema de investigación es conceptual y busca generar conocimiento (ej: no entendemos por qué falla la señal)."
+    },
+    {
+      "id": 35,
+      "tipo": "seleccion_unica",
+      "tema": "Contexto productivo",
+      "enunciado": "¿Por qué es fundamental analizar el contexto productivo antes de formular un proyecto de investigación en el SENA?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "Solo es un requisito burocrático sin impacto real en el proyecto"
+        },
+        {
+          "id": "b",
+          "texto": "Permite garantizar la pertinencia del proyecto, aumentar la competitividad e identificar problemas reales del sector"
+        },
+        {
+          "id": "c",
+          "texto": "Es necesario únicamente para obtener financiación de SENNOVA"
+        },
+        {
+          "id": "d",
+          "texto": "Solo aplica para proyectos de investigación básica, no aplicada"
+        }
+      ],
+      "respuestaCorrecta": ["b"],
+      "retroalimentacion": "Analizar el contexto productivo permite garantizar la pertinencia de los programas, aumentar la competitividad, identificar problemas reales para investigación y planificar el futuro del mercado laboral."
+    },
+    {
+      "id": 36,
+      "tipo": "seleccion_unica",
+      "tema": "Objetivo general",
+      "enunciado": "Al formular un objetivo general de investigación, ¿cuál es la estructura recomendada?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "Sustantivo + descripción general del tema + fecha límite"
+        },
+        {
+          "id": "b",
+          "texto": "Verbo en infinitivo + qué + para qué + mediante qué + cuándo"
+        },
+        {
+          "id": "c",
+          "texto": "Pregunta orientadora + hipótesis + resultado esperado"
+        },
+        {
+          "id": "d",
+          "texto": "Lista de actividades + recursos necesarios + presupuesto estimado"
+        }
+      ],
+      "respuestaCorrecta": ["b"],
+      "retroalimentacion": "La estructura recomendada es: verbo en infinitivo (acción) + qué (objeto de estudio) + para qué (resultado esperado, medible) + mediante qué (método/herramientas) + cuándo (plazo temporal)."
+    },
+    {
+      "id": 37,
+      "tipo": "seleccion_unica",
+      "tema": "Herramientas de IA para investigación",
+      "enunciado": "¿Cuál es la principal recomendación metodológica al usar herramientas de IA como Bohrium o NotebookLM en la investigación?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "Confiar completamente en los resultados generados por la IA sin verificación"
+        },
+        {
+          "id": "b",
+          "texto": "Utilizarlas como complemento del proceso investigativo, siempre verificando la información y manteniendo pensamiento crítico"
+        },
+        {
+          "id": "c",
+          "texto": "Usarlas únicamente para generar el informe final sin leer las fuentes originales"
+        },
+        {
+          "id": "d",
+          "texto": "Evitar su uso porque introducen sesgos algorítmicos"
+        }
+      ],
+      "respuestaCorrecta": ["b"],
+      "retroalimentacion": "Las herramientas de IA deben usarse como complemento, no como reemplazo. Siempre se debe verificar la información generada y mantener un pensamiento crítico sobre los resultados."
+    },
+    {
+      "id": 38,
+      "tipo": "seleccion_unica",
+      "tema": "Técnica del 5 porqués",
+      "enunciado": "La técnica del '5 Porqués' aplicada en la construcción del árbol de problemas tiene como propósito:",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "Formular exactamente 5 preguntas de investigación diferentes"
+        },
+        {
+          "id": "b",
+          "texto": "Profundizar en las causas de un problema preguntando '¿por qué?' repetidamente hasta llegar a la causa raíz"
+        },
+        {
+          "id": "c",
+          "texto": "Identificar los 5 efectos principales de un problema"
+        },
+        {
+          "id": "d",
+          "texto": "Clasificar el problema en 5 categorías según la Matriz de Vester"
+        }
+      ],
+      "respuestaCorrecta": ["b"],
+      "retroalimentacion": "La técnica del 5 Porqués consiste en preguntar '¿por qué?' repetidamente (hasta 5 veces) para profundizar desde síntomas superficiales hasta la causa raíz del problema."
+    },
+    {
+      "id": 39,
+      "tipo": "seleccion_unica",
+      "tema": "Ruta de formación en investigación",
+      "enunciado": "¿Cuál es el orden correcto de la ruta de formación en investigación del SENA?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "Investigador experto → Investigador junior → Aprendiz investigador → Semillero"
+        },
+        {
+          "id": "b",
+          "texto": "Semillero → Aprendiz investigador → Investigador junior → Investigador experto"
+        },
+        {
+          "id": "c",
+          "texto": "Aprendiz investigador → Semillero → Investigador experto → Investigador junior"
+        },
+        {
+          "id": "d",
+          "texto": "Investigador junior → Semillero → Investigador experto → Aprendiz investigador"
+        }
+      ],
+      "respuestaCorrecta": ["b"],
+      "retroalimentacion": "La ruta de formación va de: 1) Semillero (iniciación), 2) Aprendiz investigador (proyectos formativos), 3) Investigador junior (desarrollo de proyectos SENNOVA), 4) Investigador experto (liderazgo)."
+    },
+    {
+      "id": 40,
+      "tipo": "seleccion_unica",
+      "tema": "Diferencia título vs objetivo general",
+      "enunciado": "¿Cuál es la diferencia principal entre el título del proyecto y el objetivo general?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "El título usa verbo en infinitivo y el objetivo general no"
+        },
+        {
+          "id": "b",
+          "texto": "El título es una frase breve que describe el contenido y evita verbos en infinitivo; el objetivo general inicia con verbo en infinitivo y resume el propósito central"
+        },
+        {
+          "id": "c",
+          "texto": "No hay diferencia, el título y el objetivo general son lo mismo"
+        },
+        {
+          "id": "d",
+          "texto": "El título se escribe después de finalizar la investigación y el objetivo general al inicio"
+        }
+      ],
+      "respuestaCorrecta": ["b"],
+      "retroalimentacion": "El título es una frase breve y concreta que responde ¿qué se investiga? y ¿dónde?, evitando verbos en infinitivo. El objetivo general se formula con verbo en infinitivo + resultado esperado."
+    },
+    {
+      "id": 41,
+      "tipo": "seleccion_unica",
+      "tema": "Vigilancia científico-tecnológica",
+      "enunciado": "¿Cuál es el propósito principal de la vigilancia científico-tecnológica en el contexto de un proyecto de investigación en telecomunicaciones?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "Monitorear el comportamiento de los competidores comerciales exclusivamente"
+        },
+        {
+          "id": "b",
+          "texto": "Realizar un seguimiento sistemático y continuo de avances, tendencias y desarrollos en un área específica del conocimiento"
+        },
+        {
+          "id": "c",
+          "texto": "Copiar los resultados de otras investigaciones para acelerar el proyecto propio"
+        },
+        {
+          "id": "d",
+          "texto": "Sustituir la necesidad de realizar una revisión bibliográfica formal"
+        }
+      ],
+      "respuestaCorrecta": ["b"],
+      "retroalimentacion": "La vigilancia científico-tecnológica permite mantenerse actualizado sobre el estado del arte, identificar oportunidades de investigación y evitar duplicar esfuerzos ya realizados por otros investigadores."
+    },
+    {
+      "id": 42,
+      "tipo": "seleccion_unica",
+      "tema": "Investigación en el SENA",
+      "enunciado": "Según la metodología del SENA, ¿cuántas referencias bibliográficas mínimas se requieren en la vigilancia tecnológica antes de formular el anteproyecto?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "5 referencias bibliográficas"
+        },
+        {
+          "id": "b",
+          "texto": "10 referencias bibliográficas"
+        },
+        {
+          "id": "c",
+          "texto": "20 referencias bibliográficas"
+        },
+        {
+          "id": "d",
+          "texto": "50 referencias bibliográficas"
+        }
+      ],
+      "respuestaCorrecta": ["c"],
+      "retroalimentacion": "Según la guía de aprendizaje y la metodología SENA, se requiere una vigilancia tecnológica validada con al menos 20 referencias bibliográficas en bases de datos científicas antes de proceder a la creación del anteproyecto."
+    },
+    {
+      "id": 43,
+      "tipo": "seleccion_unica",
+      "tema": "Operadores booleanos en búsqueda",
+      "enunciado": "Al realizar una búsqueda en bases de datos académicas, ¿qué función cumple el operador booleano 'AND' en una ecuación de búsqueda como '5G AND network slicing'?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "Excluye resultados que contengan el segundo término"
+        },
+        {
+          "id": "b",
+          "texto": "Busca resultados que contengan cualquiera de los dos términos indistintamente"
+        },
+        {
+          "id": "c",
+          "texto": "Recupera solamente los resultados que contengan ambos términos simultáneamente"
+        },
+        {
+          "id": "d",
+          "texto": "Ordena los resultados por fecha de publicación"
+        }
+      ],
+      "respuestaCorrecta": ["c"],
+      "retroalimentacion": "El operador AND restringe la búsqueda para obtener solo resultados que contengan ambos términos. OR amplía la búsqueda incluyendo cualquiera de los términos. NOT excluye un término específico."
+    },
+    {
+      "id": 44,
+      "tipo": "seleccion_unica",
+      "tema": "Enfoque de investigación",
+      "enunciado": "Un proyecto que combina la medición de métricas técnicas de red (ancho de banda, latencia, pérdida de paquetes) con encuestas de percepción a los usuarios, ¿qué enfoque de investigación está utilizando?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "Enfoque cuantitativo exclusivamente"
+        },
+        {
+          "id": "b",
+          "texto": "Enfoque cualitativo exclusivamente"
+        },
+        {
+          "id": "c",
+          "texto": "Enfoque mixto"
+        },
+        {
+          "id": "d",
+          "texto": "Enfoque filosófico"
+        }
+      ],
+      "respuestaCorrecta": ["c"],
+      "retroalimentacion": "El enfoque mixto combina métodos cuantitativos (métricas técnicas medibles) y cualitativos (encuestas de percepción). Este enfoque permite una comprensión más integral del problema de investigación."
+    },
+    {
+      "id": 45,
+      "tipo": "seleccion_unica",
+      "tema": "Instrumentos de investigación",
+      "enunciado": "¿Cuál de las siguientes opciones es un instrumento de investigación utilizado para recopilar información de manera sistemática y estandarizada?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "Un artículo científico publicado en una revista indexada"
+        },
+        {
+          "id": "b",
+          "texto": "Un cuestionario estructurado con preguntas cerradas y escala Likert"
+        },
+        {
+          "id": "c",
+          "texto": "El marco teórico del proyecto de investigación"
+        },
+        {
+          "id": "d",
+          "texto": "La justificación del proyecto"
+        }
+      ],
+      "respuestaCorrecta": ["b"],
+      "retroalimentacion": "Los instrumentos de investigación son herramientas concretas para recopilar información: cuestionarios, guías de observación, fichas de análisis, protocolos de entrevista y escalas de medición."
+    },
+    {
+      "id": 46,
+      "tipo": "seleccion_multiple",
+      "tema": "Criterios selección de temas de investigación",
+      "enunciado": "Según la metodología SENA, ¿cuáles son los criterios válidos para seleccionar un tema de investigación viable?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "Pertinencia con el programa de formación en redes y telecomunicaciones"
+        },
+        {
+          "id": "b",
+          "texto": "Factibilidad técnica para desarrollo en el contexto del SENA"
+        },
+        {
+          "id": "c",
+          "texto": "Que el tema sea trending topic en redes sociales"
+        },
+        {
+          "id": "d",
+          "texto": "Accesibilidad a información bibliográfica y fuentes científicas"
+        },
+        {
+          "id": "e",
+          "texto": "Relevancia actual en el sector productivo y tecnológico"
+        }
+      ],
+      "respuestaCorrecta": ["a", "b", "d", "e"],
+      "retroalimentacion": "Los criterios SENA para selección de temas son: pertinencia con el programa de formación, factibilidad técnica en el contexto SENA, accesibilidad bibliográfica y relevancia sectorial actual."
+    },
+    {
+      "id": 47,
+      "tipo": "seleccion_multiple",
+      "tema": "Líneas de investigación GICS",
+      "enunciado": "¿Cuáles de las siguientes son líneas de investigación del grupo GICS del CEET SENA?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "Electricidad"
+        },
+        {
+          "id": "b",
+          "texto": "Telecomunicaciones"
+        },
+        {
+          "id": "c",
+          "texto": "Gastronomía molecular"
+        },
+        {
+          "id": "d",
+          "texto": "Teleinformática"
+        },
+        {
+          "id": "e",
+          "texto": "Vigilancia Tecnológica e Inteligencia Organizacional"
+        }
+      ],
+      "respuestaCorrecta": ["a", "b", "d", "e"],
+      "retroalimentacion": "GICS tiene líneas en Electricidad, Electrónica, Telecomunicaciones, Teleinformática, Pedagogía, Vigilancia Tecnológica e Inteligencia Organizacional."
+    },
+    {
+      "id": 48,
+      "tipo": "seleccion_multiple",
+      "tema": "Componentes del problema de investigación",
+      "enunciado": "Según los referentes estudiados, ¿cuáles son los componentes esenciales que debe incluir la formulación de un problema de investigación?",
+      "opciones": [
+        {
+          "id": "a",
+          "texto": "Condición o situación indeseable: descripción de lo que está mal o falta"
+        },
+        {
+          "id": "b",
+          "texto": "Consecuencias o costos: efectos negativos del problema en tiempo, dinero, calidad o seguridad"
+        },
+        {
+          "id": "c",
+          "texto": "El presupuesto detallado para resolver el problema"
+        },
+        {
+          "id": "d",
+          "texto": "La delimitación clara del contexto donde ocurre el problema"
+        },
+        {
+          "id": "e",
+          "texto": "Los nombres de los responsables del problema"
+        }
+      ],
+      "respuestaCorrecta": ["a", "b", "d"],
+      "retroalimentacion": "Un problema de investigación bien formulado incluye: la condición indeseable (qué está mal), las consecuencias (por qué es problema) y la delimitación del contexto (dónde y cuándo ocurre)."
+    },
+    {
+      "id": 49,
+      "tipo": "emparejamiento",
+      "tema": "Proceso del interés al problema de investigación",
+      "enunciado": "Empareje cada paso del proceso 'Del interés al problema de investigación' con su descripción correcta:",
+      "pares": [
+        {
+          "izquierda": "Interés",
+          "derecha": "Motivación personal o profesional que despierta curiosidad en un área específica"
+        },
+        {
+          "izquierda": "Tema enfocado",
+          "derecha": "Reducción del campo de estudio a un aspecto específico considerando pertinencia y viabilidad"
+        },
+        {
+          "izquierda": "Preguntas de significado amplio",
+          "derecha": "Interrogantes que trascienden el interés técnico buscando impacto organizacional o social"
+        },
+        {
+          "izquierda": "Problema",
+          "derecha": "Formulación clara de una necesidad, vacío o dificultad investigable"
+        }
+      ],
+      "retroalimentacion": "El proceso va del interés general hasta la formulación precisa del problema, pasando por la delimitación progresiva del tema y la generación de preguntas significativas."
+    },
+    {
+      "id": 50,
+      "tipo": "emparejamiento",
+      "tema": "Columnas de la Matriz de Marco Lógico",
+      "enunciado": "Empareje cada columna de la Matriz de Marco Lógico con su función dentro del diseño del proyecto:",
+      "pares": [
+        {
+          "izquierda": "Jerarquía de Objetivos",
+          "derecha": "Define el Fin, Propósito, Componentes y Actividades del proyecto en orden lógico"
+        },
+        {
+          "izquierda": "Indicadores",
+          "derecha": "Variables específicas, medibles y con plazo definido que permiten medir el logro de cada objetivo"
+        },
+        {
+          "izquierda": "Fuentes de Verificación",
+          "derecha": "Medios de información prácticos y económicos para comprobar que se alcanzaron los indicadores"
+        },
+        {
+          "izquierda": "Supuestos",
+          "derecha": "Eventos, condiciones y decisiones externas necesarias para que se cumplan los objetivos"
+        }
+      ],
+      "retroalimentacion": "La Matriz de Marco Lógico tiene 4 columnas que aseguran coherencia: qué se quiere lograr (objetivos), cómo se mide (indicadores), dónde se verifica (fuentes) y qué debe ocurrir externamente (supuestos)."
+    }
+  ]
+}
