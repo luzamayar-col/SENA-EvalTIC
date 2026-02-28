@@ -88,7 +88,7 @@ export function FormularioRegistro() {
       const resp = await fetch("/api/evaluacion/iniciar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cedula: values.numeroDocumento }),
+        body: JSON.stringify({ cedula: values.numeroDocumento.trim() }),
       });
 
       const data = await resp.json();
@@ -347,6 +347,13 @@ export function FormularioRegistro() {
                 </FormItem>
               )}
             />
+
+            {errorEvaluacion && !errorEvaluacion.yaPresento && (
+              <Alert variant="destructive" className="mt-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{errorEvaluacion.mensaje}</AlertDescription>
+              </Alert>
+            )}
 
             <Button
               type="submit"
