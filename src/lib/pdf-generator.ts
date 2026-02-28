@@ -433,7 +433,11 @@ export async function generatePDF(
       body: temas.map((t) => {
         const pct = Math.round(resultado.puntajePorTema![t]);
         const nivel =
-          pct >= 65 ? "Satisfactorio" : pct >= 40 ? "En proceso" : "Por mejorar";
+          pct >= 65
+            ? "Satisfactorio"
+            : pct >= 40
+              ? "En proceso"
+              : "Por mejorar";
         return [n(t), pct + "%", nivel];
       }),
       theme: "striped",
@@ -526,7 +530,13 @@ export async function generatePDF(
         doc.setFontSize(8);
         retros.forEach((retro) => {
           ctx.y = checkPage(ctx, 8);
-          ctx.y = wrapText(ctx, "- " + n(retro), MARGIN + 6, CONTENT_W - 10, 4.5);
+          ctx.y = wrapText(
+            ctx,
+            "- " + n(retro),
+            MARGIN + 6,
+            CONTENT_W - 10,
+            4.5,
+          );
           ctx.y += 2;
         });
       }
@@ -687,10 +697,20 @@ export async function generatePDF(
           const cy = data.cell.y + data.cell.height / 2;
           doc.setFillColor(255, 255, 255);
           doc.circle(cx, cy, 2.2, "F");
-          doc.setFontSize(8);
-          doc.setFont(font, "bold");
-          tc(doc, isOK ? SENA_GREEN : RED);
-          doc.text(isOK ? "\u2713" : "\u2717", cx, cy + 1, { align: "center" });
+
+          doc.setLineWidth(0.4);
+          if (isOK) {
+            doc.setDrawColor(SENA_GREEN[0], SENA_GREEN[1], SENA_GREEN[2]);
+            // Draw a checkmark using lines
+            doc.line(cx - 1, cy, cx - 0.2, cy + 1.2);
+            doc.line(cx - 0.2, cy + 1.2, cx + 1.2, cy - 1);
+          } else {
+            doc.setDrawColor(RED[0], RED[1], RED[2]);
+            // Draw an X using lines
+            doc.line(cx - 1, cy - 1, cx + 1, cy + 1);
+            doc.line(cx + 1, cy - 1, cx - 1, cy + 1);
+          }
+
           tc(doc, BLACK);
         },
         didDrawPage: (data) => {

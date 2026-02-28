@@ -12,7 +12,7 @@ const INSTRUCTOR_EMAIL = APP_CONFIG.instructorEmail;
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { datosAprendiz, resultado, tiempoTranscurrido, pdfBase64 } = body;
+    const { datosAprendiz, resultado, tiempoTranscurrido } = body;
 
     if (!datosAprendiz || !resultado) {
       return NextResponse.json(
@@ -82,26 +82,11 @@ export async function POST(req: Request) {
       </div>
     `;
 
-    // Process attachment if provided base64 pdf string
-    const attachments = [];
-    if (pdfBase64) {
-      // Clean up base64 string if it contains the data uri prefix
-      const base64Data = pdfBase64.includes("base64,")
-        ? pdfBase64.split("base64,")[1]
-        : pdfBase64;
-      attachments.push({
-        filename: `Evaluacion_${nombres.replace(/\s+/g, "")}_${numeroDocumento}.pdf`,
-        content: base64Data,
-        contentType: "application/pdf",
-      });
-    }
-
     const { data, error } = await resend.emails.send({
-      from: "EvalTIC SENA <onboarding@resend.dev>",
+      from: `EvalTIC SENA <${process.env.NEXT_PUBLIC_SENDER_EMAIL || "onboarding@resend.dev"}>`,
       to: [INSTRUCTOR_EMAIL],
       subject: `Resultados Evaluación - ${nombres} ${apellidos} - Ficha ${ficha}`,
       html: htmlContent,
-      attachments: attachments.length > 0 ? attachments : undefined,
     });
 
     if (error) {
