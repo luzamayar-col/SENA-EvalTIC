@@ -48,6 +48,7 @@ export default function EvaluacionPage() {
   const [showStartModal, setShowStartModal] = useState(true);
 
   useEffect(() => {
+    // eslint-disable-next-line
     setMounted(true);
     if (estado === "inicio" || !datosAprendiz) {
       router.push("/");
@@ -81,6 +82,30 @@ export default function EvaluacionPage() {
   const preguntasRespondidasCount = Object.keys(respuestas).length;
   const faltanPorResponder =
     preguntasSeleccionadas.length - preguntasRespondidasCount;
+
+  const preguntaActual = preguntasSeleccionadas[preguntaActualIndex];
+  const qId = preguntaActual ? String(preguntaActual.id) : null;
+  const respuestaActual = qId ? respuestas[qId] : null;
+
+  const isCurrentQuestionAnswered = (() => {
+    if (!preguntaActual || !respuestaActual) return false;
+
+    if (
+      preguntaActual.tipo === "seleccion_unica" ||
+      preguntaActual.tipo === "seleccion_multiple"
+    ) {
+      return (
+        respuestaActual.respuestaIds && respuestaActual.respuestaIds.length > 0
+      );
+    } else if (preguntaActual.tipo === "emparejamiento") {
+      const numOfPairs = preguntaActual.izquierdas?.length || 0;
+      const matchedPairs = Object.keys(
+        respuestaActual.emparejamientos || {},
+      ).filter((key) => respuestaActual.emparejamientos![key] !== "").length;
+      return numOfPairs > 0 && matchedPairs === numOfPairs;
+    }
+    return false;
+  })();
 
   return (
     <div className="w-full min-h-[calc(100vh-140px)] flex flex-col items-center py-6 px-4 bg-sena-gray-light/30">
@@ -146,8 +171,13 @@ export default function EvaluacionPage() {
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button
-                        disabled={finalizando}
-                        className="w-full sm:w-auto bg-sena-green hover:bg-sena-green-dark text-white font-bold transition-colors"
+                        disabled={finalizando || !isCurrentQuestionAnswered}
+                        className={cn(
+                          "w-full sm:w-auto font-bold transition-colors text-white",
+                          isCurrentQuestionAnswered
+                            ? "bg-sena-green hover:bg-sena-green-dark"
+                            : "bg-sena-gray-dark cursor-not-allowed opacity-50",
+                        )}
                       >
                         {finalizando ? "Evaluando..." : "Finalizar Prueba"}
                       </Button>
@@ -183,7 +213,13 @@ export default function EvaluacionPage() {
                 ) : (
                   <Button
                     onClick={siguientePregunta}
-                    className="w-full sm:w-auto bg-sena-green hover:bg-sena-green-dark text-white transition-colors"
+                    disabled={!isCurrentQuestionAnswered}
+                    className={cn(
+                      "w-full sm:w-auto text-white transition-colors",
+                      isCurrentQuestionAnswered
+                        ? "bg-sena-green hover:bg-sena-green-dark"
+                        : "bg-sena-gray-dark cursor-not-allowed opacity-50",
+                    )}
                   >
                     Siguiente Pregunta
                   </Button>
@@ -213,7 +249,10 @@ export default function EvaluacionPage() {
                     <button
                       key={q.id}
                       onClick={() => !isAnswered && avanzarAPregunta(idx)}
-                      disabled={isAnswered && !isCurrent}
+                      disabled={
+                        (isAnswered && !isCurrent) ||
+                        (!isAnswered && !isCurrentQuestionAnswered)
+                      }
                       className={cn(
                         "h-10 w-full rounded-md text-xs font-bold transition-all flex items-center justify-center border",
                         isCurrent
