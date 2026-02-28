@@ -21,8 +21,15 @@ export async function POST(request: Request) {
     // Verificar si ya presentó
     let completadas: any[] = [];
     if (fs.existsSync(COMPLETED_EVALUATIONS_FILE)) {
-      const data = fs.readFileSync(COMPLETED_EVALUATIONS_FILE, "utf8");
-      completadas = JSON.parse(data);
+      try {
+        const data = fs.readFileSync(COMPLETED_EVALUATIONS_FILE, "utf8");
+        if (data.trim() !== "") {
+          completadas = JSON.parse(data);
+        }
+      } catch (e) {
+        console.error("Error parseando JSON de completadas:", e);
+        completadas = [];
+      }
     }
 
     const registroExistente = completadas.find((r) => r.cedula === cedula);
