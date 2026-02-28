@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 
+import { APP_CONFIG } from "@/lib/config";
+
 // Using the keys provided by the instructor
-const resend = new Resend("re_VuoY2BFk_15KTWKVmfAeWoCEbviJUEejp");
-const INSTRUCTOR_EMAIL = "mvargas.rodriguez@gmail.com";
+const resend = new Resend(
+  process.env.RESEND_API_KEY || "re_VuoY2BFk_15KTWKVmfAeWoCEbviJUEejp",
+);
+const INSTRUCTOR_EMAIL = APP_CONFIG.instructorEmail;
 
 export async function POST(req: Request) {
   try {

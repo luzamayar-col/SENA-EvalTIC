@@ -5,7 +5,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { APP_CONFIG } from "@/lib/config";
@@ -23,17 +22,21 @@ export function EvaluacionStartModal({
   return (
     <Dialog open={open} onOpenChange={() => {}}>
       <DialogContent
-        className="max-w-2xl border-t-4 border-t-sena-blue [&>button]:hidden"
+        className="sm:max-w-2xl max-h-[85vh] flex flex-col p-0 gap-0 overflow-hidden border-t-4 border-t-sena-blue [&>button]:hidden"
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
+        aria-describedby="start-modal-description"
       >
-        <DialogHeader>
+        <DialogHeader className="px-5 py-4 border-b bg-muted/20 flex-none m-0">
           <DialogTitle className="text-sena-blue text-xl font-bold">
             Informacion de la Evaluacion
           </DialogTitle>
+          <div id="start-modal-description" className="sr-only">
+            Instrucciones antes de iniciar
+          </div>
         </DialogHeader>
 
-        <div className="space-y-4 py-2">
+        <div className="flex-1 overflow-y-auto p-4 md:p-5 flex flex-col gap-4">
           {/* Competencia */}
           <div className="flex gap-3 items-start bg-sena-gray-light/50 rounded-lg p-4">
             <Target className="w-5 h-5 text-sena-green shrink-0 mt-0.5" />
@@ -75,14 +78,14 @@ export function EvaluacionStartModal({
           </div>
         </div>
 
-        <DialogFooter>
+        <div className="flex-none p-4 border-t bg-muted/20">
           <Button
             onClick={onStart}
             className="w-full bg-sena-green hover:bg-sena-green-dark text-white font-bold"
           >
             Entendido — Iniciar Evaluacion
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

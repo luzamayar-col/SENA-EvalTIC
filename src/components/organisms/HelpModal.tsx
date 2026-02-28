@@ -15,18 +15,25 @@ interface HelpModalProps {
 export function HelpModal({ open, onOpenChange }: HelpModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
+      <DialogContent
+        className="sm:max-w-lg max-h-[85vh] flex flex-col p-0 gap-0 overflow-hidden"
+        onInteractOutside={(e) => e.preventDefault()}
+        aria-describedby="help-modal-description"
+      >
+        <DialogHeader className="px-5 py-4 border-b bg-muted/20 flex-none m-0">
           <DialogTitle className="flex items-center gap-2 text-xl text-sena-blue">
             <HelpCircle className="w-6 h-6 text-sena-green" />
             Guía de Referencia
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription
+            id="help-modal-description"
+            className="text-sena-gray-dark/80 mt-1"
+          >
             Plataforma de evaluación de conocimientos en línea
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 text-sm text-sena-gray-dark py-4">
+        <div className="flex-1 overflow-y-auto p-4 md:p-5 flex flex-col gap-4 text-sm text-sena-gray-dark">
           {[
             {
               step: 1,
@@ -71,6 +78,15 @@ export function HelpModal({ open, onOpenChange }: HelpModalProps) {
               </div>
             </div>
           ))}
+        </div>
+
+        <div className="flex-none p-4 border-t bg-muted/20 md:hidden">
+          <button
+            onClick={() => onOpenChange(false)}
+            className="w-full h-10 rounded-md border border-sena-gray-dark/20 text-sena-blue font-medium text-sm flex items-center justify-center"
+          >
+            Cerrar Guía
+          </button>
         </div>
       </DialogContent>
     </Dialog>

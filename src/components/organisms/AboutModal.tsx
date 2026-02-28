@@ -16,13 +16,16 @@ interface AboutModalProps {
 export function AboutModal({ open, onOpenChange }: AboutModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent
+        className="sm:max-w-md max-h-[85vh] flex flex-col p-0 gap-0 overflow-hidden"
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader className="sr-only">
           <DialogTitle>Acerca de</DialogTitle>
           <DialogDescription>Información del sistema</DialogDescription>
         </DialogHeader>
 
-        <div className="text-center space-y-4 pt-4">
+        <div className="flex-1 overflow-y-auto p-4 md:p-5 text-center space-y-4">
           <Image
             src="/assets/logos/escudo-semilleros.svg"
             alt="SENA EvalTIC"
@@ -89,6 +92,15 @@ export function AboutModal({ open, onOpenChange }: AboutModalProps) {
               <br /> Todos los derechos reservados.
             </p>
           </div>
+        </div>
+
+        <div className="flex-none p-4 border-t bg-muted/20 md:hidden">
+          <button
+            onClick={() => onOpenChange(false)}
+            className="w-full h-10 rounded-md border border-sena-gray-dark/20 text-sena-blue font-medium text-sm flex items-center justify-center"
+          >
+            Cerrar
+          </button>
         </div>
       </DialogContent>
     </Dialog>
