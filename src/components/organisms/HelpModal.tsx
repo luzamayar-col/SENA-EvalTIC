@@ -16,7 +16,7 @@ export function HelpModal({ open, onOpenChange }: HelpModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="w-[100vw] h-[100dvh] max-w-none border-none rounded-none sm:max-w-lg sm:h-auto sm:max-h-[85vh] sm:border-solid sm:rounded-lg flex flex-col p-0 gap-0 overflow-hidden"
+        className="fixed inset-0 top-0 left-0 translate-x-0 translate-y-0 w-full h-[100dvh] max-w-none border-none rounded-none sm:bottom-auto sm:top-[50%] sm:left-[50%] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-full sm:max-w-lg sm:h-auto sm:max-h-[85vh] sm:border-solid sm:border sm:rounded-lg flex flex-col p-0 gap-0 overflow-hidden z-50"
         onInteractOutside={(e) => e.preventDefault()}
         aria-describedby="help-modal-description"
       >

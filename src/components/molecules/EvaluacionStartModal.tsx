@@ -22,7 +22,7 @@ export function EvaluacionStartModal({
   return (
     <Dialog open={open} onOpenChange={() => {}}>
       <DialogContent
-        className="w-[100vw] h-[100dvh] max-w-none border-none rounded-none sm:max-w-2xl sm:h-auto sm:max-h-[85vh] sm:border-solid sm:rounded-lg sm:border-t-4 sm:border-t-sena-blue flex flex-col p-0 gap-0 overflow-hidden [&>button]:hidden"
+        className="fixed inset-0 top-0 left-0 translate-x-0 translate-y-0 w-full h-[100dvh] max-w-none border-none rounded-none sm:bottom-auto sm:top-[50%] sm:left-[50%] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-full sm:max-w-2xl sm:h-auto sm:max-h-[85vh] sm:border-solid sm:border sm:rounded-lg sm:border-t-4 sm:border-t-sena-blue flex flex-col p-0 gap-0 overflow-hidden [&>button]:hidden z-50"
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
         aria-describedby="start-modal-description"
