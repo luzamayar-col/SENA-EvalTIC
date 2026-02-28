@@ -13,9 +13,9 @@ Sistema interactivo de evaluación técnica en línea para aprendices del **SENA
 | **Sin retroceso**           | Una vez respondida una pregunta y avanzado a la siguiente, no es posible regresar                             |
 | **Temporizador**            | Límite de 15 minutos con cuenta regresiva visible                                                             |
 | **Calificación automática** | Puntaje sobre 100 puntos — nota de corte 65 %                                                                 |
-| **Informe PDF**             | Generado en el cliente con jsPDF; incluye datos del aprendiz, competencia, resultados y detalle por pregunta  |
-| **Notificación por correo** | Envío automático al instructor vía Resend API al finalizar la evaluación                                      |
-| **Modal de inicio**         | Informa la competencia, el resultado de aprendizaje evaluado y las reglas antes de comenzar                   |
+| **Informe PDF**             | Generado en el cliente; incluye iconos SVG vectorizados, respuestas correctas, retroalimentación y desglose   |
+| **Notificación por correo** | Envío automático al instructor vía Resend API con feedback visual de entrega (UI) en la vista de resultados   |
+| **Interfaz Móvil**          | Modales optimizados para móviles (sticky header/footer) para mejorar la lectura y cierre en pantallas chicas  |
 
 ---
 
@@ -146,8 +146,9 @@ El banco de preguntas se gestiona en `src/data/preguntas.json`. Soporta tres tip
 
 ---
 
-## Notas Técnicas
+## Notas Técnicas y Serverless (Troubleshooting)
 
-- **Fuente PDF:** `public/fonts/NotoSans-Regular.ttf` es necesaria para renderizar correctamente tildes (á, é, ó, ú) y caracteres especiales (ñ, Ñ) en el informe PDF. No eliminar este archivo.
-- **Control de intentos:** Los intentos se almacenan en la API Route `/api/evaluacion/iniciar`. En entorno de desarrollo puedes limpiar el estado de Zustand desde las DevTools del navegador para presentar la evaluación nuevamente.
+- **Fuente PDF:** `public/fonts/NotoSans-Regular.ttf` es necesaria para renderizar correctamente tildes (á, é, ó, ú) y caracteres especiales (ñ, Ñ) en el informe PDF. Los iconos de acierto/error en las preguntas de emparejamiento están diseñados mediante vectores nativos (`doc.line`) para sortear los clásicos errores de fuentes Unicode dañadas.
+- **Entornos Serverless (Vercel):** La aplicación está preparada para ejecutarse en contenedores de solo lectura (_read-only file system_ - EROFS). Si se falla al escribir en el JSON local por falta de permisos en `/api/evaluacion/finalizar`, el algoritmo lo dejará pasar para no interrumpir el flujo de calificación y envío de correo del aprendiz.
+- **Bloqueo de Correo (Resend):** La plataforma prohibe utilizar correos genéricos (`@gmail.com`) en la variable emisora (`NEXT_PUBLIC_SENDER_EMAIL`) para evitar suplantación de identidad. Mientras el dominio no se verifique por DNS, se deberá testear siempre enviando desde `onboarding@resend.dev` hacia el correo del autor.
 - **Opciones aleatorizadas:** Las opciones de respuesta se mezclan en cada sesión (`aleatorizarOpciones: true`) para evitar que los aprendices memoricen posiciones.
