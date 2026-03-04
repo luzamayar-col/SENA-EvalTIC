@@ -77,12 +77,12 @@ export default function InstructorLoginPage() {
       <div className="w-full max-w-md animate-slideUpAndFade">
         {/* Logo & header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-white shadow-lg mb-4">
+          <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-white shadow-lg mb-4">
             <Image
               src="/assets/logos/escudo-semilleros.svg"
               alt="SENA Logo"
-              width={52}
-              height={52}
+              width={84}
+              height={84}
               className="object-contain"
             />
           </div>
