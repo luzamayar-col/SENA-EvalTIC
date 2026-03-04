@@ -516,7 +516,7 @@ export async function generatePDF(
     doc.text("Recomendaciones por Área Temática", MARGIN, ctx.y);
     ctx.y += 8;
 
-    temas.forEach((tema) => {
+    temas.forEach((tema, tIdx) => {
       const pct = Math.round(resultado.puntajePorTema![tema]);
       const retros = retroByTema[tema] || [];
 
@@ -578,13 +578,17 @@ export async function generatePDF(
         });
       }
 
-      ctx.y += 3;
-      ctx.y = checkPage(ctx, 5);
-      dc(doc, GRAY_LIGHT);
-      doc.setLineWidth(0.2);
-      doc.line(MARGIN, ctx.y, PAGE_W - MARGIN, ctx.y);
-      ctx.y += 5;
-      tc(doc, BLACK);
+      if (tIdx < temas.length - 1) {
+        ctx.y += 3;
+        ctx.y = checkPage(ctx, 5);
+        dc(doc, GRAY_LIGHT);
+        doc.setLineWidth(0.2);
+        doc.line(MARGIN, ctx.y, PAGE_W - MARGIN, ctx.y);
+        ctx.y += 5;
+        tc(doc, BLACK);
+      } else {
+        ctx.y += 3;
+      }
     });
   }
 
@@ -833,14 +837,18 @@ export async function generatePDF(
       );
     }
 
-    // Separator
-    ctx.y += 3;
-    ctx.y = checkPage(ctx, 5);
-    dc(doc, GRAY_LIGHT);
-    doc.setLineWidth(0.2);
-    doc.line(MARGIN, ctx.y, PAGE_W - MARGIN, ctx.y);
-    ctx.y += 4;
-    tc(doc, BLACK);
+    // Separator between questions (skip after the last one to avoid near-blank trailing page)
+    if (index < preguntas.length - 1) {
+      ctx.y += 3;
+      ctx.y = checkPage(ctx, 5);
+      dc(doc, GRAY_LIGHT);
+      doc.setLineWidth(0.2);
+      doc.line(MARGIN, ctx.y, PAGE_W - MARGIN, ctx.y);
+      ctx.y += 4;
+      tc(doc, BLACK);
+    } else {
+      ctx.y += 3;
+    }
   });
 
   addFooter(doc, font);
