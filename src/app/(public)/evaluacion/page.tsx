@@ -45,6 +45,8 @@ export default function EvaluacionPage() {
     testMode,
     intentoNumero,
     aprendizInfo,
+    tiempoRestante,
+    tiempoTranscurrido,
   } = useEvaluacionStore();
 
   const [finalizando, setFinalizando] = useState(false);
@@ -95,6 +97,17 @@ export default function EvaluacionPage() {
       router.push("/resultados");
     }
   }, [estado, datosAprendiz, testMode, router]);
+
+  // Auto-submit when timer reaches 0 — saves answered questions to DB
+  useEffect(() => {
+    if (tiempoRestante !== 0) return;
+    if (tiempoTranscurrido === 0) return; // hasn't started yet
+    if (estado !== "evaluando") return;
+    if (finalizando) return;
+    setFinalizando(true);
+    finalizarEvaluacion().finally(() => setFinalizando(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tiempoRestante]);
 
   if (!mounted || estado !== "evaluando") {
     return (

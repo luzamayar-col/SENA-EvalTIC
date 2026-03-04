@@ -144,18 +144,8 @@ export const useEvaluacionStore = create<EvaluacionState>((set, get) => ({
   tickTiempo: () =>
     set((state) => {
       if (state.estado !== "evaluando") return state;
-
-      const nuevoRestante = Math.max(0, state.tiempoRestante - 1);
-      if (nuevoRestante === 0) {
-        return {
-          tiempoRestante: 0,
-          tiempoTranscurrido: state.tiempoTranscurrido + 1,
-          estado: "resultados",
-        };
-      }
-
       return {
-        tiempoRestante: nuevoRestante,
+        tiempoRestante: Math.max(0, state.tiempoRestante - 1),
         tiempoTranscurrido: state.tiempoTranscurrido + 1,
       };
     }),
