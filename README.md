@@ -1,81 +1,131 @@
 # SENA EvalTIC
 
-Sistema interactivo de evaluación técnica en línea para aprendices del **SENA - Centro de Electricidad, Electrónica y Telecomunicaciones (CEET)**. Permite a los instructores aplicar evaluaciones dinámicas con selección aleatoria de preguntas, control de intentos, temporizador, generación de informes PDF y notificación por correo electrónico.
+Sistema interactivo de evaluación técnica en línea para aprendices del **SENA - Centro de Electricidad, Electrónica y Telecomunicaciones (CEET)**. Permite a los instructores aplicar evaluaciones dinámicas con selección aleatoria de preguntas, control de intentos múltiples, temporizador, generación de informes PDF, notificación por correo electrónico y un **panel de administración completo** para gestionar evaluaciones, fichas de aprendices, resultados e importación masiva desde SOFIA Plus.
 
 ---
 
 ## Características Principales
 
-| Característica              | Descripción                                                                                                   |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| **Evaluación dinámica**     | 10 preguntas aleatorias tomadas de un banco de 50 (5 selección única, 3 selección múltiple, 2 emparejamiento) |
-| **Control de intentos**     | Verificación por número de documento — un solo intento por aprendiz                                           |
-| **Sin retroceso**           | Una vez respondida una pregunta y avanzado a la siguiente, no es posible regresar                             |
-| **Temporizador**            | Límite de 15 minutos con cuenta regresiva visible                                                             |
-| **Calificación automática** | Puntaje sobre 100 puntos — nota de corte 65 %                                                                 |
-| **Informe PDF**             | Generado en el cliente; incluye iconos SVG vectorizados, respuestas correctas, retroalimentación y desglose   |
-| **Notificación por correo** | Envío automático al instructor vía Resend API con feedback visual de entrega (UI) en la vista de resultados   |
-| **Interfaz Móvil**          | Modales optimizados para móviles (sticky header/footer) para mejorar la lectura y cierre en pantallas chicas  |
-
----
-
-## Información de la Evaluación
-
-- **Institución:** SENA - Centro de Electricidad, Electrónica y Telecomunicaciones (CEET)
-- **Competencia:** `38199` — ORIENTAR INVESTIGACIÓN FORMATIVA SEGÚN REFERENTES TÉCNICOS
-- **Resultado de Aprendizaje:** `580873` — PROPONER SOLUCIONES A LAS NECESIDADES DEL CONTEXTO SEGÚN RESULTADOS DE LA INVESTIGACIÓN
-- **Programas de formación disponibles:**
-  - Tecnólogo en Implementación de Infraestructura de Tecnologías de la Información y las Comunicaciones (IITICS)
-  - Tecnólogo en Implementación de Redes y Servicios de Telecomunicaciones (TIRST)
-  - Tecnólogo en Gestión de Redes de Datos (GRD)
-  - Otro Programa
+| Característica              | Descripción                                                                                                                 |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| **Evaluación dinámica**     | Preguntas aleatorias del banco (configurable: sel. única, sel. múltiple, emparejamiento)                                   |
+| **Validación por cédula**   | Flujo de dos pasos: validar cédula + ficha → confirmar datos → iniciar                                                      |
+| **Control de intentos**     | Máx. intentos configurables por evaluación + intentos extra por aprendiz; se persisten en Neon Postgres                     |
+| **Sin retroceso**           | Una vez respondida una pregunta y avanzado, no es posible regresar                                                          |
+| **Temporizador**            | Límite configurable en minutos con cuenta regresiva visible                                                                  |
+| **Calificación automática** | Puntaje sobre 100 — nota de corte configurable (65 % por defecto)                                                           |
+| **Informe PDF**             | Generado en el cliente; incluye iconos SVG vectorizados, respuestas correctas, retroalimentación y desglose                 |
+| **Notificación por correo** | Envío automático al instructor vía Resend API con CC al aprendiz                                                            |
+| **Interfaz Móvil**          | Diseño responsive con modales optimizados para pantallas pequeñas                                                           |
+| **Panel del instructor**    | Dashboard con métricas, gestión completa de evaluaciones, fichas, aprendices, resultados y exportación Excel                |
+| **Modo prueba**             | El instructor puede presentar la evaluación en modo prueba — los resultados no se guardan                                   |
+| **Editor de preguntas**     | Interfaz visual drag-and-drop para editar, reordenar y crear preguntas del banco                                            |
+| **Importación SOFIA Plus**  | Importar aprendices desde el Excel de SOFIA Plus (detección automática de columnas)                                         |
+| **Exportación Excel**       | Resultados exportables en `.xlsx` con dos hojas (Resultados y Resumen)                                                      |
+| **Autenticación**           | NextAuth v4 con credenciales (email + contraseña bcrypt) — solo instructores autorizados                                   |
 
 ---
 
 ## Pila Tecnológica (Stack)
 
-- **Framework:** Next.js 16 (App Router) + React 19
-- **Estilos:** Tailwind CSS v4 + shadcn/ui
-- **Estado global:** Zustand (con middleware de persistencia)
-- **Generación PDF:** jsPDF v4 + jspdf-autotable v5 + fuente Noto Sans (local)
-- **Correo electrónico:** Resend API
-- **Iconos:** Lucide React
-- **Formularios:** React Hook Form + Zod
-- **Animaciones drag & drop:** @dnd-kit (preguntas de emparejamiento)
+| Capa | Tecnología |
+|---|---|
+| Framework | Next.js 16.1 (App Router, Turbopack) + React 19 |
+| Estilos | Tailwind CSS v4 + shadcn/ui (new-york) |
+| Base de datos | Neon Postgres (serverless) vía Prisma 7 + `@prisma/adapter-neon` |
+| Autenticación | NextAuth v4 (CredentialsProvider, JWT) |
+| Estado global | Zustand 5 |
+| Formularios | React Hook Form 7 + Zod 4 |
+| Correo electrónico | Resend API |
+| Generación PDF | jsPDF v4 + jspdf-autotable v5 |
+| Importación/Exportación | SheetJS (xlsx) |
+| Drag & drop | @dnd-kit/core + @dnd-kit/sortable |
+| Iconos | Lucide React |
 
 ---
 
-## Estructura del Proyecto
+## Arquitectura y Estructura
 
 ```
+prisma/
+├── schema.prisma             # Modelos DB: Instructor, Evaluacion, Ficha, Aprendiz, Resultado
+├── seed.ts                   # Crea el primer instructor + evaluación inicial
+└── migrations/               # Historial de migraciones
+
 src/
 ├── app/
-│   ├── page.tsx                  # Página de ingreso del aprendiz
-│   ├── evaluacion/page.tsx       # Interfaz de la evaluación
-│   ├── resultados/page.tsx       # Resumen de resultados y descarga PDF
+│   ├── (public)/             # Rutas del aprendiz (Header + Footer)
+│   │   ├── page.tsx          # Registro: validar cédula+ficha → confirmar → iniciar
+│   │   ├── evaluacion/       # Interfaz de la evaluación (con banner modo prueba)
+│   │   └── resultados/       # Resumen, PDF y correo
+│   ├── instructor/
+│   │   ├── (auth)/login/     # Página de inicio de sesión
+│   │   └── (protected)/      # Panel protegido por middleware
+│   │       ├── dashboard/    # KPIs globales
+│   │       ├── evaluaciones/ # CRUD evaluaciones + editor de preguntas
+│   │       ├── fichas/       # CRUD fichas + detalle por ficha
+│   │       │   └── [id]/     # Detalle: aprendices, estadísticas, resultados
+│   │       ├── resultados/   # Resultados paginados + export Excel/CSV
+│   │       └── instructores/ # Gestión de instructores (solo admin)
 │   └── api/
-│       ├── evaluacion/iniciar/   # Valida intento y crea registro
-│       └── evaluacion/finalizar/ # Registra resultado y envía correo
+│       ├── auth/[...nextauth]/
+│       ├── evaluacion/
+│       │   ├── iniciar/               # Valida roster, cuenta intentos, retorna preguntas
+│       │   ├── finalizar/             # Registra resultado (o descarta si esPrueba)
+│       │   ├── validar-aprendiz/      # GET: busca aprendiz en roster por cédula+ficha
+│       │   └── validar-ficha/         # GET: valida que la ficha tenga evaluación activa
+│       └── instructor/
+│           ├── evaluaciones/          # CRUD + toggle activa
+│           │   └── [id]/prueba/       # POST: inicia modo prueba (sin guardar resultado)
+│           ├── fichas/
+│           │   └── [id]/
+│           │       ├── aprendices/    # GET list + POST single/bulk import
+│           │       └── stats/         # Métricas de la ficha
+│           ├── aprendices/
+│           │   └── [id]/
+│           │       ├── route.ts       # PUT editar, DELETE eliminar
+│           │       └── intentos/      # PATCH conceder intentos extra
+│           ├── resultados/
+│           │   ├── export/            # CSV
+│           │   └── export-excel/      # XLSX (dos hojas: Resultados + Resumen)
+│           └── templates/[type]/      # GET plantillas descargables (aprendices.xlsx, preguntas.json)
 ├── components/
-│   ├── atoms/                    # Primitivos (botones, inputs, badges)
-│   ├── molecules/                # Compuestos (Timer, StartModal, etc.)
-│   ├── organisms/                # Secciones (Header, Footer, AboutModal)
-│   └── templates/                # Renderizador de preguntas (QuestionRenderer)
-├── data/
-│   └── preguntas.json            # Banco de 50 preguntas
+│   ├── organisms/            # Header, tablas CRUD, PreguntasEditor, FichaDetailClient
+│   ├── molecules/            # Diálogos, badges, filtros, ExcelUploader, JsonUploader
+│   ├── templates/            # FormularioRegistro (2 pasos), EvaluacionFormTemplate
+│   └── providers/            # SessionProvider
 ├── lib/
-│   ├── config.ts                 # Parámetros globales de la evaluación
-│   ├── pdf-generator.ts          # Generador de informes PDF (jsPDF)
-│   ├── score.ts                  # Lógica de calificación
-│   └── utils.ts                  # Helpers generales
-└── stores/
-    └── evaluacion-store.ts       # Estado global (Zustand)
+│   ├── prisma.ts             # Singleton PrismaClient con PrismaNeonHttp
+│   ├── auth.ts               # authOptions (NextAuth)
+│   ├── auth-utils.ts         # requireInstructor() — guard server-side
+│   ├── config.ts             # APP_CONFIG (feature flag, parámetros)
+│   ├── score.ts              # calcularPuntaje()
+│   └── shuffle.ts            # shuffleQuestions()
+├── stores/
+│   └── evaluacion-store.ts   # Estado global: preguntas, respuestas, testMode, aprendizInfo
+└── types/
+    └── preguntas.ts          # Tipos TS para el banco de preguntas
 
 public/
-├── assets/logos/                 # Logos institucionales SVG/PNG
-└── fonts/
-    └── NotoSans-Regular.ttf      # Fuente para el PDF (soporte de tildes y ñ)
+├── assets/logos/             # Logos institucionales SVG/PNG
+└── fonts/                    # NotoSans para el PDF
 ```
+
+---
+
+## Modelos de Base de Datos
+
+```prisma
+Instructor      → tiene Evaluacion[]
+Evaluacion      → tiene Ficha[], Resultado[]  (maxIntentos configurable)
+Ficha           → tiene Aprendiz[], Resultado[]
+Aprendiz        → cédula + intentosExtra por ficha
+Resultado       → intento (1,2,3...) + esPrueba (true/false)
+```
+
+- **Aprendiz**: los aprendices deben estar pre-cargados en la ficha antes de poder presentar la evaluación.
+- **Resultado.intento**: permite múltiples intentos (`@@unique([cedula, evaluacionId, intento])`).
+- **Resultado.esPrueba**: si `true`, el resultado no se registró desde el flujo de aprendiz.
 
 ---
 
@@ -89,29 +139,63 @@ cd evaluaciones
 npm install
 ```
 
-### 2. Variables de Entorno
+### 2. Crear base de datos en Neon
 
-Crea `.env.local` en la raíz del proyecto:
+1. Ir a [console.neon.tech](https://console.neon.tech) → **New Project**
+2. Copiar la **Connection string** → usarla como `DATABASE_URL`
+
+### 3. Variables de Entorno
+
+Crear `.env.local` en la raíz del proyecto (ver `.env.example` para plantilla):
 
 ```env
-# Correo del instructor que recibirá las alertas
-NEXT_PUBLIC_INSTRUCTOR_EMAIL=instructor@sena.edu.co
+# Base de datos Neon Postgres
+DATABASE_URL=postgresql://user:pass@ep-xxx.neon.tech/dbname?sslmode=require
 
-# Correo emisor (configurado como dominio verificado en Resend)
-NEXT_PUBLIC_SENDER_EMAIL=evaluaciones@sena-ceet.edu.co
+# NextAuth
+NEXTAUTH_SECRET=<32-bytes-hex>
+NEXTAUTH_URL=http://localhost:3000
 
-# API Key de Resend (https://resend.com)
+# Contraseña del primer instructor (solo para el seed inicial)
+INSTRUCTOR_SEED_PASSWORD=tu-contraseña-segura
+
+# Feature flag: "true" activa el backend Neon; "false" usa el flujo JSON legacy
+NEXT_PUBLIC_USE_DB_BACKEND="true"
+
+# Resend (correo electrónico)
 RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxx
+NEXT_PUBLIC_INSTRUCTOR_EMAIL=instructor@sena.edu.co
+NEXT_PUBLIC_SENDER_EMAIL=onboarding@resend.dev
 ```
 
-### 3. Ejecución en Desarrollo
+### 4. Migrar la base de datos y crear el primer instructor
+
+```bash
+# Aplica el esquema en Neon (entorno sin TTY como CI o Git Bash)
+npx prisma db push
+
+# Genera el cliente TypeScript
+npx prisma generate
+
+# Crea instructor admin + evaluación inicial + ficha de ejemplo
+npx prisma db seed
+```
+
+> En entornos interactivos (terminal estándar) puedes usar `npx prisma migrate dev --name init` en lugar de `db push`.
+
+**Credenciales del seed:**
+- Email: `mvargasr@sena.edu.co`
+- Contraseña: valor de `INSTRUCTOR_SEED_PASSWORD` en `.env.local`
+- Panel: `http://localhost:3000/instructor/login`
+
+### 5. Ejecución en Desarrollo
 
 ```bash
 npm run dev
 # Disponible en http://localhost:3000
 ```
 
-### 4. Build de Producción
+### 6. Build de Producción
 
 ```bash
 npm run build
@@ -120,35 +204,119 @@ npm start
 
 ---
 
-## Personalización
+## Panel del Instructor
 
-Para adaptar la evaluación a una competencia o resultado de aprendizaje diferente, edita `src/lib/config.ts`:
+Acceso en `/instructor/login`. Solo para instructores registrados.
 
-```typescript
-competencia: {
-  codigo: "38199",
-  nombre: "ORIENTAR INVESTIGACIÓN FORMATIVA SEGÚN REFERENTES TÉCNICOS",
-},
-resultadoAprendizaje: {
-  codigo: "580873",
-  nombre: "PROPONER SOLUCIONES A LAS NECESIDADES DEL CONTEXTO...",
-},
-totalQuestions: 10,         // Total de preguntas por evaluación
-timeLimitMinutes: 15,       // Tiempo límite
-passingScorePercentage: 65, // Nota mínima de aprobación (%)
-```
+### Dashboard
+- Métricas globales: total resultados, tasa de aprobación, puntaje promedio, evaluaciones activas
 
-El banco de preguntas se gestiona en `src/data/preguntas.json`. Soporta tres tipos:
+### Evaluaciones
+- Crear/editar evaluaciones con banco de preguntas (subir `.json` o usar el editor visual)
+- Configurar: tiempo límite, % para aprobar, **máx. intentos**, distribución de tipos de pregunta
+- **Editor de preguntas** (`/instructor/evaluaciones/[id]/preguntas`): drag-reorder, crear/editar/eliminar preguntas de los 3 tipos
+- **Modo prueba** (botón ⚗): el instructor presenta la evaluación sin guardar resultado; muestra banner ámbar
+- Activar/desactivar + fechas de vigencia por evaluación
 
-- `seleccion_unica` — una sola respuesta correcta
-- `seleccion_multiple` — varias respuestas correctas
-- `emparejamiento` — pares concepto ↔ definición
+### Fichas
+- CRUD completo (crear, editar, eliminar)
+- Número de ficha con link al **detalle de ficha** (`/instructor/fichas/[id]`)
+- Activar/desactivar por ficha independientemente de la evaluación
+
+### Detalle de Ficha (`/instructor/fichas/[id]`)
+- **4 métricas**: total aprendices, presentaciones, tasa aprobación, promedio puntaje
+- **Tab Aprendices**: tabla con cédula, nombre, intentos (X/Y), último resultado
+  - Agregar aprendiz individual
+  - Importar desde Excel SOFIA Plus (detección automática de columnas)
+  - Descargar plantilla `.xlsx`
+  - Conceder intentos extra (+1) por aprendiz
+  - Editar/eliminar aprendices
+- **Tab Resultados**: tabla de presentaciones + exportar Excel
+
+### Resultados
+- Tabla paginada con filtros por evaluación, ficha y resultado
+- **Exportar Excel** (`.xlsx`, dos hojas: Resultados y Resumen)
+- Exportar CSV (legacy)
+
+### Instructores _(solo admin)_
+- Listar, crear, editar y eliminar instructores
+- Cada instructor gestiona sus propias evaluaciones
 
 ---
 
-## Notas Técnicas y Serverless (Troubleshooting)
+## Flujo del Aprendiz
 
-- **Fuente PDF:** `public/fonts/NotoSans-Regular.ttf` es necesaria para renderizar correctamente tildes (á, é, ó, ú) y caracteres especiales (ñ, Ñ) en el informe PDF. Los iconos de acierto/error en las preguntas de emparejamiento están diseñados mediante vectores nativos (`doc.line`) para sortear los clásicos errores de fuentes Unicode dañadas.
-- **Entornos Serverless (Vercel):** La aplicación está preparada para ejecutarse en contenedores de solo lectura (_read-only file system_ - EROFS). Si se falla al escribir en el JSON local por falta de permisos en `/api/evaluacion/finalizar`, el algoritmo lo dejará pasar para no interrumpir el flujo de calificación y envío de correo del aprendiz.
-- **Bloqueo de Correo (Resend):** La plataforma prohibe utilizar correos genéricos (`@gmail.com`) en la variable emisora (`NEXT_PUBLIC_SENDER_EMAIL`) para evitar suplantación de identidad. Mientras el dominio no se verifique por DNS, se deberá testear siempre enviando desde `onboarding@resend.dev` hacia el correo del autor.
-- **Opciones aleatorizadas:** Las opciones de respuesta se mezclan en cada sesión (`aleatorizarOpciones: true`) para evitar que los aprendices memoricen posiciones.
+1. Va a la raíz `/`
+2. Selecciona ficha en el dropdown (solo fichas activas con evaluación dentro de vigencia)
+3. Ingresa su número de cédula → sistema valida contra el roster
+4. Ve pantalla de confirmación con nombre, ficha, competencia, RA e intentos restantes
+5. Ingresa (o confirma) su correo
+6. Inicia evaluación → responde preguntas → finaliza
+7. Ve resultados con PDF descargable y correo enviado al instructor (CC al aprendiz)
+
+---
+
+## Roles y Seguridad
+
+| Rol | Acceso |
+|---|---|
+| **Admin** | Todas las secciones + gestión de instructores |
+| **Instructor** | Dashboard, sus evaluaciones, fichas, aprendices, resultados |
+| **Aprendiz** | Flujo público: validar cédula → evaluación → resultados |
+
+- Las rutas `/instructor/(protected)/**` están protegidas por middleware NextAuth
+- Las APIs `/api/instructor/**` verifican sesión con `requireInstructor()`
+- Contraseñas hasheadas con bcryptjs (cost 12)
+- El modo prueba requiere token JWT de instructor para finalizar (no puede ser falsificado)
+
+---
+
+## Notas Técnicas
+
+### Prisma 7 con Neon HTTP
+La URL de la DB **no va** en `schema.prisma` (Prisma 7 breaking change). Va en `prisma.config.ts`:
+```ts
+datasource: { url: process.env.DATABASE_URL! }
+```
+El cliente en runtime usa `PrismaNeonHttp` (HTTP serverless, compatible con Vercel Edge):
+```ts
+const adapter = new PrismaNeonHttp(process.env.DATABASE_URL!, {});
+const prisma = new PrismaClient({ adapter });
+```
+> `PrismaNeonHttp` no soporta transacciones — usar `findFirst` + `create` en lugar de `upsert`.
+
+### Zod v4 con React Hook Form
+`z.coerce.number()` causa incompatibilidad de tipos en Zod v4. Usar:
+```ts
+z.number() + onChange={(e) => field.onChange(e.target.valueAsNumber)}
+```
+
+### Feature Flag `NEXT_PUBLIC_USE_DB_BACKEND`
+- `false` (legacy): lee archivos JSON locales — flujo original sin base de datos
+- `true` (DB): valida aprendiz en roster, cuenta intentos, registra resultado en Neon
+- Debe ser `NEXT_PUBLIC_` para que sea consistente entre server y client (evita hydration mismatch)
+
+### Importación SOFIA Plus
+El parser detecta automáticamente la fila de encabezados (busca en las primeras 20 filas la que contenga ≥2 palabras clave de: cédula, nombres, apellidos, tipo, documento). Compatible con el formato de exportación de SOFIA Plus.
+
+### PDF y Fuentes
+`public/fonts/NotoSans-Regular.ttf` es necesaria para renderizar tildes (á, é) y ñ en el informe PDF.
+
+### Resend
+Para tests locales, enviar siempre desde `onboarding@resend.dev` hasta que el dominio esté verificado por DNS en Resend.
+
+---
+
+## Vercel — Variables de Entorno en Producción
+
+En **Vercel Dashboard → Settings → Environment Variables** agregar:
+
+| Variable | Valor |
+|---|---|
+| `DATABASE_URL` | URL directa de Neon |
+| `NEXTAUTH_SECRET` | Secret generado (diferente al de desarrollo) |
+| `NEXTAUTH_URL` | `https://tu-dominio.vercel.app` |
+| `NEXT_PUBLIC_USE_DB_BACKEND` | `true` |
+| `RESEND_API_KEY` | Tu API key de Resend |
+| `NEXT_PUBLIC_INSTRUCTOR_EMAIL` | Email del instructor |
+| `NEXT_PUBLIC_SENDER_EMAIL` | `onboarding@resend.dev` (o dominio verificado) |

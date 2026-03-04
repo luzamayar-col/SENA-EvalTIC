@@ -1,9 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Work_Sans } from "next/font/google";
 import "./globals.css";
-
-import { Header } from "@/components/organisms/Header";
-import { Footer } from "@/components/organisms/Footer";
+import { AuthSessionProvider } from "@/components/providers/SessionProvider";
 
 const workSans = Work_Sans({
   variable: "--font-work-sans",
@@ -33,14 +31,7 @@ export default function RootLayout({
       <body
         className={`${workSans.variable} antialiased min-h-screen flex flex-col font-sans`}
       >
-        <Header />
-
-        {/* Main Content Area */}
-        <main className="flex-1 flex flex-col w-full bg-sena-gray-light/30">
-          {children}
-        </main>
-
-        <Footer />
+        <AuthSessionProvider>{children}</AuthSessionProvider>
       </body>
     </html>
   );

@@ -11,10 +11,20 @@ export interface DatosAprendiz {
   programaFormacion: string;
 }
 
+export interface AprendizInfo {
+  nombres: string;
+  apellidos: string;
+  tipoDocumento: string;
+  email: string | null;
+  programa: string;
+  competencia: string;
+  resultadoAprendizaje: string;
+}
+
 export interface RespuestaAprendiz {
   preguntaId: string;
-  respuestaIds?: string[]; // Multiple choice or single choice
-  emparejamientos?: Record<string, string>; // Sub-pregunta ID -> Opcion ID
+  respuestaIds?: string[];
+  emparejamientos?: Record<string, string>;
 }
 
 export interface EvaluacionState {
@@ -23,16 +33,30 @@ export interface EvaluacionState {
   preguntasSeleccionadas: any[];
   respuestas: Record<string, RespuestaAprendiz>;
   preguntaActualIndex: number;
-  tiempoRestante: number; // en segundos
-  tiempoTranscurrido: number; // en segundos
+  tiempoRestante: number;
+  tiempoTranscurrido: number;
   resultado: EvaluacionResultado | null;
   estado: "inicio" | "evaluando" | "resultados";
+
+  // IDs de DB
+  fichaId: string | null;
+  evaluacionId: string | null;
+
+  // Nuevos campos
+  intentoNumero: number | null;
+  testMode: boolean;
+  aprendizInfo: AprendizInfo | null;
 
   // Acciones
   setDatosAprendiz: (datos: DatosAprendiz) => void;
   iniciarEvaluacion: (
     preguntasSeleccionadas: any[],
     tiempoRestante: number,
+    fichaId?: string | null,
+    evaluacionId?: string | null,
+    intentoNumero?: number | null,
+    aprendizInfo?: AprendizInfo | null,
+    testMode?: boolean,
   ) => void;
   responderPregunta: (respuesta: RespuestaAprendiz) => void;
   siguientePregunta: () => void;
@@ -53,11 +77,23 @@ export const useEvaluacionStore = create<EvaluacionState>((set, get) => ({
   tiempoTranscurrido: 0,
   resultado: null,
   estado: "inicio",
+  fichaId: null,
+  evaluacionId: null,
+  intentoNumero: null,
+  testMode: false,
+  aprendizInfo: null,
 
   setDatosAprendiz: (datos) => set({ datosAprendiz: datos }),
 
-  iniciarEvaluacion: (preguntas, tiempo) => {
-    // Limpiar cualquier respuesta previa (por hot reload en dev o sesión anterior)
+  iniciarEvaluacion: (
+    preguntas,
+    tiempo,
+    fichaId = null,
+    evaluacionId = null,
+    intentoNumero = null,
+    aprendizInfo = null,
+    testMode = false,
+  ) => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("evaluacion-storage");
     }
@@ -68,6 +104,11 @@ export const useEvaluacionStore = create<EvaluacionState>((set, get) => ({
       tiempoTranscurrido: 0,
       preguntaActualIndex: 0,
       respuestas: {},
+      fichaId,
+      evaluacionId,
+      intentoNumero,
+      aprendizInfo,
+      testMode,
     });
   },
 
@@ -104,7 +145,6 @@ export const useEvaluacionStore = create<EvaluacionState>((set, get) => ({
     set((state) => {
       if (state.estado !== "evaluando") return state;
 
-      // Si el tiempo llega a 0, se fuerza la finalización
       const nuevoRestante = Math.max(0, state.tiempoRestante - 1);
       if (nuevoRestante === 0) {
         return {
@@ -122,19 +162,28 @@ export const useEvaluacionStore = create<EvaluacionState>((set, get) => ({
 
   finalizarEvaluacion: async () => {
     const state = get();
-    if (state.estado !== "evaluando" || !state.datosAprendiz) return;
+    if (state.estado !== "evaluando") return;
+    // In test mode datosAprendiz may be null; allow it through
+    if (!state.testMode && !state.datosAprendiz) return;
 
-    // Cambiar a un estado de carga mientras recibimos respuesta (opcional, p. ej. "procesando" o simplemente mantenemos evaluando)
-    // Para simplificar, enviaremos la solicitud y luego estableceremos "resultados".
+    const ai = state.aprendizInfo;
     try {
       const resp = await fetch("/api/evaluacion/finalizar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          cedula: state.datosAprendiz.numeroDocumento,
-          nombres: state.datosAprendiz.nombres,
-          apellidos: state.datosAprendiz.apellidos,
+          cedula: state.datosAprendiz?.numeroDocumento ?? ai?.nombres ?? "instructor",
+          tipoDocumento: state.datosAprendiz?.tipoDocumento ?? ai?.tipoDocumento ?? "CC",
+          nombres: state.datosAprendiz?.nombres ?? ai?.nombres ?? "",
+          apellidos: state.datosAprendiz?.apellidos ?? ai?.apellidos ?? "",
+          email: state.datosAprendiz?.correo ?? ai?.email ?? "",
+          programaFormacion: state.datosAprendiz?.programaFormacion ?? ai?.programa ?? "",
           respuestasUsuario: state.respuestas,
+          fichaId: state.fichaId,
+          evaluacionId: state.evaluacionId,
+          tiempoUsado: state.tiempoTranscurrido,
+          intentoNumero: state.intentoNumero,
+          esPrueba: state.testMode,
         }),
       });
 
@@ -143,13 +192,9 @@ export const useEvaluacionStore = create<EvaluacionState>((set, get) => ({
       if (!resp.ok) {
         console.error("Error al finalizar evaluación:", data.error);
         alert(data.error || "Ocurrió un error al enviar la evaluación.");
-        // Decide if you want to stay in "evaluando" or force "resultados"
-        // set({ estado: "resultados" })
         return;
       }
 
-      // Reemplaza las preguntas seleccionadas (que no tenían respuesta) con las devueltas (que sí tienen respuesta correcta)
-      // de esta forma los resultados se mostrarán correctamente.
       set({
         estado: "resultados",
         preguntasSeleccionadas:
@@ -162,7 +207,6 @@ export const useEvaluacionStore = create<EvaluacionState>((set, get) => ({
   },
 
   reiniciarEstado: () => {
-    // Limpiar localStorage (Zustand persist key si existe)
     if (typeof window !== "undefined") {
       localStorage.removeItem("evaluacion-storage");
     }
@@ -174,6 +218,11 @@ export const useEvaluacionStore = create<EvaluacionState>((set, get) => ({
       tiempoRestante: 0,
       tiempoTranscurrido: 0,
       estado: "inicio",
+      fichaId: null,
+      evaluacionId: null,
+      intentoNumero: null,
+      testMode: false,
+      aprendizInfo: null,
     });
   },
 }));

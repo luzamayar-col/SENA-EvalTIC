@@ -24,6 +24,8 @@ import {
   ChevronUp,
   MessageSquareText,
   AlertCircle,
+  FlaskConical,
+  LayoutDashboard,
 } from "lucide-react";
 import { generatePDF } from "@/lib/pdf-generator";
 
@@ -44,6 +46,8 @@ export default function ResultadosPage() {
     respuestas,
     tiempoTranscurrido,
     reiniciarEstado,
+    testMode,
+    aprendizInfo,
   } = useEvaluacionStore();
 
   useEffect(() => {
@@ -97,7 +101,20 @@ export default function ResultadosPage() {
     }
   }, [result, datosAprendiz, tiempoTranscurrido]);
 
-  if (!mounted || estado !== "resultados" || !result) {
+  // In test mode build a synthetic DatosAprendiz from aprendizInfo
+  const effectiveDatos = datosAprendiz ?? (testMode && aprendizInfo
+    ? {
+        nombres: aprendizInfo.nombres,
+        apellidos: aprendizInfo.apellidos,
+        tipoDocumento: aprendizInfo.tipoDocumento,
+        numeroDocumento: "— Modo Prueba —",
+        correo: aprendizInfo.email ?? "",
+        ficha: "— Modo Prueba —",
+        programaFormacion: aprendizInfo.programa,
+      }
+    : null);
+
+  if (!mounted || estado !== "resultados" || !result || !effectiveDatos) {
     return (
       <div className="flex h-[calc(100vh-140px)] items-center justify-center">
         <div className="animate-pulse flex flex-col items-center gap-4">
@@ -139,17 +156,17 @@ export default function ResultadosPage() {
   const handleDescargarPDF = async () => {
     try {
       setIsGeneratingPDF(true);
-      if (!datosAprendiz || !result) return;
+      if (!effectiveDatos || !result) return;
 
       const doc = await generatePDF(
-        datosAprendiz,
+        effectiveDatos,
         result,
         tiempoTranscurrido,
         preguntasSeleccionadas,
         respuestas,
       );
 
-      const fileName = `Evaluacion_${datosAprendiz.nombres.replace(" ", "")}_${datosAprendiz.numeroDocumento}.pdf`;
+      const fileName = `Evaluacion_${effectiveDatos.nombres.replace(" ", "")}_${testMode ? "ModoPrueba" : effectiveDatos.numeroDocumento}.pdf`;
 
       // Use File System Access API to show a centred native "Save As" dialog
       if (typeof window !== "undefined" && "showSaveFilePicker" in window) {
@@ -196,7 +213,7 @@ export default function ResultadosPage() {
 
   const handleVolverInicio = () => {
     reiniciarEstado();
-    router.push("/");
+    router.push(testMode ? "/instructor/evaluaciones" : "/");
   };
 
   const formatTime = (seconds: number) => {
@@ -279,6 +296,17 @@ export default function ResultadosPage() {
   return (
     <div className="w-full min-h-[calc(100vh-140px)] flex flex-col items-center py-8 px-4 bg-sena-gray-light/30">
       <div className="container max-w-4xl mx-auto space-y-8 animate-slideUpAndFade">
+        {/* Test mode banner */}
+        {testMode && (
+          <div className="flex items-center gap-3 bg-amber-50 border border-amber-300 rounded-xl px-4 py-3">
+            <FlaskConical className="h-5 w-5 text-amber-600 shrink-0" />
+            <div>
+              <p className="text-sm font-bold text-amber-700">MODO PRUEBA — Los resultados no han sido guardados</p>
+              <p className="text-xs text-amber-600">Este informe es solo para revisión del instructor y no quedará registrado en la base de datos.</p>
+            </div>
+          </div>
+        )}
+
         {/* Email Sending Feedback UI */}
         {emailStatus !== "idle" && (
           <div
@@ -312,8 +340,8 @@ export default function ResultadosPage() {
             Resumen de Resultados
           </h1>
           <p className="text-lg text-sena-gray-dark/80">
-            {datosAprendiz?.nombres} {datosAprendiz?.apellidos} - Ficha:{" "}
-            {datosAprendiz?.ficha}
+            {effectiveDatos.nombres} {effectiveDatos.apellidos}
+            {!testMode && ` — Ficha: ${effectiveDatos.ficha}`}
           </p>
           <div className="inline-flex flex-col gap-1 bg-sena-blue/5 border border-sena-blue/20 rounded-xl px-6 py-3 text-left max-w-2xl mx-auto">
             <p className="text-sm">
@@ -575,8 +603,8 @@ export default function ResultadosPage() {
             onClick={handleVolverInicio}
             className="w-full sm:w-auto h-12 border-sena-gray-dark/30 hover:bg-sena-gray-light hover:text-sena-blue text-base font-bold px-8 transition-all gap-2"
           >
-            <Home className="w-5 h-5" />
-            Volver al Inicio
+            {testMode ? <LayoutDashboard className="w-5 h-5" /> : <Home className="w-5 h-5" />}
+            {testMode ? "Volver al Panel" : "Volver al Inicio"}
           </Button>
         </div>
       </div>

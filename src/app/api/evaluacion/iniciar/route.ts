@@ -10,15 +10,188 @@ const COMPLETED_EVALUATIONS_FILE = path.join(
   "src/data/evaluaciones-completadas.json",
 );
 
+// ─── Helper: selecciona y prepara preguntas para el cliente ──────────────────
+function prepareQuestionsForClient(
+  banco: any[],
+  dist: {
+    seleccion_unica: number;
+    seleccion_multiple: number;
+    emparejamiento: number;
+  },
+  aleatorizarOpciones: boolean,
+) {
+  const unicas = banco.filter((p) => p.tipo === "seleccion_unica");
+  const multiples = banco.filter((p) => p.tipo === "seleccion_multiple");
+  const emparejamiento = banco.filter((p) => p.tipo === "emparejamiento");
+
+  const seleccionadas = shuffleArray([
+    ...shuffleArray([...unicas]).slice(0, dist.seleccion_unica),
+    ...shuffleArray([...multiples]).slice(0, dist.seleccion_multiple),
+    ...shuffleArray([...emparejamiento]).slice(0, dist.emparejamiento),
+  ]);
+
+  return seleccionadas.map((p: any) => {
+    const preguntaCliente = JSON.parse(JSON.stringify(p));
+    delete preguntaCliente.respuestaCorrecta;
+    delete preguntaCliente.retroalimentacion;
+
+    if (p.tipo === "seleccion_unica" || p.tipo === "seleccion_multiple") {
+      if (aleatorizarOpciones) {
+        preguntaCliente.opciones = shuffleArray([...preguntaCliente.opciones]);
+      }
+    } else if (p.tipo === "emparejamiento") {
+      const opcionesIzquierda = p.pares.map((par: any) => par.izquierda);
+      const opcionesDerecha = p.pares.map((par: any) => par.derecha);
+      preguntaCliente.izquierdas = opcionesIzquierda;
+      preguntaCliente.derechas = aleatorizarOpciones
+        ? shuffleArray([...opcionesDerecha])
+        : opcionesDerecha;
+      delete preguntaCliente.pares;
+    }
+
+    return preguntaCliente;
+  });
+}
+
 export async function POST(request: Request) {
   try {
-    const { cedula } = await request.json();
+    const body = await request.json();
+    const { cedula, ficha } = body;
 
     if (!cedula) {
       return NextResponse.json({ error: "Cédula requerida" }, { status: 400 });
     }
 
-    // Verificar si ya presentó
+    // ═══ RAMA DB (feature flag) ═══════════════════════════════════════════════
+    if (APP_CONFIG.useDatabaseBackend) {
+      const { prisma } = await import("@/lib/prisma");
+
+      if (!ficha) {
+        return NextResponse.json(
+          { error: "Número de ficha requerido" },
+          { status: 400 },
+        );
+      }
+
+      // 1. Buscar ficha con evaluación activa (y ficha activa)
+      const fichaDB = await prisma.ficha.findFirst({
+        where: {
+          numero: ficha,
+          activa: true,
+          evaluacion: { activa: true },
+        },
+        include: { evaluacion: true },
+      });
+
+      if (!fichaDB) {
+        return NextResponse.json(
+          {
+            error:
+              "Ficha no válida o sin evaluación activa. Verifica el número con tu instructor.",
+          },
+          { status: 404 },
+        );
+      }
+
+      // 2. Validar fechas de vigencia de la evaluación
+      const now = new Date();
+      const { fechaInicio, fechaFin } = fichaDB.evaluacion;
+      if (fechaInicio && now < fechaInicio) {
+        return NextResponse.json(
+          {
+            error: `La evaluación aún no está disponible. Fecha de inicio: ${fechaInicio.toLocaleDateString("es-CO")}.`,
+          },
+          { status: 403 },
+        );
+      }
+      if (fechaFin && now > fechaFin) {
+        return NextResponse.json(
+          {
+            error: `La evaluación finalizó el ${fechaFin.toLocaleDateString("es-CO")}.`,
+          },
+          { status: 403 },
+        );
+      }
+
+      // 3. Validar aprendiz en roster
+      const aprendiz = await prisma.aprendiz.findUnique({
+        where: { cedula_fichaId: { cedula, fichaId: fichaDB.id } },
+      });
+      if (!aprendiz) {
+        return NextResponse.json(
+          {
+            error:
+              "No estás registrado en esta ficha. Verifica el número de ficha y tu cédula con tu instructor.",
+            notInRoster: true,
+          },
+          { status: 403 },
+        );
+      }
+
+      // 4. Contar intentos usados (excluir pruebas del instructor)
+      const intentosUsados = await prisma.resultado.count({
+        where: { cedula, evaluacionId: fichaDB.evaluacionId, esPrueba: false },
+      });
+      const intentosPermitidos =
+        fichaDB.evaluacion.maxIntentos + aprendiz.intentosExtra;
+
+      if (intentosUsados >= intentosPermitidos && process.env.NODE_ENV !== "development") {
+        const ultimoIntento = await prisma.resultado.findFirst({
+          where: { cedula, evaluacionId: fichaDB.evaluacionId, esPrueba: false },
+          orderBy: { presentadoEn: "desc" },
+        });
+        return NextResponse.json({
+          yaPresento: true,
+          intentosUsados,
+          intentosPermitidos,
+          ultimoIntento: ultimoIntento
+            ? {
+                fecha: ultimoIntento.presentadoEn.toISOString(),
+                puntaje: ultimoIntento.puntaje,
+                aprobado: ultimoIntento.aprobado,
+              }
+            : null,
+        });
+      }
+
+      // 4. Preparar preguntas desde la evaluación en DB
+      const config = fichaDB.evaluacion.config as {
+        timeLimitMinutes: number;
+        passingScorePercentage: number;
+        distribucionPreguntas: {
+          seleccion_unica: number;
+          seleccion_multiple: number;
+          emparejamiento: number;
+        };
+        aleatorizarOpciones: boolean;
+      };
+      const banco = fichaDB.evaluacion.preguntas as any[];
+      const preguntasCliente = prepareQuestionsForClient(
+        banco,
+        config.distribucionPreguntas,
+        config.aleatorizarOpciones,
+      );
+
+      return NextResponse.json({
+        yaPresento: false,
+        preguntas: preguntasCliente,
+        tiempoLimite: config.timeLimitMinutes * 60,
+        fichaId: fichaDB.id,
+        evaluacionId: fichaDB.evaluacionId,
+        intentoNumero: intentosUsados + 1,
+        aprendizInfo: {
+          nombres: aprendiz.nombres,
+          apellidos: aprendiz.apellidos,
+          tipoDocumento: aprendiz.tipoDocumento,
+          email: aprendiz.email,
+          programa: fichaDB.programa,
+          competencia: fichaDB.evaluacion.competencia,
+          resultadoAprendizaje: fichaDB.evaluacion.resultadoAprendizaje,
+        },
+      });
+    }
+
+    // ═══ RAMA LEGACY (archivos JSON) ══════════════════════════════════════════
     let completadas: any[] = [];
     if (fs.existsSync(COMPLETED_EVALUATIONS_FILE)) {
       try {
@@ -42,66 +215,12 @@ export async function POST(request: Request) {
       });
     }
 
-    // Seleccionar y aleatorizar preguntas
-    const banco = allQuestions.preguntas;
-    const unicas = banco.filter((p) => p.tipo === "seleccion_unica");
-    const multiples = banco.filter((p) => p.tipo === "seleccion_multiple");
-    const emparejamiento = banco.filter((p) => p.tipo === "emparejamiento");
-
     const dist = APP_CONFIG.distribucionPreguntas;
-    const shuffledUnicas = shuffleArray([...unicas]).slice(
-      0,
-      dist.seleccion_unica,
+    const preguntasCliente = prepareQuestionsForClient(
+      allQuestions.preguntas as any[],
+      dist,
+      APP_CONFIG.aleatorizarOpciones,
     );
-    const shuffledMultiples = shuffleArray([...multiples]).slice(
-      0,
-      dist.seleccion_multiple,
-    );
-    const shuffledEmparejamiento = shuffleArray([...emparejamiento]).slice(
-      0,
-      dist.emparejamiento,
-    );
-
-    const seleccionadas = [
-      ...shuffledUnicas,
-      ...shuffledMultiples,
-      ...shuffledEmparejamiento,
-    ];
-
-    const preguntasFinales = shuffleArray(seleccionadas);
-
-    // Preparar preguntas para el cliente (quitar respuestas correctas y aleatorizar opciones)
-    const preguntasCliente = preguntasFinales.map((p: any) => {
-      // Clone the object to avoid mutating the original
-      const preguntaCliente = JSON.parse(JSON.stringify(p));
-
-      // Remove sensitive fields
-      delete preguntaCliente.respuestaCorrecta;
-      delete preguntaCliente.retroalimentacion;
-
-      if (p.tipo === "seleccion_unica" || p.tipo === "seleccion_multiple") {
-        if (APP_CONFIG.aleatorizarOpciones) {
-          preguntaCliente.opciones = shuffleArray([
-            ...preguntaCliente.opciones,
-          ]);
-        }
-      } else if (p.tipo === "emparejamiento") {
-        const opcionesIzquierda = p.pares.map((par: any) => par.izquierda); // Orden original
-        const opcionesDerecha = p.pares.map((par: any) => par.derecha);
-
-        preguntaCliente.izquierdas = opcionesIzquierda;
-        if (APP_CONFIG.aleatorizarOpciones) {
-          preguntaCliente.derechas = shuffleArray([...opcionesDerecha]);
-        } else {
-          preguntaCliente.derechas = opcionesDerecha;
-        }
-
-        // Eliminar el campo pares original que tiene la asociación correcta lado a lado
-        delete preguntaCliente.pares;
-      }
-
-      return preguntaCliente;
-    });
 
     return NextResponse.json({
       yaPresento: false,

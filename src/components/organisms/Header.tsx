@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { HelpCircle, Info, Menu, X } from "lucide-react";
+import { HelpCircle, Info, Lock, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { APP_CONFIG } from "@/lib/config";
 
@@ -67,6 +67,19 @@ export function Header() {
             <Info size={16} />
             <span>Acerca de</span>
           </Button>
+
+          <div className="w-px h-5 bg-white/20 mx-1" />
+
+          <Link href="/instructor/login">
+            <Button
+              variant="ghost"
+              className="flex items-center gap-1.5 px-3 py-2 h-auto rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/10 transition-colors font-medium border border-white/20 hover:border-white/40"
+              title="Acceso instructores"
+            >
+              <Lock size={14} />
+              <span className="hidden lg:inline">Instructor</span>
+            </Button>
+          </Link>
         </div>
 
         {/* Mobile Menu Toggle */}
@@ -102,6 +115,13 @@ export function Header() {
             >
               <Info size={18} className="text-white/70" /> Acerca de
             </button>
+            <Link
+              href="/instructor/login"
+              className="flex items-center gap-2 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-white/70 hover:bg-white/10 transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <Lock size={18} className="text-white/50" /> Instructor
+            </Link>
             <div className="flex items-center justify-between pt-3 pb-1 px-3 border-t border-white/20 mt-2">
               <span className="text-xs text-white/70 font-medium">
                 SENA EvalTIC

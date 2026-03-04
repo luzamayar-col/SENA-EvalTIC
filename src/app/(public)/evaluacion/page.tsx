@@ -27,7 +27,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { BookOpen, Target } from "lucide-react";
+import { BookOpen, Target, FlaskConical, Hash } from "lucide-react";
 
 export default function EvaluacionPage() {
   const router = useRouter();
@@ -42,6 +42,9 @@ export default function EvaluacionPage() {
     avanzarAPregunta,
     finalizarEvaluacion,
     respuestas,
+    testMode,
+    intentoNumero,
+    aprendizInfo,
   } = useEvaluacionStore();
 
   const [finalizando, setFinalizando] = useState(false);
@@ -50,12 +53,13 @@ export default function EvaluacionPage() {
   useEffect(() => {
     // eslint-disable-next-line
     setMounted(true);
-    if (estado === "inicio" || !datosAprendiz) {
+    // In test mode datosAprendiz is null but we allow it through
+    if (estado === "inicio" || (!datosAprendiz && !testMode)) {
       router.push("/");
     } else if (estado === "resultados") {
       router.push("/resultados");
     }
-  }, [estado, datosAprendiz, router]);
+  }, [estado, datosAprendiz, testMode, router]);
 
   if (!mounted || estado !== "evaluando") {
     return (
@@ -115,29 +119,45 @@ export default function EvaluacionPage() {
           onStart={() => setShowStartModal(false)}
         />
 
+        {/* Test mode banner */}
+        {testMode && (
+          <div className="flex items-center gap-3 bg-amber-50 border border-amber-300 rounded-xl px-4 py-3">
+            <FlaskConical className="w-5 h-5 text-amber-600 shrink-0" />
+            <div>
+              <p className="text-sm font-bold text-amber-700">MODO PRUEBA</p>
+              <p className="text-xs text-amber-600">Los resultados de esta sesión no serán guardados en la base de datos.</p>
+            </div>
+          </div>
+        )}
+
+        {/* Attempt badge + info row */}
+        <div className="flex flex-wrap items-center gap-2">
+          {intentoNumero != null && intentoNumero > 0 && (
+            <span className="inline-flex items-center gap-1.5 bg-sena-blue/10 text-sena-blue text-xs font-bold px-3 py-1.5 rounded-full">
+              <Hash size={12} />
+              Intento {intentoNumero}
+            </span>
+          )}
+        </div>
+
         {/* Competencia & Resultado de Aprendizaje Banner */}
         <div className="bg-white border border-sena-gray-dark/10 rounded-xl shadow-sm p-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="flex gap-3 items-start">
               <Target className="w-5 h-5 text-sena-green shrink-0 mt-0.5" />
               <div className="text-sm">
-                <span className="font-bold text-sena-blue">
-                  Competencia ({APP_CONFIG.competencia.codigo}):
-                </span>
+                <span className="font-bold text-sena-blue">Competencia:</span>
                 <p className="text-sena-gray-dark/80 mt-0.5">
-                  {APP_CONFIG.competencia.nombre}
+                  {aprendizInfo?.competencia ?? APP_CONFIG.competencia.nombre}
                 </p>
               </div>
             </div>
             <div className="flex gap-3 items-start">
               <BookOpen className="w-5 h-5 text-sena-green shrink-0 mt-0.5" />
               <div className="text-sm">
-                <span className="font-bold text-sena-blue">
-                  Resultado de Aprendizaje (
-                  {APP_CONFIG.resultadoAprendizaje.codigo}):
-                </span>
+                <span className="font-bold text-sena-blue">Resultado de Aprendizaje:</span>
                 <p className="text-sena-gray-dark/80 mt-0.5">
-                  {APP_CONFIG.resultadoAprendizaje.nombre}
+                  {aprendizInfo?.resultadoAprendizaje ?? APP_CONFIG.resultadoAprendizaje.nombre}
                 </p>
               </div>
             </div>
@@ -151,10 +171,13 @@ export default function EvaluacionPage() {
               <CardHeader className="flex flex-row items-center justify-between pb-4 border-b border-sena-gray-dark/10">
                 <div className="flex flex-col">
                   <h2 className="text-lg font-bold text-sena-blue">
-                    Evaluación Técnica en Curso
+                    {testMode ? "Evaluación — Modo Prueba" : "Evaluación Técnica en Curso"}
                   </h2>
                   <p className="text-sm text-sena-gray-dark/80">
-                    {datosAprendiz?.nombres} {datosAprendiz?.apellidos}
+                    {testMode
+                      ? `${aprendizInfo?.nombres ?? ""} ${aprendizInfo?.apellidos ?? ""}`.trim()
+                      : `${datosAprendiz?.nombres ?? ""} ${datosAprendiz?.apellidos ?? ""}`.trim()
+                    }
                   </p>
                 </div>
                 <EvaluacionTimer />

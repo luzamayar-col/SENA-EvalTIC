@@ -1,7 +1,29 @@
 import { FormularioRegistro } from "@/components/templates/FormularioRegistro";
 import { ShieldCheckIcon, TimerIcon, AlertTriangle } from "lucide-react";
+import { APP_CONFIG } from "@/lib/config";
+import { prisma } from "@/lib/prisma";
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  let fichas: { numero: string; programa: string }[] = [];
+
+  if (APP_CONFIG.useDatabaseBackend) {
+    const now = new Date();
+    fichas = await prisma.ficha.findMany({
+      where: {
+        activa: true,
+        evaluacion: {
+          activa: true,
+          AND: [
+            { OR: [{ fechaInicio: null }, { fechaInicio: { lte: now } }] },
+            { OR: [{ fechaFin: null }, { fechaFin: { gte: now } }] },
+          ],
+        },
+      },
+      select: { numero: true, programa: true },
+      orderBy: { numero: "asc" },
+    });
+  }
+
   return (
     <div className="w-full flex flex-col min-h-[calc(100vh-140px)] bg-sena-gray-light/30">
       {/* Hero / Title Banner */}
@@ -70,7 +92,7 @@ export default function LandingPage() {
       {/* Registration Form — centered, full width */}
       <section className="flex-1 flex items-start justify-center py-8 sm:py-10 px-4">
         <div className="w-full max-w-5xl animate-slideUpAndFade">
-          <FormularioRegistro />
+          <FormularioRegistro fichas={fichas} />
         </div>
       </section>
     </div>

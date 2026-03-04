@@ -44,6 +44,10 @@ export const APP_CONFIG = {
     "Otro Programa",
   ],
 
+  // Feature flag: cuando está en "true" el flujo del aprendiz usa la DB (Neon)
+  // en lugar del sistema legacy de archivos JSON.
+  useDatabaseBackend: process.env.NEXT_PUBLIC_USE_DB_BACKEND === "true",
+
   // Servicio de correo
   email: {
     provider: "resend",
@@ -52,4 +56,4 @@ export const APP_CONFIG = {
       process.env.NEXT_PUBLIC_SENDER_EMAIL || "evaluaciones@sena-ceet.edu.co",
     fromName: "SENA CEET - Evaluaciones",
   },
-} as const;
+};

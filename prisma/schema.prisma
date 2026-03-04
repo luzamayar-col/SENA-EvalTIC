@@ -1,0 +1,99 @@
+// SENA EvalTIC — Prisma Schema
+// Prisma 7 con Neon Postgres (Vercel)
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Instructor {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  nombre       String
+  password     String
+  isAdmin      Boolean      @default(false)
+  evaluaciones Evaluacion[]
+  creadoEn     DateTime     @default(now())
+}
+
+model Evaluacion {
+  id                   String      @id @default(cuid())
+  nombre               String
+  descripcion          String?
+  competencia          String
+  codigoCompetencia    String
+  resultadoAprendizaje String
+  codigoRA             String
+  preguntas            Json
+  activa               Boolean     @default(false)
+  fechaInicio          DateTime?
+  fechaFin             DateTime?
+  config               Json
+  maxIntentos          Int         @default(1)
+  instructor           Instructor  @relation(fields: [instructorId], references: [id])
+  instructorId         String
+  fichas               Ficha[]
+  resultados           Resultado[]
+  creadoEn             DateTime    @default(now())
+  actualizadoEn        DateTime    @updatedAt
+}
+
+model Ficha {
+  id           String      @id @default(cuid())
+  numero       String
+  programa     String
+  descripcion  String?
+  activa       Boolean     @default(true)
+  evaluacion   Evaluacion  @relation(fields: [evaluacionId], references: [id], onDelete: Cascade)
+  evaluacionId String
+  resultados   Resultado[]
+  aprendices   Aprendiz[]
+  creadoEn     DateTime    @default(now())
+
+  @@unique([numero, evaluacionId])
+}
+
+model Aprendiz {
+  id            String   @id @default(cuid())
+  cedula        String
+  tipoDocumento String   @default("CC")
+  nombres       String
+  apellidos     String
+  email         String?
+  emailPersonal String?
+  intentosExtra Int      @default(0)
+  ficha         Ficha    @relation(fields: [fichaId], references: [id], onDelete: Cascade)
+  fichaId       String
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  @@unique([cedula, fichaId])
+}
+
+model Resultado {
+  id                 String     @id @default(cuid())
+  cedula             String
+  tipoDocumento      String
+  nombres            String
+  apellidos          String
+  email              String
+  puntaje            Int
+  aprobado           Boolean
+  preguntasCorrectas Int
+  totalPreguntas     Int
+  tiempoUsado        Int
+  respuestas         Json
+  intento            Int        @default(1)
+  esPrueba           Boolean    @default(false)
+  evaluacion         Evaluacion @relation(fields: [evaluacionId], references: [id])
+  evaluacionId       String
+  ficha              Ficha      @relation(fields: [fichaId], references: [id])
+  fichaId            String
+  presentadoEn       DateTime   @default(now())
+
+  @@unique([cedula, evaluacionId, intento])
+}
