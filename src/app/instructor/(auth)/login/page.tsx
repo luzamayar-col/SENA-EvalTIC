@@ -17,8 +17,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Loader2, Lock, Mail, ShieldAlert } from "lucide-react";
+import { Loader2, Lock, Mail, ShieldAlert, ArrowLeft } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 const loginSchema = z.object({
   email: z.string().email("Ingresa un correo electrónico válido"),
@@ -174,9 +175,16 @@ export default function InstructorLoginPage() {
           </Form>
         </div>
 
-        <p className="text-center text-white/50 text-xs mt-6">
-          Solo para instructores autorizados del SENA - CEET
-        </p>
+        <div className="flex items-center justify-between mt-6">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-white/60 hover:text-white text-xs transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Volver al inicio
+          </Link>
+          <p className="text-white/50 text-xs">Solo para instructores autorizados</p>
+        </div>
       </div>
     </div>
   );

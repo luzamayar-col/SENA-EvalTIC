@@ -23,6 +23,8 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useEvaluacionStore } from "@/stores/evaluacion-store";
 import { APP_CONFIG } from "@/lib/config";
+import { calcularPuntaje } from "@/lib/score";
+import { generatePDF } from "@/lib/pdf-generator";
 import {
   AlertCircle,
   Loader2,
@@ -32,6 +34,7 @@ import {
   User,
   Clock,
   FileText,
+  FileDown,
 } from "lucide-react";
 
 interface FichaOption {
@@ -53,6 +56,7 @@ interface AprendizEncontrado {
   intentosUsados: number;
   intentosPermitidos: number;
   puedeIniciar: boolean;
+  ultimoResultadoId: string | null;
   tiempoLimiteMinutos: number | null;
   totalPreguntas: number | null;
   ficha: {
@@ -80,6 +84,7 @@ export function FormularioRegistro({ fichas = [] }: FormularioRegistroProps) {
   const [aprendiz, setAprendiz] = useState<AprendizEncontrado | null>(null);
   const [email, setEmail] = useState("");
   const [startError, setStartError] = useState<string | null>(null);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   const iniciarEvaluacion = useEvaluacionStore((s) => s.iniciarEvaluacion);
   const setDatosAprendiz = useEvaluacionStore((s) => s.setDatosAprendiz);
@@ -173,6 +178,46 @@ export function FormularioRegistro({ fichas = [] }: FormularioRegistroProps) {
     } catch {
       setStartError("Error de conexión al iniciar la evaluación.");
       setStep("found");
+    }
+  };
+
+  // ── Download last-attempt PDF (public) ────────────────────────────────────
+  const handleDownloadPDF = async () => {
+    if (!aprendiz?.ultimoResultadoId) return;
+    setDownloadingPdf(true);
+    try {
+      const res = await fetch(
+        `/api/evaluacion/pdf-resultado/${aprendiz.ultimoResultadoId}?cedula=${encodeURIComponent(cedula.trim())}`,
+      );
+      if (!res.ok) return;
+      const { resultado, preguntas, passingScore } = await res.json();
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const respuestas = resultado.respuestas as Record<string, any>;
+      const evaluacionResultado = calcularPuntaje(preguntas, respuestas, passingScore);
+
+      const doc = await generatePDF(
+        {
+          nombres: resultado.nombres,
+          apellidos: resultado.apellidos,
+          tipoDocumento: resultado.tipoDocumento,
+          numeroDocumento: resultado.cedula,
+          correo: resultado.email ?? "",
+          ficha: aprendiz.ficha.numero,
+          programaFormacion: aprendiz.ficha.programa,
+        },
+        evaluacionResultado,
+        resultado.tiempoUsado,
+        preguntas,
+        respuestas,
+      );
+      doc.save(
+        `Evaluacion_${resultado.nombres.replace(/\s+/g, "")}_${resultado.cedula}_I${resultado.intento}.pdf`,
+      );
+    } catch {
+      // silently ignore
+    } finally {
+      setDownloadingPdf(false);
     }
   };
 
@@ -316,16 +361,33 @@ export function FormularioRegistro({ fichas = [] }: FormularioRegistroProps) {
 
           {/* Attempts exhausted */}
           {!aprendiz.puedeIniciar && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                Has utilizado todos tus intentos disponibles ({aprendiz.intentosUsados}/
-                {aprendiz.intentosPermitidos}). Contacta a tu instructor para obtener
-                una nueva oportunidad.
-                <br />
-                <strong>📧 {APP_CONFIG.instructorEmail}</strong>
-              </AlertDescription>
-            </Alert>
+            <div className="space-y-3">
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Has utilizado todos tus intentos disponibles ({aprendiz.intentosUsados}/
+                  {aprendiz.intentosPermitidos}). Contacta a tu instructor para obtener
+                  una nueva oportunidad.
+                  <br />
+                  <strong>📧 {APP_CONFIG.instructorEmail}</strong>
+                </AlertDescription>
+              </Alert>
+              {aprendiz.ultimoResultadoId && (
+                <Button
+                  onClick={handleDownloadPDF}
+                  disabled={downloadingPdf}
+                  variant="outline"
+                  className="w-full gap-2 border-sena-blue/30 text-sena-blue hover:bg-sena-blue/5"
+                >
+                  {downloadingPdf ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <FileDown className="w-4 h-4" />
+                  )}
+                  {downloadingPdf ? "Generando informe..." : "Descargar mi informe (último intento)"}
+                </Button>
+              )}
+            </div>
           )}
 
           {/* Email input */}

@@ -26,6 +26,7 @@ Sistema interactivo de evaluación técnica en línea para aprendices del **SENA
 | **Crédito parcial**         | Selección múltiple y emparejamiento otorgan puntos proporcionales a las opciones/pares correctos seleccionados               |
 | **Puntajes con decimales**  | `puntaje` almacenado como `Float`; se muestra con 1 decimal cuando hay crédito parcial (ej. 72.5%); aciertos ponderados (7.3/10) |
 | **Descarga PDF por aprendiz** | El instructor puede descargar el informe PDF del último intento de cada aprendiz directamente desde la tabla de la ficha   |
+| **Descarga PDF pública**    | El aprendiz que agotó sus intentos puede descargar su propio informe desde la pantalla de verificación (sin cuenta)         |
 | **Autenticación**           | NextAuth v4 con credenciales (email + contraseña bcrypt) — solo instructores autorizados                                   |
 
 ---
@@ -76,7 +77,8 @@ src/
 │       ├── evaluacion/
 │       │   ├── iniciar/               # Valida roster, cuenta intentos, retorna preguntas
 │       │   ├── finalizar/             # Registra resultado (o descarta si esPrueba)
-│       │   ├── validar-aprendiz/      # GET: busca aprendiz en roster por cédula+ficha
+│       │   ├── validar-aprendiz/      # GET: busca aprendiz en roster por cédula+ficha; retorna ultimoResultadoId si agotó intentos
+│       │   ├── pdf-resultado/[id]/    # GET público: datos PDF del resultado (verificado por cédula)
 │       │   └── validar-ficha/         # GET: valida que la ficha tenga evaluación activa
 │       └── instructor/
 │           ├── evaluaciones/          # CRUD + toggle activa
@@ -210,7 +212,7 @@ npm start
 
 ## Panel del Instructor
 
-Acceso en `/instructor/login`. Solo para instructores registrados.
+Acceso en `/instructor/login`. Incluye enlace **← Volver al inicio** para regresar a la página pública. Solo para instructores registrados.
 
 ### Dashboard
 - Métricas globales: total resultados, tasa de aprobación, puntaje promedio, evaluaciones activas
@@ -235,6 +237,7 @@ Acceso en `/instructor/login`. Solo para instructores registrados.
   - Descargar plantilla `.xlsx`
   - Conceder intentos extra (+1) por aprendiz
   - Editar/eliminar aprendices
+  - Descargar informe PDF del último intento por aprendiz (ícono ↓)
 - **Tab Resultados**: tabla de presentaciones + exportar Excel
 
 ### Resultados
@@ -257,6 +260,9 @@ Acceso en `/instructor/login`. Solo para instructores registrados.
 5. Ingresa (o confirma) su correo
 6. Inicia evaluación → responde preguntas → finaliza
 7. Ve resultados con PDF descargable y correo enviado al instructor (CC al aprendiz)
+
+**Si el aprendiz ya agotó sus intentos:**
+En el paso 4 se muestra el mensaje de intentos agotados y, si existe un resultado previo, aparece el botón **"Descargar mi informe (último intento)"** que genera el PDF directamente en el cliente sin necesidad de cuenta. La seguridad se garantiza verificando que la cédula ingresada coincida con la del resultado en la BD.
 
 ---
 

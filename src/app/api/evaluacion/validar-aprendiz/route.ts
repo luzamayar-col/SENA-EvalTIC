@@ -85,6 +85,18 @@ export async function GET(req: NextRequest) {
     });
 
     const intentosPermitidos = ficha.evaluacion.maxIntentos + aprendiz.intentosExtra;
+    const puedeIniciar = intentosUsados < intentosPermitidos;
+
+    // When attempts exhausted, fetch last resultado ID so the student can download their report
+    let ultimoResultadoId: string | null = null;
+    if (!puedeIniciar) {
+      const ultimo = await prisma.resultado.findFirst({
+        where: { cedula, evaluacionId: ficha.evaluacion.id, esPrueba: false },
+        orderBy: { intento: "desc" },
+        select: { id: true },
+      });
+      ultimoResultadoId = ultimo?.id ?? null;
+    }
 
     const cfg = ficha.evaluacion.config as {
       timeLimitMinutes?: number;
@@ -107,9 +119,10 @@ export async function GET(req: NextRequest) {
       apellidos: aprendiz.apellidos,
       tipoDocumento: aprendiz.tipoDocumento,
       email: aprendiz.email,
-      puedeIniciar: intentosUsados < intentosPermitidos,
+      puedeIniciar,
       intentosUsados,
       intentosPermitidos,
+      ultimoResultadoId,
       tiempoLimiteMinutos: cfg?.timeLimitMinutes ?? null,
       totalPreguntas,
       ficha: {
