@@ -1,7 +1,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { APP_CONFIG } from "./config";
-import { EvaluacionResultado } from "./score";
+import { EvaluacionResultado, calcularCreditoPregunta } from "./score";
 import { DatosAprendiz, RespuestaAprendiz } from "@/stores/evaluacion-store";
 
 // PAGE LAYOUT - Letter 8.5x11 in
@@ -606,8 +606,12 @@ export async function generatePDF(
     let isCorrect = "Sin responder";
     let answerText = "(no respondida)";
     let correctTextStr = "";
+    let creditoInfo = "";
 
     if (ua) {
+      const credito = calcularCreditoPregunta(q, ua);
+      isCorrect = credito === 1 ? "Correcta" : credito > 0 ? "Parcial" : "Incorrecta";
+
       if (q.tipo === "seleccion_unica" || q.tipo === "seleccion_multiple") {
         const sel = ua.respuestaIds || [];
         answerText =
@@ -615,26 +619,36 @@ export async function generatePDF(
             ?.filter((o) => sel.includes(o.id))
             .map((o) => n(o.texto))
             .join("; ") || "(ninguna)";
-        if (q.respuestaCorrecta && Array.isArray(q.respuestaCorrecta)) {
-          const ss = [...sel].sort();
-          const sc = [...q.respuestaCorrecta].sort();
-          const match =
-            ss.length === sc.length && ss.every((v, i) => v === sc[i]);
-          isCorrect = match ? "Correcta" : "Incorrecta";
-          if (!match) {
-            correctTextStr =
-              q.opciones
-                ?.filter((o) => q.respuestaCorrecta!.includes(o.id))
-                .map((o) => n(o.texto))
-                .join("; ") || "";
-          }
+        if (credito < 1 && q.respuestaCorrecta) {
+          correctTextStr =
+            q.opciones
+              ?.filter((o) => q.respuestaCorrecta!.includes(o.id))
+              .map((o) => n(o.texto))
+              .join("; ") || "";
+        }
+        if (isCorrect === "Parcial" && q.tipo === "seleccion_multiple") {
+          const aciertos = sel.filter((id: string) =>
+            (q.respuestaCorrecta ?? []).includes(id),
+          ).length;
+          creditoInfo = `${aciertos} de ${(q.respuestaCorrecta ?? []).length} opciones correctas`;
         }
       } else if (q.tipo === "emparejamiento") {
         const emps = ua.emparejamientos || {};
-        const pares = q.pares || [];
-        isCorrect = pares.every((p) => emps[p.izquierda] === p.derecha)
-          ? "Correcta"
-          : "Incorrecta";
+        const pares: { izquierda: string; derecha: string }[] = q.pares || [];
+        answerText = pares
+          .map((p) => `${n(p.izquierda)} → ${n(emps[p.izquierda] || "Sin selección")}`)
+          .join("; ");
+        if (credito < 1) {
+          correctTextStr = pares
+            .map((p) => `${n(p.izquierda)} → ${n(p.derecha)}`)
+            .join("; ");
+        }
+        if (isCorrect === "Parcial") {
+          const aciertos = pares.filter(
+            (p) => (emps[p.izquierda] ?? "") === p.derecha,
+          ).length;
+          creditoInfo = `${aciertos} de ${pares.length} pares correctos`;
+        }
       }
     }
 
@@ -778,8 +792,12 @@ export async function generatePDF(
     doc.setFontSize(8.5);
     if (isCorrect === "Correcta") tc(doc, SENA_GREEN);
     else if (isCorrect === "Incorrecta") tc(doc, RED);
+    else if (isCorrect === "Parcial") tc(doc, AMBER);
     else tc(doc, GRAY);
-    doc.text("Resultado: " + isCorrect, MARGIN + 3, ctx.y);
+    const badgeLabel = isCorrect === "Parcial" && creditoInfo
+      ? `Resultado: ${isCorrect} (${creditoInfo})`
+      : `Resultado: ${isCorrect}`;
+    doc.text(badgeLabel, MARGIN + 3, ctx.y);
     ctx.y += 5;
 
     // Correct answer hint (selection questions only)

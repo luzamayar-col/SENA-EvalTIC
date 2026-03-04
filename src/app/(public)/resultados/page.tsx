@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useEvaluacionStore } from "@/stores/evaluacion-store";
 import { APP_CONFIG } from "@/lib/config";
-import { calcularPuntaje } from "@/lib/score";
+import { calcularPuntaje, calcularCreditoPregunta } from "@/lib/score";
 import {
   Card,
   CardContent,
@@ -128,6 +128,7 @@ export default function ResultadosPage() {
   const {
     puntajeTotal,
     preguntasCorrectas,
+    preguntasParciales,
     totalPreguntas,
     aprobado,
     puntajePorTema,
@@ -222,7 +223,7 @@ export default function ResultadosPage() {
     return `${mins}m ${secs}s`;
   };
 
-  // Helper to determine if a question was answered correctly
+  // Helper to determine if a question was answered correctly (supports partial credit)
   const getQuestionResult = (q: any) => {
     const qId = String(q.id);
     const userAnswer = respuestas[qId];
@@ -232,9 +233,18 @@ export default function ResultadosPage() {
         status: "sin_responder" as const,
         userText: "No respondida",
         correctText: "",
+        creditoInfo: null as string | null,
         retroalimentacion: q.retroalimentacion || "",
       };
     }
+
+    const credito = calcularCreditoPregunta(q, userAnswer);
+    const status =
+      credito === 1
+        ? ("correcta" as const)
+        : credito > 0
+          ? ("parcial" as const)
+          : ("incorrecta" as const);
 
     if (q.tipo === "seleccion_unica" || q.tipo === "seleccion_multiple") {
       const selectedTexts =
@@ -242,32 +252,36 @@ export default function ResultadosPage() {
           ?.filter((o: any) => userAnswer.respuestaIds?.includes(o.id))
           .map((o: any) => o.texto) || [];
 
-      const correctIds = q.respuestaCorrecta || [];
+      const correctIds: string[] = q.respuestaCorrecta || [];
       const correctTexts =
         q.opciones
           ?.filter((o: any) => correctIds.includes(o.id))
           .map((o: any) => o.texto) || [];
 
-      const sortedSel = [...(userAnswer.respuestaIds || [])].sort();
-      const sortedCorr = [...correctIds].sort();
-      const isCorrect =
-        sortedSel.length === sortedCorr.length &&
-        sortedSel.every((v: string, i: number) => v === sortedCorr[i]);
+      const aciertos = (userAnswer.respuestaIds ?? []).filter((id: string) =>
+        correctIds.includes(id),
+      ).length;
+      const creditoInfo =
+        q.tipo === "seleccion_multiple" && status === "parcial"
+          ? `${aciertos} de ${correctIds.length} opciones correctas`
+          : null;
 
       return {
-        status: isCorrect ? ("correcta" as const) : ("incorrecta" as const),
+        status,
         userText: selectedTexts.join("; ") || "Ninguna selección",
-        correctText: correctTexts.join("; "),
+        correctText: status !== "correcta" ? correctTexts.join("; ") : "",
+        creditoInfo,
         retroalimentacion: q.retroalimentacion || "",
       };
     }
 
     if (q.tipo === "emparejamiento") {
-      const pares = q.pares || [];
+      const pares: any[] = q.pares || [];
       const emps = userAnswer.emparejamientos || {};
-      const allCorrect = pares.every(
-        (par: any) => emps[par.izquierda] === par.derecha,
-      );
+
+      const paresCorrectos = pares.filter(
+        (par: any) => (emps[par.izquierda] ?? "") === par.derecha,
+      ).length;
 
       const userPairs = pares.map(
         (par: any) =>
@@ -277,10 +291,16 @@ export default function ResultadosPage() {
         (par: any) => `${par.izquierda} → ${par.derecha}`,
       );
 
+      const creditoInfo =
+        status === "parcial"
+          ? `${paresCorrectos} de ${pares.length} pares correctos`
+          : null;
+
       return {
-        status: allCorrect ? ("correcta" as const) : ("incorrecta" as const),
+        status,
         userText: userPairs.join("; "),
-        correctText: correctPairs.join("; "),
+        correctText: status !== "correcta" ? correctPairs.join("; ") : "",
+        creditoInfo,
         retroalimentacion: q.retroalimentacion || "",
       };
     }
@@ -289,6 +309,7 @@ export default function ResultadosPage() {
       status: "sin_responder" as const,
       userText: "-",
       correctText: "",
+      creditoInfo: null,
       retroalimentacion: "",
     };
   };
@@ -403,20 +424,30 @@ export default function ResultadosPage() {
                 )}
               </div>
 
-              <div className="w-full grid grid-cols-2 divide-x divide-sena-gray-dark/20 border-t border-sena-gray-dark/20 pt-4">
+              <div className="w-full grid grid-cols-3 divide-x divide-sena-gray-dark/20 border-t border-sena-gray-dark/20 pt-4">
                 <div className="flex flex-col items-center text-center px-2">
                   <span className="text-xs text-sena-gray-dark/70 font-bold uppercase mb-1">
-                    Aciertos
+                    Completas
                   </span>
-                  <span className="text-xl font-bold text-sena-blue">
-                    {preguntasCorrectas} / {totalPreguntas}
+                  <span className="text-xl font-bold text-sena-green">
+                    {preguntasCorrectas}
                   </span>
                 </div>
+                {preguntasParciales > 0 && (
+                  <div className="flex flex-col items-center text-center px-2">
+                    <span className="text-xs text-sena-gray-dark/70 font-bold uppercase mb-1">
+                      Parciales
+                    </span>
+                    <span className="text-xl font-bold text-amber-500">
+                      {preguntasParciales}
+                    </span>
+                  </div>
+                )}
                 <div className="flex flex-col items-center text-center px-2">
                   <span className="text-xs text-sena-gray-dark/70 font-bold uppercase mb-1">
-                    Tiempo Utilizado
+                    Tiempo
                   </span>
-                  <span className="text-xl font-bold text-sena-blue flex items-center gap-2">
+                  <span className="text-base font-bold text-sena-blue flex items-center gap-1">
                     <Clock className="w-4 h-4 text-sena-green" />
                     {formatTime(tiempoTranscurrido)}
                   </span>
@@ -508,9 +539,11 @@ export default function ResultadosPage() {
                 const statusColor =
                   qResult.status === "correcta"
                     ? "border-l-sena-green bg-sena-green/5"
-                    : qResult.status === "incorrecta"
-                      ? "border-l-red-500 bg-red-50"
-                      : "border-l-amber-500 bg-amber-50";
+                    : qResult.status === "parcial"
+                      ? "border-l-amber-500 bg-amber-50"
+                      : qResult.status === "incorrecta"
+                        ? "border-l-red-500 bg-red-50"
+                        : "border-l-amber-500 bg-amber-50";
 
                 return (
                   <div
@@ -532,6 +565,13 @@ export default function ResultadosPage() {
                       </h4>
                       {qResult.status === "correcta" ? (
                         <CheckCircle2 className="w-5 h-5 text-sena-green shrink-0" />
+                      ) : qResult.status === "parcial" ? (
+                        <div className="flex items-center gap-1 shrink-0">
+                          <AlertCircle className="w-5 h-5 text-amber-500" />
+                          <span className="text-xs font-bold text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded">
+                            Parcial
+                          </span>
+                        </div>
                       ) : qResult.status === "incorrecta" ? (
                         <XCircle className="w-5 h-5 text-red-500 shrink-0" />
                       ) : (
@@ -556,6 +596,11 @@ export default function ResultadosPage() {
                           {qResult.userText}
                         </span>
                       </p>
+                      {qResult.creditoInfo && (
+                        <p className="text-amber-700 font-medium text-xs">
+                          ✓ {qResult.creditoInfo}
+                        </p>
+                      )}
                       {qResult.status !== "correcta" && qResult.correctText && (
                         <p>
                           <span className="font-semibold text-sena-gray-dark">

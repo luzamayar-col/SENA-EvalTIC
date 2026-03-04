@@ -22,7 +22,8 @@ Sistema interactivo de evaluación técnica en línea para aprendices del **SENA
 | **Editor de preguntas**     | Interfaz visual drag-and-drop para editar, reordenar y crear preguntas del banco                                            |
 | **Importación SOFIA Plus**  | Importar aprendices desde el Excel de SOFIA Plus (detección automática de columnas)                                         |
 | **Exportación Excel**       | Resultados exportables en `.xlsx` con dos hojas (Resultados y Resumen)                                                      |
-| **Antiplagio**              | Bloqueo de copia/captura durante la evaluación + marca de agua personalizada y cifrado en el informe PDF                    |
+| **Antiplagio**              | Bloqueo de copia/captura; blur inmediato al perder foco (Win+Shift+S); marca de agua personalizada en PDF                   |
+| **Crédito parcial**         | Selección múltiple y emparejamiento otorgan puntos proporcionales a las opciones/pares correctos seleccionados               |
 | **Autenticación**           | NextAuth v4 con credenciales (email + contraseña bcrypt) — solo instructores autorizados                                   |
 
 ---
@@ -309,13 +310,23 @@ El parser detecta automáticamente la fila de encabezados (busca en las primeras
 - `user-select: none` — impide seleccionar texto con el mouse
 - `contextmenu` bloqueado — sin clic derecho
 - Atajos bloqueados vía `keydown`: `Ctrl+C/A/P/U/S`, `Ctrl+Shift+I/J/C`, `F12`, `PrintScreen`
-- Overlay de pantalla negra al detectar `visibilitychange` (cambio de pestaña)
+- `window.blur` + `visibilitychange` unificados → blur CSS inmediato (`filter: blur(24px)`) sobre el contenido + overlay negro al perder el foco de ventana (captura `Win+Shift+S`, `Alt+Tab`, Snipping Tool)
 - `@media print { display: none }` — página en blanco al imprimir
 
 **Informe PDF:**
 - Marca de agua diagonal personalizada en cada página con nombre + tipo + número de documento del aprendiz
 - Metadatos del PDF (título, asunto, autor) con datos del aprendiz — persisten aunque se recorte la marca de agua
 - `setEncryption()` con contraseña de apertura = cédula del aprendiz y sin permisos de copia ni impresión (lectores que respetan el estándar PDF)
+
+### Crédito Parcial en Selección Múltiple y Emparejamiento
+
+Fórmula leniente (sin penalización por respuestas incorrectas):
+
+- **Selección múltiple**: `crédito = opciones_correctas_seleccionadas / total_opciones_correctas`
+- **Emparejamiento**: `crédito = pares_correctos / total_pares`
+- **Selección única**: sigue siendo todo-o-nada (solo hay una respuesta correcta)
+
+El `puntajeTotal` se calcula como `(suma_de_créditos / total_preguntas) × 100`. En los resultados y el PDF, las preguntas con crédito parcial (0 < crédito < 1) se muestran como **"Parcial"** en ámbar con el detalle (e.g., "3 de 4 opciones correctas").
 
 ### Resend
 Para tests locales, enviar siempre desde `onboarding@resend.dev` hasta que el dominio esté verificado por DNS en Resend.

@@ -2,31 +2,56 @@ import { RespuestaAprendiz } from "@/stores/evaluacion-store";
 
 export interface EvaluacionResultado {
   puntajeTotal: number;
-  preguntasCorrectas: number;
-  preguntasIncorrectas: number;
+  preguntasCorrectas: number;       // crédito completo (1.0)
+  preguntasIncorrectas: number;     // crédito 0
+  preguntasParciales: number;       // crédito entre 0 y 1 (nuevo)
   totalPreguntas: number;
   aprobado: boolean;
   puntajePorTema?: Record<string, number>;
 }
 
-// Función auxiliar para comparar arrays de strings sin importar el orden
-const arraysEqual = (a: string[], b: string[]) => {
-  if (a.length !== b.length) return false;
-  const sortedA = [...a].sort();
-  const sortedB = [...b].sort();
-  return sortedA.every((val, index) => val === sortedB[index]);
-};
+// -------------------------------------------------------------------------
+// Crédito por pregunta (0..1)
+// - seleccion_unica: todo o nada
+// - seleccion_multiple: correctas_seleccionadas / total_correctas (leniente)
+// - emparejamiento: pares_correctos / total_pares (leniente)
+// -------------------------------------------------------------------------
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function calcularCreditoPregunta(
+  pregunta: any,
+  respuestaApp: RespuestaAprendiz | undefined,
+): number {
+  if (!respuestaApp) return 0;
 
-// Función auxiliar para comparar objetos de emparejamiento
-const emparejamientosEqual = (
-  a: Record<string, string>,
-  b: Record<string, string>,
-) => {
-  const keysA = Object.keys(a);
-  const keysB = Object.keys(b);
-  if (keysA.length !== keysB.length) return false;
-  return keysA.every((key) => a[key] === b[key]);
-};
+  if (pregunta.tipo === "seleccion_unica") {
+    const correctas: string[] = pregunta.respuestaCorrecta ?? [];
+    const seleccionadas = respuestaApp.respuestaIds ?? [];
+    const sorted = (a: string[]) => [...a].sort();
+    const eq =
+      sorted(seleccionadas).join(",") === sorted(correctas).join(",");
+    return eq ? 1 : 0;
+  }
+
+  if (pregunta.tipo === "seleccion_multiple") {
+    const correctas: string[] = pregunta.respuestaCorrecta ?? [];
+    if (correctas.length === 0) return 0;
+    const seleccionadas = respuestaApp.respuestaIds ?? [];
+    const aciertos = seleccionadas.filter((id) => correctas.includes(id)).length;
+    return aciertos / correctas.length;
+  }
+
+  if (pregunta.tipo === "emparejamiento") {
+    const pares: { izquierda: string; derecha: string }[] = pregunta.pares ?? [];
+    if (pares.length === 0) return 0;
+    const emparej = respuestaApp.emparejamientos ?? {};
+    const aciertos = pares.filter(
+      (par) => (emparej[par.izquierda] ?? "") === par.derecha,
+    ).length;
+    return aciertos / pares.length;
+  }
+
+  return 0;
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function calcularPuntaje(
@@ -34,83 +59,48 @@ export function calcularPuntaje(
   respuestasUsuario: Record<string, RespuestaAprendiz>,
   scoreParaAprobar: number,
 ): EvaluacionResultado {
-  let correctas = 0;
+  let sumaCreditos = 0;
+  let preguntasCompletas = 0;
+  let preguntasParciales = 0;
 
-  // Opcional: calcular puntajes por temas si las preguntas tienen la propiedad "tema"
-  const puntajePorTema: Record<string, { correctas: number; total: number }> =
+  const puntajePorTema: Record<string, { creditos: number; total: number }> =
     {};
 
   preguntas.forEach((pregunta) => {
-    // Rastrear estadísticas por tema si es necesario en el futuro
     const tema = pregunta.tema || "General";
     if (!puntajePorTema[tema]) {
-      puntajePorTema[tema] = { correctas: 0, total: 0 };
+      puntajePorTema[tema] = { creditos: 0, total: 0 };
     }
     puntajePorTema[tema].total += 1;
 
     const respuestaApp = respuestasUsuario[String(pregunta.id)];
-    let esCorrecta = false;
+    const credito = calcularCreditoPregunta(pregunta, respuestaApp);
 
-    if (!respuestaApp) {
-      // No respondida se cuenta como incorrecta
-      return;
-    }
+    sumaCreditos += credito;
+    puntajePorTema[tema].creditos += credito;
 
-    if (
-      pregunta.tipo === "seleccion_unica" ||
-      pregunta.tipo === "seleccion_multiple"
-    ) {
-      // Las respuestas correctas están directamente en 'respuestaCorrecta' ahora
-      const opcionesCorrectas = pregunta.respuestaCorrecta || [];
-
-      if (
-        respuestaApp.respuestaIds &&
-        arraysEqual(respuestaApp.respuestaIds, opcionesCorrectas)
-      ) {
-        esCorrecta = true;
-      }
-    } else if (pregunta.tipo === "emparejamiento") {
-      // Extraer las parejas correctas del campo 'pares'
-      const parejasCorrectas: Record<string, string> = {};
-
-      if (pregunta.pares && Array.isArray(pregunta.pares)) {
-        pregunta.pares.forEach(
-          (par: { izquierda: string; derecha: string }) => {
-            parejasCorrectas[par.izquierda] = par.derecha;
-          },
-        );
-      }
-
-      if (
-        respuestaApp.emparejamientos &&
-        emparejamientosEqual(respuestaApp.emparejamientos, parejasCorrectas)
-      ) {
-        esCorrecta = true;
-      }
-    }
-
-    if (esCorrecta) {
-      correctas += 1;
-      puntajePorTema[tema].correctas += 1;
-    }
+    if (credito === 1) preguntasCompletas += 1;
+    else if (credito > 0) preguntasParciales += 1;
   });
 
   const total = preguntas.length;
-  const puntajeBase100 = total > 0 ? (correctas / total) * 100 : 0;
+  const puntajeBase100 = total > 0 ? (sumaCreditos / total) * 100 : 0;
   const aprobado = puntajeBase100 >= scoreParaAprobar;
 
-  // Convertir a porcentajes simples por tema
   const temasResult: Record<string, number> = {};
   Object.keys(puntajePorTema).forEach((t) => {
     const stats = puntajePorTema[t];
     temasResult[t] =
-      stats.total > 0 ? (stats.correctas / stats.total) * 100 : 0;
+      stats.total > 0 ? (stats.creditos / stats.total) * 100 : 0;
   });
+
+  const incorrectas = total - preguntasCompletas - preguntasParciales;
 
   return {
     puntajeTotal: Math.round(puntajeBase100),
-    preguntasCorrectas: correctas,
-    preguntasIncorrectas: total - correctas,
+    preguntasCorrectas: preguntasCompletas,
+    preguntasParciales,
+    preguntasIncorrectas: incorrectas,
     totalPreguntas: total,
     aprobado,
     puntajePorTema: temasResult,

@@ -70,11 +70,19 @@ export default function EvaluacionPage() {
     };
   }, []);
 
-  // Anti-plagiarism: show overlay when tab loses focus
+  // Anti-plagiarism: blur content on tab/window focus loss (catches Win+Shift+S, Alt+Tab, etc.)
   useEffect(() => {
-    const handleVisibility = () => setTabBlurred(document.hidden);
+    const hide = () => setTabBlurred(true);
+    const show = () => setTabBlurred(false);
+    const handleVisibility = () => { if (document.hidden) hide(); else show(); };
     document.addEventListener("visibilitychange", handleVisibility);
-    return () => document.removeEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("blur", hide);
+    window.addEventListener("focus", show);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("blur", hide);
+      window.removeEventListener("focus", show);
+    };
   }, []);
 
   useEffect(() => {
@@ -157,7 +165,10 @@ export default function EvaluacionPage() {
         </div>
       )}
 
-      <div className="container max-w-5xl mx-auto w-full space-y-4">
+      <div className={cn(
+        "container max-w-5xl mx-auto w-full space-y-4 transition-[filter] duration-75",
+        tabBlurred && "blur-xl pointer-events-none"
+      )}>
         <EvaluacionStartModal
           open={showStartModal}
           onStart={() => setShowStartModal(false)}
