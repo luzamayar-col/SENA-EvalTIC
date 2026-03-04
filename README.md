@@ -22,6 +22,7 @@ Sistema interactivo de evaluación técnica en línea para aprendices del **SENA
 | **Editor de preguntas**     | Interfaz visual drag-and-drop para editar, reordenar y crear preguntas del banco                                            |
 | **Importación SOFIA Plus**  | Importar aprendices desde el Excel de SOFIA Plus (detección automática de columnas)                                         |
 | **Exportación Excel**       | Resultados exportables en `.xlsx` con dos hojas (Resultados y Resumen)                                                      |
+| **Antiplagio**              | Bloqueo de copia/captura durante la evaluación + marca de agua personalizada y cifrado en el informe PDF                    |
 | **Autenticación**           | NextAuth v4 con credenciales (email + contraseña bcrypt) — solo instructores autorizados                                   |
 
 ---
@@ -301,6 +302,20 @@ El parser detecta automáticamente la fila de encabezados (busca en las primeras
 
 ### PDF y Fuentes
 `public/fonts/NotoSans-Regular.ttf` es necesaria para renderizar tildes (á, é) y ñ en el informe PDF.
+
+### Medidas Antiplagio
+
+**Durante la evaluación (`/evaluacion`):**
+- `user-select: none` — impide seleccionar texto con el mouse
+- `contextmenu` bloqueado — sin clic derecho
+- Atajos bloqueados vía `keydown`: `Ctrl+C/A/P/U/S`, `Ctrl+Shift+I/J/C`, `F12`, `PrintScreen`
+- Overlay de pantalla negra al detectar `visibilitychange` (cambio de pestaña)
+- `@media print { display: none }` — página en blanco al imprimir
+
+**Informe PDF:**
+- Marca de agua diagonal personalizada en cada página con nombre + tipo + número de documento del aprendiz
+- Metadatos del PDF (título, asunto, autor) con datos del aprendiz — persisten aunque se recorte la marca de agua
+- `setEncryption()` con contraseña de apertura = cédula del aprendiz y sin permisos de copia ni impresión (lectores que respetan el estándar PDF)
 
 ### Resend
 Para tests locales, enviar siempre desde `onboarding@resend.dev` hasta que el dominio esté verificado por DNS en Resend.
