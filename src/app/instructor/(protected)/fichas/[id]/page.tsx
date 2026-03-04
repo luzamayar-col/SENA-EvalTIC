@@ -76,6 +76,7 @@ export default async function FichaDetailPage({ params }: Props) {
       nombres: a.nombres,
       apellidos: a.apellidos,
       email: a.email,
+      emailPersonal: a.emailPersonal,
       intentosExtra: a.intentosExtra,
       intentosUsados: intentosUsadosMap.get(a.cedula) ?? 0,
       intentosPermitidos: ficha.evaluacion.maxIntentos + a.intentosExtra,
