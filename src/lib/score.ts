@@ -97,7 +97,7 @@ export function calcularPuntaje(
   const incorrectas = total - preguntasCompletas - preguntasParciales;
 
   return {
-    puntajeTotal: Math.round(puntajeBase100),
+    puntajeTotal: parseFloat(puntajeBase100.toFixed(2)),
     preguntasCorrectas: preguntasCompletas,
     preguntasParciales,
     preguntasIncorrectas: incorrectas,

@@ -28,6 +28,7 @@ import {
   LayoutDashboard,
 } from "lucide-react";
 import { generatePDF } from "@/lib/pdf-generator";
+import { fmtScore } from "@/lib/utils";
 
 export default function ResultadosPage() {
   const router = useRouter();
@@ -402,7 +403,7 @@ export default function ResultadosPage() {
                   className="text-5xl font-black"
                   style={{ color: aprobado ? "#39A900" : "#EF4444" }}
                 >
-                  {puntajeTotal}%
+                  {fmtScore(puntajeTotal)}%
                 </span>
               </div>
 
@@ -474,7 +475,7 @@ export default function ResultadosPage() {
                       <span
                         className={`font-bold ${getBarTextColor(item.puntaje)}`}
                       >
-                        {item.puntaje}%
+                        {fmtScore(item.puntaje)}%
                       </span>
                     </div>
                     <div className="w-full bg-sena-gray-light rounded-full h-3 overflow-hidden">

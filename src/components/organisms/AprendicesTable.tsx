@@ -27,7 +27,7 @@ import { Pencil, Trash2, Loader2, PlusCircle, Eraser, FileDown } from "lucide-re
 import { generatePDF } from "@/lib/pdf-generator";
 import { calcularPuntaje } from "@/lib/score";
 import { DatosAprendiz, RespuestaAprendiz } from "@/stores/evaluacion-store";
-import { cn } from "@/lib/utils";
+import { cn, fmtScore } from "@/lib/utils";
 
 export interface AprendizRow {
   id: string;
@@ -318,7 +318,7 @@ export function AprendicesTable({
                     {a.ultimoResultado ? (
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-sena-blue text-sm">
-                          {a.ultimoResultado.puntaje}%
+                          {fmtScore(a.ultimoResultado.puntaje)}%
                         </span>
                         <ResultadoBadge aprobado={a.ultimoResultado.aprobado} />
                         <span className="text-xs text-sena-gray-dark/40">

@@ -81,7 +81,7 @@ model Resultado {
   nombres            String
   apellidos          String
   email              String
-  puntaje            Int
+  puntaje            Float
   aprobado           Boolean
   preguntasCorrectas Int
   totalPreguntas     Int

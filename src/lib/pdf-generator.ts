@@ -3,6 +3,7 @@ import autoTable from "jspdf-autotable";
 import { APP_CONFIG } from "./config";
 import { EvaluacionResultado, calcularCreditoPregunta } from "./score";
 import { DatosAprendiz, RespuestaAprendiz } from "@/stores/evaluacion-store";
+import { fmtScore } from "./utils";
 
 // PAGE LAYOUT - Letter 8.5x11 in
 const PAGE_W = 215.9;
@@ -390,11 +391,13 @@ export async function generatePDF(
     startY: ctx.y,
     head: [["Ítem", "Detalle"]],
     body: [
-      ["Puntaje Obtenido", resultado.puntajeTotal + " / 100"],
+      ["Puntaje Obtenido", fmtScore(resultado.puntajeTotal) + " / 100"],
       ["Estado", resultado.aprobado ? "APROBADO" : "NO APROBADO"],
       [
         "Respuestas Correctas",
-        resultado.preguntasCorrectas + " de " + resultado.totalPreguntas,
+        resultado.preguntasParciales > 0
+          ? `${resultado.preguntasCorrectas} completas, ${resultado.preguntasParciales} parciales de ${resultado.totalPreguntas}`
+          : `${resultado.preguntasCorrectas} de ${resultado.totalPreguntas}`,
       ],
       ["Tiempo Empleado", mns + " min " + scs + " seg"],
     ],

@@ -17,7 +17,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { FileSpreadsheet, Download, Clock } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, fmtScore } from "@/lib/utils";
 
 interface ResultadoRow {
   id: string;
@@ -199,10 +199,10 @@ export function FichaDetailClient({
                           : "text-red-500"
                         )}
                       >
-                        {r.puntaje}%
+                        {fmtScore(r.puntaje)}%
                       </span>
                       <p className="text-[10px] text-sena-gray-dark/50">
-                        {r.preguntasCorrectas}/{r.totalPreguntas}
+                        {fmtScore(r.puntaje / 100 * r.totalPreguntas)}/{r.totalPreguntas}
                       </p>
                     </TableCell>
                     <TableCell className="text-center">
