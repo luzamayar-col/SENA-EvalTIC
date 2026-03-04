@@ -23,7 +23,10 @@ import {
 } from "@/components/ui/dialog";
 import { ConfirmDialog } from "@/components/molecules/ConfirmDialog";
 import { ResultadoBadge } from "@/components/molecules/ResultadoBadge";
-import { Pencil, Trash2, Loader2, PlusCircle, Eraser } from "lucide-react";
+import { Pencil, Trash2, Loader2, PlusCircle, Eraser, FileDown } from "lucide-react";
+import { generatePDF } from "@/lib/pdf-generator";
+import { calcularPuntaje } from "@/lib/score";
+import { DatosAprendiz, RespuestaAprendiz } from "@/stores/evaluacion-store";
 import { cn } from "@/lib/utils";
 
 export interface AprendizRow {
@@ -38,6 +41,7 @@ export interface AprendizRow {
   intentosUsados: number;
   intentosPermitidos: number;
   ultimoResultado: {
+    id: string;
     intento: number;
     puntaje: number;
     aprobado: boolean;
@@ -71,6 +75,7 @@ export function AprendicesTable({
   });
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [downloadingPdfId, setDownloadingPdfId] = useState<string | null>(null);
 
   // ── Add single aprendiz ──────────────────────────────────────────────────
   const [addOpen, setAddOpen] = useState(false);
@@ -167,6 +172,35 @@ export function AprendicesTable({
       router.refresh();
     } finally {
       setAdding(false);
+    }
+  };
+
+  const handleDownloadPDF = async (a: AprendizRow) => {
+    if (!a.ultimoResultado?.id) return;
+    setDownloadingPdfId(a.id);
+    try {
+      const res = await fetch(`/api/instructor/resultados/${a.ultimoResultado.id}/pdf-data`);
+      if (!res.ok) {
+        alert("No se pudo obtener los datos del informe");
+        return;
+      }
+      const { resultado, preguntas, passingScore } = await res.json();
+      const datosAprendiz: DatosAprendiz = {
+        nombres: resultado.nombres,
+        apellidos: resultado.apellidos,
+        tipoDocumento: resultado.tipoDocumento,
+        numeroDocumento: resultado.cedula,
+        correo: resultado.email,
+        ficha: "",
+        programaFormacion: "",
+      };
+      const respuestas = resultado.respuestas as Record<string, RespuestaAprendiz>;
+      const evaluacionResultado = calcularPuntaje(preguntas, respuestas, passingScore);
+      const doc = await generatePDF(datosAprendiz, evaluacionResultado, resultado.tiempoUsado, preguntas, respuestas);
+      const fileName = `Evaluacion_${resultado.nombres.replace(/\s+/g, "")}_${resultado.cedula}_I${resultado.intento}.pdf`;
+      doc.save(fileName);
+    } finally {
+      setDownloadingPdfId(null);
     }
   };
 
@@ -297,6 +331,20 @@ export function AprendicesTable({
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
+                      {a.ultimoResultado && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="Descargar informe PDF (último intento)"
+                          className="h-8 w-8 text-sena-green hover:bg-sena-green/10"
+                          onClick={() => handleDownloadPDF(a)}
+                          disabled={downloadingPdfId === a.id}
+                        >
+                          {downloadingPdfId === a.id
+                            ? <Loader2 size={14} className="animate-spin" />
+                            : <FileDown size={14} />}
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="sm"

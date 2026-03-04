@@ -24,6 +24,7 @@ Sistema interactivo de evaluación técnica en línea para aprendices del **SENA
 | **Exportación Excel**       | Resultados exportables en `.xlsx` con dos hojas (Resultados y Resumen)                                                      |
 | **Antiplagio**              | Bloqueo de copia/captura; blur inmediato al perder foco (Win+Shift+S); marca de agua personalizada en PDF                   |
 | **Crédito parcial**         | Selección múltiple y emparejamiento otorgan puntos proporcionales a las opciones/pares correctos seleccionados               |
+| **Descarga PDF por aprendiz** | El instructor puede descargar el informe PDF del último intento de cada aprendiz directamente desde la tabla de la ficha   |
 | **Autenticación**           | NextAuth v4 con credenciales (email + contraseña bcrypt) — solo instructores autorizados                                   |
 
 ---

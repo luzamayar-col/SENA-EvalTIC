@@ -50,19 +50,28 @@ export default async function FichaDetailPage({ params }: Props) {
     _max: { presentadoEn: true },
   });
 
-  const ultimosResultados = await prisma.resultado.findMany({
+  // Use client-side dedup instead of `distinct` — more reliable with NeonHTTP adapter.
+  // Fetch all results ordered newest-first, then keep only the first per cedula.
+  const todosUltimosResultados = await prisma.resultado.findMany({
     where: {
       fichaId: id,
       esPrueba: false,
       cedula: { in: aprendicesRaw.map((a) => a.cedula) },
     },
     orderBy: { presentadoEn: "desc" },
-    distinct: ["cedula"],
+    select: {
+      id: true,
+      cedula: true,
+      intento: true,
+      puntaje: true,
+      aprobado: true,
+      presentadoEn: true,
+    },
   });
-
-  const ultimoMap = new Map(
-    ultimosResultados.map((r) => [r.cedula, r])
-  );
+  const ultimoMap = new Map<string, typeof todosUltimosResultados[0]>();
+  for (const r of todosUltimosResultados) {
+    if (!ultimoMap.has(r.cedula)) ultimoMap.set(r.cedula, r);
+  }
   const intentosUsadosMap = new Map(
     resultadosPorCedula.map((g) => [g.cedula, g._count.id])
   );
@@ -82,6 +91,7 @@ export default async function FichaDetailPage({ params }: Props) {
       intentosPermitidos: ficha.evaluacion.maxIntentos + a.intentosExtra,
       ultimoResultado: ultimo
         ? {
+            id: ultimo.id,
             intento: ultimo.intento,
             puntaje: ultimo.puntaje,
             aprobado: ultimo.aprobado,
