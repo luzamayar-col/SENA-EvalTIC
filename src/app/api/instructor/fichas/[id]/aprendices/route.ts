@@ -96,6 +96,7 @@ const singleSchema = z.object({
   nombres: z.string().min(1),
   apellidos: z.string().min(1),
   email: z.string().email().optional().or(z.literal("")),
+  emailPersonal: z.string().email().optional().or(z.literal("")),
   intentosExtra: z.number().int().min(0).default(0),
 });
 
@@ -173,7 +174,7 @@ export async function POST(req: NextRequest, { params }: Params) {
     );
   }
 
-  const { cedula, tipoDocumento, nombres, apellidos, email, intentosExtra } =
+  const { cedula, tipoDocumento, nombres, apellidos, email, emailPersonal, intentosExtra } =
     parsed.data;
 
   const existing = await prisma.aprendiz.findFirst({
@@ -193,6 +194,7 @@ export async function POST(req: NextRequest, { params }: Params) {
       nombres,
       apellidos,
       email: email?.trim() || null,
+      emailPersonal: emailPersonal?.trim() || null,
       intentosExtra,
       fichaId: id,
     },

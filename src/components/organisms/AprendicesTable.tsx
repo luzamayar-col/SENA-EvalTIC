@@ -33,6 +33,7 @@ export interface AprendizRow {
   nombres: string;
   apellidos: string;
   email: string | null;
+  emailPersonal: string | null;
   intentosExtra: number;
   intentosUsados: number;
   intentosPermitidos: number;
@@ -64,6 +65,7 @@ export function AprendicesTable({
     nombres: "",
     apellidos: "",
     email: "",
+    emailPersonal: "",
     tipoDocumento: "CC",
     intentosExtra: 0,
   });
@@ -73,7 +75,7 @@ export function AprendicesTable({
   // ── Add single aprendiz ──────────────────────────────────────────────────
   const [addOpen, setAddOpen] = useState(false);
   const [addForm, setAddForm] = useState({
-    cedula: "", tipoDocumento: "CC", nombres: "", apellidos: "", email: "",
+    cedula: "", tipoDocumento: "CC", nombres: "", apellidos: "", email: "", emailPersonal: "",
   });
   const [adding, setAdding] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
@@ -85,6 +87,7 @@ export function AprendicesTable({
       nombres: a.nombres,
       apellidos: a.apellidos,
       email: a.email ?? "",
+      emailPersonal: a.emailPersonal ?? "",
       tipoDocumento: a.tipoDocumento,
       intentosExtra: a.intentosExtra,
     });
@@ -160,7 +163,7 @@ export function AprendicesTable({
         return;
       }
       setAddOpen(false);
-      setAddForm({ cedula: "", tipoDocumento: "CC", nombres: "", apellidos: "", email: "" });
+      setAddForm({ cedula: "", tipoDocumento: "CC", nombres: "", apellidos: "", email: "", emailPersonal: "" });
       router.refresh();
     } finally {
       setAdding(false);
@@ -253,7 +256,14 @@ export function AprendicesTable({
                       {a.nombres} {a.apellidos}
                     </p>
                     {a.email && (
-                      <p className="text-xs text-sena-gray-dark/50 truncate max-w-[200px]">{a.email}</p>
+                      <p className="text-xs text-sena-gray-dark/50 truncate max-w-[200px]" title={a.email}>
+                        🏫 {a.email}
+                      </p>
+                    )}
+                    {a.emailPersonal && (
+                      <p className="text-xs text-sena-gray-dark/40 truncate max-w-[200px]" title={a.emailPersonal}>
+                        📧 {a.emailPersonal}
+                      </p>
                     )}
                   </TableCell>
                   <TableCell className="text-center">
@@ -358,9 +368,16 @@ export function AprendicesTable({
               </div>
             </div>
             <div className="grid gap-1.5">
-              <Label className="text-xs font-semibold text-sena-blue">Email (opcional)</Label>
+              <Label className="text-xs font-semibold text-sena-blue">Correo institucional (opcional)</Label>
               <Input type="email" value={editForm.email}
-                onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))} />
+                onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))}
+                placeholder="nombre@soy.sena.edu.co" />
+            </div>
+            <div className="grid gap-1.5">
+              <Label className="text-xs font-semibold text-sena-blue">Correo personal (opcional)</Label>
+              <Input type="email" value={editForm.emailPersonal}
+                onChange={(e) => setEditForm((f) => ({ ...f, emailPersonal: e.target.value }))}
+                placeholder="correo@gmail.com" />
             </div>
             <div className="grid gap-1.5">
               <Label className="text-xs font-semibold text-sena-blue">
@@ -405,7 +422,7 @@ function AddDialog({
 }: {
   open: boolean;
   onClose: () => void;
-  form: { cedula: string; tipoDocumento: string; nombres: string; apellidos: string; email: string };
+  form: { cedula: string; tipoDocumento: string; nombres: string; apellidos: string; email: string; emailPersonal: string };
   setForm: React.Dispatch<React.SetStateAction<typeof form>>;
   onAdd: () => void;
   adding: boolean;
@@ -457,10 +474,16 @@ function AddDialog({
             </div>
           </div>
           <div className="grid gap-1.5">
-            <Label className="text-xs font-semibold text-sena-blue">Email (opcional)</Label>
+            <Label className="text-xs font-semibold text-sena-blue">Correo institucional (opcional)</Label>
             <Input type="email" value={form.email}
               onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-              placeholder="correo@misena.edu.co" />
+              placeholder="nombre@soy.sena.edu.co" />
+          </div>
+          <div className="grid gap-1.5">
+            <Label className="text-xs font-semibold text-sena-blue">Correo personal (opcional)</Label>
+            <Input type="email" value={form.emailPersonal}
+              onChange={(e) => setForm((f) => ({ ...f, emailPersonal: e.target.value }))}
+              placeholder="correo@gmail.com" />
           </div>
         </div>
         <DialogFooter>

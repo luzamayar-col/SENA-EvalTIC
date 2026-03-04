@@ -32,7 +32,7 @@ const COL_ALIASES: Record<string, string[]> = {
   tipoDocumento: ["tipo doc", "tipo de documento", "tipo documento", "tipo"],
   nombres:       ["nombres", "nombre"],
   apellidos:     ["apellidos", "apellido"],
-  email:         ["correo misena", "correo sena", "correo institucional", "correo electrónico inst", "correo electronico inst", "correo", "email", "correo electrónico", "correo electronico"],
+  email:         ["correo soy.sena", "correo misena", "correo sena", "correo institucional", "correo inst", "correo electrónico inst", "correo electronico inst", "email inst", "correo", "email", "correo electrónico", "correo electronico"],
   emailPersonal: ["correo personal", "email personal", "correo electrónico personal", "correo electronico personal", "correo electronico personal", "correo alternativo"],
   estado:        ["estado aprendiz", "estado del aprendiz", "estado"],
 };
