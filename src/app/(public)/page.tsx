@@ -3,6 +3,8 @@ import { ShieldCheckIcon, TimerIcon, AlertTriangle } from "lucide-react";
 import { APP_CONFIG } from "@/lib/config";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export default async function LandingPage() {
   let fichas: { numero: string; programa: string }[] = [];
 
