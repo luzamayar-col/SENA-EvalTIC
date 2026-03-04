@@ -27,7 +27,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { BookOpen, Target, FlaskConical, Hash } from "lucide-react";
+import { BookOpen, Target, FlaskConical, Hash, ShieldAlert } from "lucide-react";
 
 export default function EvaluacionPage() {
   const router = useRouter();
@@ -49,6 +49,33 @@ export default function EvaluacionPage() {
 
   const [finalizando, setFinalizando] = useState(false);
   const [showStartModal, setShowStartModal] = useState(true);
+  const [tabBlurred, setTabBlurred] = useState(false);
+
+  // Anti-plagiarism: block copy/print shortcuts and right-click
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      const blocked =
+        (e.ctrlKey && ["c", "a", "p", "u", "s"].includes(e.key.toLowerCase())) ||
+        (e.ctrlKey && e.shiftKey && ["i", "j", "c"].includes(e.key.toLowerCase())) ||
+        e.key === "F12" ||
+        e.key === "PrintScreen";
+      if (blocked) e.preventDefault();
+    };
+    const handleContext = (e: MouseEvent) => e.preventDefault();
+    document.addEventListener("keydown", handleKey);
+    document.addEventListener("contextmenu", handleContext);
+    return () => {
+      document.removeEventListener("keydown", handleKey);
+      document.removeEventListener("contextmenu", handleContext);
+    };
+  }, []);
+
+  // Anti-plagiarism: show overlay when tab loses focus
+  useEffect(() => {
+    const handleVisibility = () => setTabBlurred(document.hidden);
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, []);
 
   useEffect(() => {
     // eslint-disable-next-line
@@ -112,7 +139,24 @@ export default function EvaluacionPage() {
   })();
 
   return (
-    <div className="w-full min-h-[calc(100vh-140px)] flex flex-col items-center py-6 px-4 bg-sena-gray-light/30">
+    <div
+      className="w-full min-h-[calc(100vh-140px)] flex flex-col items-center py-6 px-4 bg-sena-gray-light/30 select-none"
+      onContextMenu={(e) => e.preventDefault()}
+    >
+      {/* Block printing */}
+      <style>{`@media print { body { display: none !important; } }`}</style>
+
+      {/* Tab-switch overlay */}
+      {tabBlurred && (
+        <div className="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center gap-4">
+          <ShieldAlert className="w-16 h-16 text-amber-400" />
+          <p className="text-white text-xl font-bold">Evaluación en pausa</p>
+          <p className="text-white/70 text-sm text-center max-w-xs">
+            Vuelve a esta pestaña para continuar. Se registra el cambio de pantalla.
+          </p>
+        </div>
+      )}
+
       <div className="container max-w-5xl mx-auto w-full space-y-4">
         <EvaluacionStartModal
           open={showStartModal}

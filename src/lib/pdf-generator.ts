@@ -147,6 +147,25 @@ function addFooter(doc: jsPDF, font: string) {
 }
 
 // ---------------------------------------------------------------------------
+// WATERMARK
+// ---------------------------------------------------------------------------
+function addWatermark(doc: jsPDF, text: string) {
+  const pw = doc.internal.pageSize.getWidth();
+  const ph = doc.internal.pageSize.getHeight();
+  doc.saveGraphicsState();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  doc.setGState(new (doc as any).GState({ opacity: 0.07 }));
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(22);
+  doc.setTextColor(0, 50, 77);
+  const positions = [ph * 0.25, ph * 0.55, ph * 0.82];
+  for (const y of positions) {
+    doc.text(text, pw * 0.5, y, { angle: 45, align: "center" });
+  }
+  doc.restoreGraphicsState();
+}
+
+// ---------------------------------------------------------------------------
 // PAGE CONTEXT & HELPERS
 // ---------------------------------------------------------------------------
 interface Ctx {
@@ -154,6 +173,7 @@ interface Ctx {
   y: number;
   dateStr: string;
   font: string;
+  watermarkText?: string;
 }
 
 function checkPage(ctx: Ctx, need: number): number {
@@ -161,6 +181,7 @@ function checkPage(ctx: Ctx, need: number): number {
     addFooter(ctx.doc, ctx.font);
     ctx.doc.addPage();
     ctx.y = addHeader(ctx.doc, ctx.dateStr, ctx.font);
+    if (ctx.watermarkText) addWatermark(ctx.doc, ctx.watermarkText);
   }
   return ctx.y;
 }
@@ -213,7 +234,18 @@ export async function generatePDF(
   const evalDateLabel =
     evalDateStr.charAt(0).toUpperCase() + evalDateStr.slice(1);
 
-  const ctx: Ctx = { doc, y: 0, dateStr, font };
+  const watermarkText = `${n(datosAprendiz.nombres)} ${n(datosAprendiz.apellidos)} · ${n(datosAprendiz.tipoDocumento)}: ${n(datosAprendiz.numeroDocumento)}`;
+
+  // PDF metadata for identification if shared
+  doc.setProperties({
+    title: `Informe de Evaluación — ${n(datosAprendiz.nombres)} ${n(datosAprendiz.apellidos)}`,
+    author: "SENA EvalTIC",
+    subject: `${n(datosAprendiz.tipoDocumento)}: ${n(datosAprendiz.numeroDocumento)} | Ficha: ${n(datosAprendiz.ficha)}`,
+    creator: "SENA EvalTIC — Sistema de Evaluación",
+    keywords: `${n(datosAprendiz.numeroDocumento)}, ${n(datosAprendiz.nombres)}, ${n(datosAprendiz.apellidos)}, SENA`,
+  });
+
+  const ctx: Ctx = { doc, y: 0, dateStr, font, watermarkText };
   const tbl = (styles: object) => ({
     ...styles,
     font: font !== "helvetica" ? font : undefined,
@@ -223,6 +255,7 @@ export async function generatePDF(
   // PAGE 1 SUMMARY
   // =========================================================================
   ctx.y = addHeader(doc, dateStr, font);
+  addWatermark(doc, watermarkText);
 
   // Report title
   doc.setFontSize(16);
@@ -418,6 +451,7 @@ export async function generatePDF(
     addFooter(doc, font);
     doc.addPage();
     ctx.y = addHeader(doc, dateStr, font);
+    addWatermark(doc, watermarkText);
 
     doc.setFontSize(14);
     doc.setFont(font, "bold");
@@ -557,6 +591,7 @@ export async function generatePDF(
   addFooter(doc, font);
   doc.addPage();
   ctx.y = addHeader(doc, dateStr, font);
+  addWatermark(doc, watermarkText);
 
   doc.setFontSize(14);
   doc.setFont(font, "bold");
@@ -718,6 +753,7 @@ export async function generatePDF(
           // Only add the header on pages after the first (pageNumber > 1)
           if (data.pageNumber > 1) {
             ctx.y = addHeader(doc, dateStr, font);
+            addWatermark(doc, watermarkText);
           }
         },
       });
@@ -790,6 +826,18 @@ export async function generatePDF(
 
   // Suppress unused warning
   void WHITE;
+
+  // PDF copy/print restrictions (graceful fallback if not supported by jsPDF build)
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (doc as any).setEncryption({
+      userPassword: n(datosAprendiz.numeroDocumento),
+      ownerPassword: "SENA_EVALTIC_OWNER",
+      userPermissions: [], // no copy, no print, no modify
+    });
+  } catch {
+    // jsPDF build without encryption support — skip silently
+  }
 
   return doc;
 }
