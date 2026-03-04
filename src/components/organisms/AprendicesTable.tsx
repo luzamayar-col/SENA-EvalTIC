@@ -358,6 +358,7 @@ export function AprendicesTable({
                       <Button
                         variant="ghost"
                         size="icon"
+                        title="Editar aprendiz"
                         className="h-8 w-8 text-sena-blue hover:bg-sena-blue/5"
                         onClick={() => openEdit(a)}
                       >

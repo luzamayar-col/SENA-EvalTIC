@@ -169,6 +169,7 @@ export function EvaluacionesTable({ evaluaciones }: EvaluacionesTableProps) {
                   checked={ev.activa}
                   disabled={toggling === ev.id}
                   onCheckedChange={() => handleToggle(ev.id)}
+                  title={ev.activa ? "Desactivar evaluación" : "Activar evaluación"}
                   className="data-[state=checked]:bg-sena-green"
                 />
               </TableCell>
@@ -195,14 +196,14 @@ export function EvaluacionesTable({ evaluaciones }: EvaluacionesTableProps) {
                     </Button>
                   </Link>
                   {/* Edit evaluation */}
-                  <Link href={`/instructor/evaluaciones/${ev.id}`}>
+                  <Link href={`/instructor/evaluaciones/${ev.id}`} title="Editar evaluación">
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-sena-blue hover:bg-sena-blue/10">
                       <Pencil size={15} />
                     </Button>
                   </Link>
                   <ConfirmDialog
                     trigger={
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:bg-red-50">
+                      <Button variant="ghost" size="icon" title="Eliminar evaluación" className="h-8 w-8 text-red-500 hover:bg-red-50">
                         <Trash2 size={15} />
                       </Button>
                     }

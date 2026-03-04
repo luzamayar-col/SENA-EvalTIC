@@ -202,6 +202,7 @@ export function FichasTable({ fichas }: FichasTableProps) {
                       checked={ficha.activa}
                       onCheckedChange={() => handleToggleActive(ficha)}
                       disabled={toggling === ficha.id}
+                      title={ficha.activa ? "Desactivar ficha" : "Activar ficha"}
                       className="data-[state=checked]:bg-sena-green"
                     />
                   </TableCell>
@@ -250,6 +251,7 @@ export function FichasTable({ fichas }: FichasTableProps) {
                       <Button
                         variant="ghost"
                         size="icon"
+                        title="Editar ficha"
                         className="h-8 w-8 text-sena-blue hover:bg-sena-blue/5"
                         onClick={() => openEdit(ficha)}
                       >
@@ -260,6 +262,7 @@ export function FichasTable({ fichas }: FichasTableProps) {
                           <Button
                             variant="ghost"
                             size="icon"
+                            title="Eliminar ficha"
                             className="h-8 w-8 text-red-500 hover:bg-red-50"
                           >
                             <Trash2 size={15} />
