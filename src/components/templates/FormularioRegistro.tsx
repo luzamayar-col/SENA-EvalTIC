@@ -24,7 +24,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useEvaluacionStore } from "@/stores/evaluacion-store";
 import { APP_CONFIG } from "@/lib/config";
 import { calcularPuntaje } from "@/lib/score";
-import { generatePDF } from "@/lib/pdf-generator";
+import { generatePDF, savePdf } from "@/lib/pdf-generator";
 import {
   AlertCircle,
   Loader2,
@@ -196,7 +196,7 @@ export function FormularioRegistro({ fichas = [] }: FormularioRegistroProps) {
       const respuestas = resultado.respuestas as Record<string, any>;
       const evaluacionResultado = calcularPuntaje(preguntas, respuestas, passingScore);
 
-      const doc = await generatePDF(
+      const bytes = await generatePDF(
         {
           nombres: resultado.nombres,
           apellidos: resultado.apellidos,
@@ -211,7 +211,8 @@ export function FormularioRegistro({ fichas = [] }: FormularioRegistroProps) {
         preguntas,
         respuestas,
       );
-      doc.save(
+      savePdf(
+        bytes,
         `Evaluacion_${resultado.nombres.replace(/\s+/g, "")}_${resultado.cedula}_I${resultado.intento}.pdf`,
       );
     } catch {

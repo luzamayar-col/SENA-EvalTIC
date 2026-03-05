@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { PDFDocument } from "@cantoo/pdf-lib";
 import { APP_CONFIG } from "./config";
 import { EvaluacionResultado, calcularCreditoPregunta } from "./score";
 import { DatosAprendiz, RespuestaAprendiz } from "@/stores/evaluacion-store";
@@ -862,17 +863,34 @@ export async function generatePDF(
   // Suppress unused warning
   void WHITE;
 
-  // PDF copy/print restrictions (graceful fallback if not supported by jsPDF build)
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (doc as any).setEncryption({
-      userPassword: n(datosAprendiz.numeroDocumento),
-      ownerPassword: "SENA_EVALTIC_OWNER",
-      userPermissions: [], // no copy, no print, no modify
+  // Post-process: apply PDF encryption via @cantoo/pdf-lib
+  const jspdfBytes = doc.output("arraybuffer");
+  const pdfDoc = await PDFDocument.load(jspdfBytes);
+  const userPwd = n(datosAprendiz.numeroDocumento);
+  if (userPwd) {
+    await pdfDoc.encrypt({
+      userPassword: userPwd,
+      ownerPassword: "SENA_EVALTIC_OWNER_2025",
+      permissions: {
+        printing: "lowResolution",
+        modifying: false,
+        copying: false,
+        annotating: false,
+        fillingForms: false,
+        contentAccessibility: true,
+        documentAssembly: false,
+      },
     });
-  } catch {
-    // jsPDF build without encryption support — skip silently
   }
+  return new Uint8Array(await pdfDoc.save());
+}
 
-  return doc;
+/** Trigger a browser file download for the encrypted PDF bytes. */
+export function savePdf(bytes: Uint8Array, filename: string) {
+  const url = URL.createObjectURL(new Blob([bytes.buffer as ArrayBuffer], { type: "application/pdf" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
 }

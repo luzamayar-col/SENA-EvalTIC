@@ -27,7 +27,7 @@ import {
   FlaskConical,
   LayoutDashboard,
 } from "lucide-react";
-import { generatePDF } from "@/lib/pdf-generator";
+import { generatePDF, savePdf } from "@/lib/pdf-generator";
 import { fmtScore } from "@/lib/utils";
 
 export default function ResultadosPage() {
@@ -160,7 +160,7 @@ export default function ResultadosPage() {
       setIsGeneratingPDF(true);
       if (!effectiveDatos || !result) return;
 
-      const doc = await generatePDF(
+      const bytes = await generatePDF(
         effectiveDatos,
         result,
         tiempoTranscurrido,
@@ -173,8 +173,7 @@ export default function ResultadosPage() {
       // Use File System Access API to show a centred native "Save As" dialog
       if (typeof window !== "undefined" && "showSaveFilePicker" in window) {
         try {
-          const arrayBuffer = doc.output("arraybuffer");
-          const blob = new Blob([arrayBuffer], { type: "application/pdf" });
+          const blob = new Blob([bytes], { type: "application/pdf" });
           const handle = await (
             window as typeof window & {
               showSaveFilePicker: (
@@ -199,11 +198,11 @@ export default function ResultadosPage() {
             !(err instanceof Error) ||
             (err as DOMException).name !== "AbortError"
           ) {
-            doc.save(fileName);
+            savePdf(bytes, fileName);
           }
         }
       } else {
-        doc.save(fileName);
+        savePdf(bytes, fileName);
       }
     } catch (error) {
       console.error("Error al generar PDF:", error);

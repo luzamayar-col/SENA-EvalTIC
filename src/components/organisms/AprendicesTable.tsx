@@ -24,7 +24,7 @@ import {
 import { ConfirmDialog } from "@/components/molecules/ConfirmDialog";
 import { ResultadoBadge } from "@/components/molecules/ResultadoBadge";
 import { Pencil, Trash2, Loader2, PlusCircle, Eraser, FileDown } from "lucide-react";
-import { generatePDF } from "@/lib/pdf-generator";
+import { generatePDF, savePdf } from "@/lib/pdf-generator";
 import { calcularPuntaje } from "@/lib/score";
 import { DatosAprendiz, RespuestaAprendiz } from "@/stores/evaluacion-store";
 import { cn, fmtScore } from "@/lib/utils";
@@ -200,9 +200,9 @@ export function AprendicesTable({
       };
       const respuestas = resultado.respuestas as Record<string, RespuestaAprendiz>;
       const evaluacionResultado = calcularPuntaje(preguntas, respuestas, passingScore);
-      const doc = await generatePDF(datosAprendiz, evaluacionResultado, resultado.tiempoUsado, preguntas, respuestas);
+      const bytes = await generatePDF(datosAprendiz, evaluacionResultado, resultado.tiempoUsado, preguntas, respuestas);
       const fileName = `Evaluacion_${resultado.nombres.replace(/\s+/g, "")}_${resultado.cedula}_I${resultado.intento}.pdf`;
-      doc.save(fileName);
+      savePdf(bytes, fileName);
     } finally {
       setDownloadingPdfId(null);
     }
