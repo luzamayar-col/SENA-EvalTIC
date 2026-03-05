@@ -12,6 +12,8 @@ const PAGE_H = 279.4;
 const MARGIN = 17.78;
 const CONTENT_W = PAGE_W - 2 * MARGIN;
 const FOOTER_ZONE = PAGE_H - 22;
+// Y where content starts after the header (logo 14mm @y14 + separator @y32 + gap 6 = 38)
+const HEADER_BOTTOM = 38;
 
 // SENA institutional colours
 const SENA_GREEN: [number, number, number] = [57, 169, 0];
@@ -378,8 +380,11 @@ export async function generatePDF(
       1: { cellWidth: 22, halign: "center" },
       2: { cellWidth: CONTENT_W - 67 },
     },
-    margin: { left: MARGIN, right: MARGIN, bottom: 22 },
-    didDrawPage: () => addFooter(doc, font),
+    margin: { top: HEADER_BOTTOM, left: MARGIN, right: MARGIN, bottom: 22 },
+    didDrawPage: (data) => {
+      addFooter(doc, font);
+      if (data.pageNumber > 1) { addHeader(doc, dateStr, font); addWatermark(doc, watermarkText); }
+    },
   });
   ctx.y = (doc as unknown as DocWithTable).lastAutoTable.finalY + 8;
 
@@ -421,8 +426,11 @@ export async function generatePDF(
       0: { fontStyle: "bold", cellWidth: CONTENT_W * 0.5 },
       1: { cellWidth: CONTENT_W * 0.5, halign: "center" },
     },
-    margin: { left: MARGIN, right: MARGIN, bottom: 22 },
-    didDrawPage: () => addFooter(doc, font),
+    margin: { top: HEADER_BOTTOM, left: MARGIN, right: MARGIN, bottom: 22 },
+    didDrawPage: (data) => {
+      addFooter(doc, font);
+      if (data.pageNumber > 1) { addHeader(doc, dateStr, font); addWatermark(doc, watermarkText); }
+    },
   });
   ctx.y = (doc as unknown as DocWithTable).lastAutoTable.finalY + 8;
 
@@ -510,8 +518,11 @@ export async function generatePDF(
         else data.cell.styles.textColor = RED;
         data.cell.styles.fontStyle = "bold";
       },
-      margin: { left: MARGIN, right: MARGIN, bottom: 22 },
-      didDrawPage: () => addFooter(doc, font),
+      margin: { top: HEADER_BOTTOM, left: MARGIN, right: MARGIN, bottom: 22 },
+      didDrawPage: (data) => {
+        addFooter(doc, font);
+        if (data.pageNumber > 1) { addHeader(doc, dateStr, font); addWatermark(doc, watermarkText); }
+      },
     });
     ctx.y = (doc as unknown as DocWithTable).lastAutoTable.finalY + 10;
 
@@ -736,8 +747,8 @@ export async function generatePDF(
           2: { cellWidth: COL2, halign: "center" },
           3: { cellWidth: COL3 },
         },
-        // Prevent table from entering the footer zone
-        margin: { left: MARGIN, right: MARGIN, bottom: 22 },
+        // Prevent table from entering the footer zone / overlapping header
+        margin: { top: HEADER_BOTTOM, left: MARGIN, right: MARGIN, bottom: 22 },
         pageBreak: "auto",
         showHead: "everyPage",
         didParseCell: (data) => {
