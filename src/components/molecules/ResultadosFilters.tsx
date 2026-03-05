@@ -17,11 +17,18 @@ interface Evaluacion {
   nombre: string;
 }
 
-interface ResultadosFiltersProps {
-  evaluaciones: Evaluacion[];
+interface Ficha {
+  id: string;
+  numero: string;
+  programa: string;
 }
 
-export function ResultadosFilters({ evaluaciones }: ResultadosFiltersProps) {
+interface ResultadosFiltersProps {
+  evaluaciones: Evaluacion[];
+  fichas: Ficha[];
+}
+
+export function ResultadosFilters({ evaluaciones, fichas }: ResultadosFiltersProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -62,7 +69,10 @@ export function ResultadosFilters({ evaluaciones }: ResultadosFiltersProps) {
             value={searchParams.get("evaluacionId") ?? "all"}
             onValueChange={(val) =>
               router.push(
-                `${pathname}?${createQueryString({ evaluacionId: val === "all" ? null : val })}`,
+                `${pathname}?${createQueryString({
+                  evaluacionId: val === "all" ? null : val,
+                  fichaId: null, // reset ficha when evaluacion changes
+                })}`,
               )
             }
           >
@@ -74,6 +84,31 @@ export function ResultadosFilters({ evaluaciones }: ResultadosFiltersProps) {
               {evaluaciones.map((ev) => (
                 <SelectItem key={ev.id} value={ev.id}>
                   {ev.nombre}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Filter: Ficha */}
+        <div className="flex flex-col gap-1 min-w-[180px]">
+          <label className="text-xs text-sena-gray-dark/60 font-medium">Ficha</label>
+          <Select
+            value={searchParams.get("fichaId") ?? "all"}
+            onValueChange={(val) =>
+              router.push(
+                `${pathname}?${createQueryString({ fichaId: val === "all" ? null : val })}`,
+              )
+            }
+          >
+            <SelectTrigger className="h-9 text-sm">
+              <SelectValue placeholder="Todas" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas las fichas</SelectItem>
+              {fichas.map((f) => (
+                <SelectItem key={f.id} value={f.id}>
+                  {f.numero} — {f.programa}
                 </SelectItem>
               ))}
             </SelectContent>

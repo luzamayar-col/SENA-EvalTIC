@@ -39,7 +39,7 @@ export default async function ResultadosPage({ searchParams }: Props) {
     ...(aprobadoFilter !== undefined ? { aprobado: aprobadoFilter } : {}),
   };
 
-  const [resultados, total, evaluaciones] = await Promise.all([
+  const [resultados, total, evaluaciones, fichas] = await Promise.all([
     prisma.resultado.findMany({
       where,
       include: {
@@ -55,6 +55,14 @@ export default async function ResultadosPage({ searchParams }: Props) {
       where: { instructorId: session.user.instructorId },
       select: { id: true, nombre: true },
       orderBy: { nombre: "asc" },
+    }),
+    prisma.ficha.findMany({
+      where: {
+        evaluacion: { instructorId: session.user.instructorId },
+        ...(sp.evaluacionId ? { evaluacionId: sp.evaluacionId } : {}),
+      },
+      select: { id: true, numero: true, programa: true },
+      orderBy: { numero: "asc" },
     }),
   ]);
 
@@ -105,7 +113,7 @@ export default async function ResultadosPage({ searchParams }: Props) {
         </div>
       </div>
 
-      <ResultadosFilters evaluaciones={evaluaciones} />
+      <ResultadosFilters evaluaciones={evaluaciones} fichas={fichas} />
 
       <ResultadosTable
         resultados={serialized}
