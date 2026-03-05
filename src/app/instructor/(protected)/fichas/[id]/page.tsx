@@ -206,6 +206,8 @@ export default async function FichaDetailPage({ params }: Props) {
       {/* Tabs: Aprendices / Resultados */}
       <FichaDetailClient
         fichaId={id}
+        fichaNumero={ficha.numero}
+        fichaPrograma={ficha.programa}
         aprendices={aprendices}
         evaluacionMaxIntentos={ficha.evaluacion.maxIntentos}
         resultados={resultados}

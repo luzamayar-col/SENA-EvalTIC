@@ -38,6 +38,8 @@ interface ResultadoRow {
 
 interface FichaDetailClientProps {
   fichaId: string;
+  fichaNumero: string;
+  fichaPrograma: string;
   aprendices: AprendizRow[];
   evaluacionMaxIntentos: number;
   resultados: ResultadoRow[];
@@ -52,6 +54,8 @@ function formatTime(seconds: number) {
 
 export function FichaDetailClient({
   fichaId,
+  fichaNumero,
+  fichaPrograma,
   aprendices,
   evaluacionMaxIntentos,
   resultados,
@@ -130,6 +134,8 @@ export function FichaDetailClient({
           aprendices={aprendices}
           evaluacionMaxIntentos={evaluacionMaxIntentos}
           fichaId={fichaId}
+          fichaNumero={fichaNumero}
+          fichaPrograma={fichaPrograma}
         />
       </TabsContent>
 

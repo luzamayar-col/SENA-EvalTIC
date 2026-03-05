@@ -76,7 +76,7 @@ export async function POST(_req: NextRequest, { params }: Params) {
       apellidos: "(Modo Prueba)",
       tipoDocumento: "CC",
       email: null,
-      programa: "Evaluación de prueba",
+      programa: evaluacion.nombre,
       competencia: evaluacion.competencia,
       resultadoAprendizaje: evaluacion.resultadoAprendizaje,
     },

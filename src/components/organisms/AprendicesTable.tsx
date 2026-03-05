@@ -53,12 +53,16 @@ interface AprendicesTableProps {
   aprendices: AprendizRow[];
   evaluacionMaxIntentos: number;
   fichaId: string;
+  fichaNumero: string;
+  fichaPrograma: string;
 }
 
 export function AprendicesTable({
   aprendices,
   evaluacionMaxIntentos,
   fichaId,
+  fichaNumero,
+  fichaPrograma,
 }: AprendicesTableProps) {
   const router = useRouter();
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -191,8 +195,8 @@ export function AprendicesTable({
         tipoDocumento: resultado.tipoDocumento,
         numeroDocumento: resultado.cedula,
         correo: resultado.email,
-        ficha: "",
-        programaFormacion: "",
+        ficha: fichaNumero,
+        programaFormacion: fichaPrograma,
       };
       const respuestas = resultado.respuestas as Record<string, RespuestaAprendiz>;
       const evaluacionResultado = calcularPuntaje(preguntas, respuestas, passingScore);

@@ -157,11 +157,17 @@ function addWatermark(doc: jsPDF, text: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   doc.setGState(new (doc as any).GState({ opacity: 0.07 }));
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(22);
+  doc.setFontSize(20);
   doc.setTextColor(0, 50, 77);
-  const positions = [ph * 0.25, ph * 0.55, ph * 0.82];
-  for (const y of positions) {
-    doc.text(text, pw * 0.5, y, { angle: 45, align: "center" });
+  // Staggered grid: even rows at 25%/75%, odd rows at 50% — covers the full page
+  const rowSpacing = 45;
+  let row = 0;
+  for (let y = 28; y < ph - 10; y += rowSpacing) {
+    const xs = row % 2 === 0 ? [pw * 0.25, pw * 0.75] : [pw * 0.5];
+    for (const x of xs) {
+      doc.text(text, x, y, { angle: 45, align: "center" });
+    }
+    row++;
   }
   doc.restoreGraphicsState();
 }
