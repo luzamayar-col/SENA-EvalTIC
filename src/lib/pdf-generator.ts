@@ -877,7 +877,9 @@ export async function generatePDF(
   // Post-process: apply PDF encryption via @cantoo/pdf-lib
   const jspdfBytes = doc.output("arraybuffer");
   const pdfDoc = await PDFDocument.load(jspdfBytes);
-  const userPwd = n(datosAprendiz.numeroDocumento);
+  // PDF passwords must be Latin-1; cedulas are digits-only → strip everything else.
+  // This also naturally skips encryption for test-mode where numeroDocumento has non-ASCII chars.
+  const userPwd = (datosAprendiz.numeroDocumento ?? "").replace(/\D/g, "");
   if (userPwd) {
     await pdfDoc.encrypt({
       userPassword: userPwd,
