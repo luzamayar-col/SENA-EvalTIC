@@ -24,5 +24,7 @@ export const config = {
     '/instructor/fichas/:path*',
     '/instructor/resultados/:path*',
     '/instructor/instructores/:path*',
+    '/instructor/perfil/:path*',
+    '/instructor/configuracion/:path*',
   ],
 };
