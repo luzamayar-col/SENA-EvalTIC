@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireInstructor } from "@/lib/auth-utils";
 
@@ -70,16 +71,16 @@ export async function POST(req: NextRequest) {
         codigoCompetencia,
         resultadoAprendizaje,
         codigoRA,
-        preguntas,
+        preguntas: preguntas as Prisma.InputJsonValue,
         activa: false,
         fechaInicio: fechaInicio ? new Date(fechaInicio) : null,
         fechaFin: fechaFin ? new Date(fechaFin) : null,
-        config: config ?? {
+        config: (config ?? {
           timeLimitMinutes: 15,
           passingScorePercentage: 65,
           distribucionPreguntas: { seleccion_unica: 5, seleccion_multiple: 3, emparejamiento: 2 },
           aleatorizarOpciones: true,
-        },
+        }) as Prisma.InputJsonValue,
         maxIntentos: maxIntentos ?? 1,
         instructorId: session.user.instructorId,
       },

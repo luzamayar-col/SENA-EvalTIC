@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireInstructor } from "@/lib/auth-utils";
 
@@ -86,10 +87,10 @@ export async function PUT(req: NextRequest, { params }: Params) {
         ...(codigoCompetencia && { codigoCompetencia }),
         ...(resultadoAprendizaje && { resultadoAprendizaje }),
         ...(codigoRA && { codigoRA }),
-        ...(preguntas && { preguntas }),
+        ...(preguntas && { preguntas: preguntas as Prisma.InputJsonValue }),
         fechaInicio: fechaInicio ? new Date(fechaInicio) : null,
         fechaFin: fechaFin ? new Date(fechaFin) : null,
-        ...(config && { config }),
+        ...(config && { config: config as Prisma.InputJsonValue }),
         ...(typeof maxIntentos === "number" ? { maxIntentos } : {}),
       },
     });
