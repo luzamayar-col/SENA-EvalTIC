@@ -25,6 +25,7 @@ import {
   AlertCircle,
   FlaskConical,
   LayoutDashboard,
+  Loader2,
 } from "lucide-react";
 import { generatePDF, savePdf } from "@/lib/pdf-generator";
 import { fmtScore } from "@/lib/utils";
