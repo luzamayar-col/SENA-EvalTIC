@@ -104,8 +104,10 @@ src/
 │   └── providers/            # SessionProvider
 ├── lib/
 │   ├── prisma.ts             # Singleton PrismaClient con PrismaNeonHttp
-│   ├── auth.ts               # authOptions (NextAuth)
+│   ├── auth.ts               # authOptions (NextAuth, maxAge 8h, cookies seguras)
 │   ├── auth-utils.ts         # requireInstructor() — guard server-side
+│   ├── crypto.ts             # AES-256-GCM: encryptValue/safeDecrypt para API keys
+│   ├── email.ts              # enviarCorreoResultado() — función interna (no endpoint público)
 │   ├── config.ts             # APP_CONFIG (feature flag, parámetros)
 │   ├── score.ts              # calcularPuntaje()
 │   └── shuffle.ts            # shuffleQuestions()
@@ -165,11 +167,17 @@ DATABASE_URL=postgresql://user:pass@ep-xxx.neon.tech/dbname?sslmode=require
 NEXTAUTH_SECRET=<32-bytes-hex>
 NEXTAUTH_URL=http://localhost:3000
 
-# Contraseña del primer instructor (solo para el seed inicial)
-INSTRUCTOR_SEED_PASSWORD=tu-contraseña-segura
+# Datos del instructor admin inicial (seed)
+INSTRUCTOR_SEED_EMAIL=admin@tu-organizacion.edu.co
+INSTRUCTOR_SEED_NOMBRE=Administrador EvalTIC
+INSTRUCTOR_SEED_PASSWORD=tu-contraseña-segura   # 8+ chars, mayúscula, número, símbolo
 
 # Feature flag: "true" activa el backend Neon; "false" usa el flujo JSON legacy
 NEXT_PUBLIC_USE_DB_BACKEND="true"
+
+# Cifrado AES-256-GCM para las API keys de Resend almacenadas en BD
+# Generar con: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+ENCRYPTION_KEY=<64-hex-chars>
 
 # Resend: NO se necesita variable global — cada instructor configura
 # su propia API key desde el panel en /instructor/perfil
@@ -191,7 +199,7 @@ npx prisma db seed
 > En entornos interactivos (terminal estándar) puedes usar `npx prisma migrate dev --name init` en lugar de `db push`.
 
 **Credenciales del seed:**
-- Email: `mvargasr@sena.edu.co`
+- Email: valor de `INSTRUCTOR_SEED_EMAIL` en `.env.local`
 - Contraseña: valor de `INSTRUCTOR_SEED_PASSWORD` en `.env.local`
 - Panel: `http://localhost:3000/instructor/login`
 
@@ -247,7 +255,7 @@ Acceso en `/instructor/login`. Incluye enlace **← Volver al inicio** para regr
 - Exportar CSV (legacy)
 
 ### Instructores _(solo admin)_
-- Listar, crear, editar y eliminar instructores
+- Listar (paginado, 20 por página), crear, editar y eliminar instructores
 - Cada instructor gestiona sus propias evaluaciones
 
 ### Configuración del sistema _(solo admin)_
@@ -281,7 +289,7 @@ En el paso 4 se muestra el mensaje de intentos agotados y, si existe un resultad
 
 ### Medidas de seguridad implementadas
 
-- **Middleware centralizado** (`src/middleware.ts`): protege todas las rutas `/instructor/*` a nivel de enrutamiento con JWT
+- **Proxy centralizado** (`src/proxy.ts`): protege las rutas `/instructor/*` a nivel de enrutamiento con JWT (Next.js 16 usa `proxy.ts` en lugar de `middleware.ts`)
 - **API routes** `/api/instructor/**`: verifican sesión con `requireInstructor()` (doble protección)
 - **Contraseñas**: hasheadas con bcryptjs (cost 12); requisitos: 8+ chars, mayúscula, número y carácter especial
 - **JWT sessions**: expiración de 8 horas (jornada laboral); cookies `httpOnly`, `sameSite: lax`, `secure` en producción
