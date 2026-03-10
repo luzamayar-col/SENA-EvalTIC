@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { z } from "zod";
+import { Prisma } from "@/generated/prisma/client";
 import { APP_CONFIG } from "@/lib/config";
 import { calcularPuntaje } from "@/lib/score";
 import { enviarCorreoResultado } from "@/lib/email";
@@ -129,7 +130,7 @@ export async function POST(request: NextRequest) {
             preguntasCorrectas: resultado.preguntasCorrectas,
             totalPreguntas: resultado.totalPreguntas,
             tiempoUsado: tiempoUsado ?? 0,
-            respuestas: respuestasUsuario,
+            respuestas: respuestasUsuario as Prisma.InputJsonValue,
             intento,
             esPrueba: false,
             evaluacionId,
