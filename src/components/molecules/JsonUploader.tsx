@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Upload, CheckCircle2, AlertCircle, FileJson, X } from "lucide-react";
+import { Upload, CheckCircle2, AlertCircle, FileJson, X, FileDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ParsedStats {
@@ -136,6 +136,21 @@ export function JsonUploader({ onPreguntasLoad, onClear, className }: JsonUpload
           )}
         </div>
       </div>
+
+      {/* Template download link */}
+      {!fileName && (
+        <p className="text-xs text-center text-sena-gray-dark/40">
+          ¿No tienes un archivo?{" "}
+          <a
+            href="/api/instructor/templates/preguntas"
+            download="plantilla-preguntas.json"
+            className="text-sena-blue underline underline-offset-2 hover:text-sena-green"
+          >
+            <FileDown size={11} className="inline mr-0.5 mb-0.5" />
+            Descargar plantilla JSON de ejemplo
+          </a>
+        </p>
+      )}
 
       {/* Error */}
       {error && (

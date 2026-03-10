@@ -602,16 +602,15 @@ export function PreguntasEditor({
           <PlusCircle size={16} />
           Agregar pregunta
         </Button>
-        <a
-          href="/api/instructor/templates/preguntas"
-          download={`plantilla-preguntas-${evaluacionNombre.toLowerCase().replace(/\s+/g, "-").slice(0, 40)}.json`}
-          title="Descargar plantilla JSON"
-        >
-          <Button variant="outline" type="button" className="gap-2 text-sena-blue border-sena-blue/30 hover:bg-sena-blue/5" asChild={false}>
+        <Button variant="outline" className="gap-2 text-sena-blue border-sena-blue/30 hover:bg-sena-blue/5" asChild>
+          <a
+            href="/api/instructor/templates/preguntas"
+            download={`plantilla-preguntas-${evaluacionNombre.toLowerCase().replace(/\s+/g, "-").slice(0, 40)}.json`}
+          >
             <FileDown size={15} />
             Plantilla JSON
-          </Button>
-        </a>
+          </a>
+        </Button>
       </div>
 
       {/* Edit dialog */}
