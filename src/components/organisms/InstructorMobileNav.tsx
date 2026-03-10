@@ -13,6 +13,7 @@ import {
   LogOut,
   UserCog,
   Menu,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ const navItems = [
   { href: "/instructor/evaluaciones", label: "Evaluaciones", icon: ClipboardList },
   { href: "/instructor/fichas", label: "Fichas", icon: Users2 },
   { href: "/instructor/resultados", label: "Resultados", icon: BarChart2 },
+  { href: "/instructor/perfil", label: "Mi Perfil", icon: Settings },
 ];
 
 const adminItems = [

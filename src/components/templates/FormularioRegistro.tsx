@@ -53,6 +53,7 @@ interface AprendizEncontrado {
   apellidos: string;
   tipoDocumento: string;
   email: string | null;
+  instructorEmail: string;
   intentosUsados: number;
   intentosPermitidos: number;
   puedeIniciar: boolean;
@@ -82,6 +83,7 @@ export function FormularioRegistro({ fichas = [] }: FormularioRegistroProps) {
   const [fichaSeleccionada, setFichaSeleccionada] = useState("");
   const [cedula, setCedula] = useState("");
   const [aprendiz, setAprendiz] = useState<AprendizEncontrado | null>(null);
+  const [instructorEmail, setInstructorEmail] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [startError, setStartError] = useState<string | null>(null);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
@@ -107,11 +109,13 @@ export function FormularioRegistro({ fichas = [] }: FormularioRegistroProps) {
 
       if (!data.encontrado) {
         setLookupError(data.error ?? "No se encontró el registro");
+        setInstructorEmail(data.instructorEmail ?? null);
         setStep("not_found");
         return;
       }
 
       setAprendiz(data);
+      setInstructorEmail(data.instructorEmail ?? null);
       setEmail(data.email ?? "");
       setStep("found");
     } catch {
@@ -269,7 +273,7 @@ export function FormularioRegistro({ fichas = [] }: FormularioRegistroProps) {
                 {lookupError}
                 <br />
                 <span className="text-xs mt-1 block">
-                  Contacta a tu instructor: {APP_CONFIG.instructorEmail}
+                  Contacta a tu instructor:{instructorEmail ? ` ${instructorEmail}` : "."}
                 </span>
               </AlertDescription>
             </Alert>
@@ -370,7 +374,7 @@ export function FormularioRegistro({ fichas = [] }: FormularioRegistroProps) {
                   {aprendiz.intentosPermitidos}). Contacta a tu instructor para obtener
                   una nueva oportunidad.
                   <br />
-                  <strong>📧 {APP_CONFIG.instructorEmail}</strong>
+                  {instructorEmail && <strong>📧 {instructorEmail}</strong>}
                 </AlertDescription>
               </Alert>
               {aprendiz.ultimoResultadoId && (
@@ -400,7 +404,7 @@ export function FormularioRegistro({ fichas = [] }: FormularioRegistroProps) {
               </Label>
               <Input
                 type="email"
-                placeholder="ejemplo@misena.edu.co"
+                placeholder="ejemplo@soy.sena.edu.co"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -573,7 +577,7 @@ function LegacyForm({ fichas }: { fichas: FichaOption[] }) {
             <FormField control={form.control} name="correo" render={({ field }) => (
               <FormItem>
                 <FormLabel className="font-semibold text-sena-blue text-sm">Correo Electrónico</FormLabel>
-                <FormControl><Input placeholder="ejemplo@misena.edu.co" type="email" {...field} /></FormControl>
+                <FormControl><Input placeholder="ejemplo@soy.sena.edu.co" type="email" {...field} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />

@@ -14,6 +14,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -21,8 +23,8 @@ export default async function DashboardPage() {
   const session = await requireInstructor();
   const instructorId = session.user.instructorId;
 
-  // Fetch stats directly from DB (server component)
-  const [evaluaciones, resultados] = await Promise.all([
+  // Fetch stats + email config directly from DB (server component)
+  const [evaluaciones, resultados, instructorConfig] = await Promise.all([
     prisma.evaluacion.findMany({
       where: { instructorId },
       include: { _count: { select: { resultados: true } } },
@@ -34,6 +36,10 @@ export default async function DashboardPage() {
         aprobado: true,
         ficha: { select: { numero: true } },
       },
+    }),
+    prisma.instructor.findUnique({
+      where: { id: instructorId },
+      select: { emailNotificaciones: true, resendApiKey: true },
     }),
   ]);
 
@@ -56,8 +62,31 @@ export default async function DashboardPage() {
     activa: ev.activa,
   }));
 
+  const emailSinConfigurar =
+    !instructorConfig?.emailNotificaciones ||
+    !instructorConfig?.resendApiKey;
+
   return (
     <div className="space-y-6">
+      {/* Email config banner */}
+      {emailSinConfigurar && (
+        <Alert className="border-amber-300 bg-amber-50 text-amber-900">
+          <AlertDescription className="text-xs flex items-center justify-between gap-4">
+            <span>
+              {!instructorConfig?.emailNotificaciones
+                ? "Las notificaciones de resultados por correo están desactivadas. Los resultados de tus aprendices no se enviarán automáticamente."
+                : "Tienes las notificaciones activadas pero no has configurado tu API Key de Resend. Los correos no se enviarán."}
+            </span>
+            <Link
+              href="/instructor/perfil"
+              className="shrink-0 font-semibold underline underline-offset-2 hover:text-amber-700"
+            >
+              Configurar
+            </Link>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Page header */}
       <div>
         <h1 className="text-2xl font-black text-sena-blue">Dashboard</h1>

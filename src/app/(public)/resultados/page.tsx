@@ -49,6 +49,7 @@ export default function ResultadosPage() {
     reiniciarEstado,
     testMode,
     aprendizInfo,
+    evaluacionId,
   } = useEvaluacionStore();
 
   useEffect(() => {
@@ -87,6 +88,7 @@ export default function ResultadosPage() {
           datosAprendiz,
           resultado: result,
           tiempoTranscurrido,
+          evaluacionId,
         }),
       })
         .then((res) => {

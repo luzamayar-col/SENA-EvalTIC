@@ -168,10 +168,8 @@ INSTRUCTOR_SEED_PASSWORD=tu-contraseña-segura
 # Feature flag: "true" activa el backend Neon; "false" usa el flujo JSON legacy
 NEXT_PUBLIC_USE_DB_BACKEND="true"
 
-# Resend (correo electrónico)
-RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxx
-NEXT_PUBLIC_INSTRUCTOR_EMAIL=instructor@sena.edu.co
-NEXT_PUBLIC_SENDER_EMAIL=onboarding@resend.dev
+# Resend: NO se necesita variable global — cada instructor configura
+# su propia API key desde el panel en /instructor/perfil
 ```
 
 ### 4. Migrar la base de datos y crear el primer instructor
@@ -336,8 +334,16 @@ Fórmula leniente (sin penalización por respuestas incorrectas):
 
 El `puntajeTotal` se calcula como `(suma_de_créditos / total_preguntas) × 100`. En los resultados y el PDF, las preguntas con crédito parcial (0 < crédito < 1) se muestran como **"Parcial"** en ámbar con el detalle (e.g., "3 de 4 opciones correctas").
 
-### Resend
-Para tests locales, enviar siempre desde `onboarding@resend.dev` hasta que el dominio esté verificado por DNS en Resend.
+### Resend — configuración por instructor
+
+Cada instructor gestiona su propio correo desde **Panel → Mi Perfil**:
+
+1. Crear cuenta gratuita en [resend.com](https://resend.com) (3 000 correos/mes gratis)
+2. Ir a **API Keys** y generar una nueva clave
+3. En la app: `/instructor/perfil` → pegar la API key → activar el toggle
+
+El `from` siempre es `onboarding@resend.dev` (no requiere verificar dominio).
+Los correos llegan al email institucional del instructor dueño de cada evaluación.
 
 ---
 
@@ -351,6 +357,5 @@ En **Vercel Dashboard → Settings → Environment Variables** agregar:
 | `NEXTAUTH_SECRET` | Secret generado (diferente al de desarrollo) |
 | `NEXTAUTH_URL` | `https://tu-dominio.vercel.app` |
 | `NEXT_PUBLIC_USE_DB_BACKEND` | `true` |
-| `RESEND_API_KEY` | Tu API key de Resend |
-| `NEXT_PUBLIC_INSTRUCTOR_EMAIL` | Email del instructor |
-| `NEXT_PUBLIC_SENDER_EMAIL` | `onboarding@resend.dev` (o dominio verificado) |
+
+> `RESEND_API_KEY`, `NEXT_PUBLIC_INSTRUCTOR_EMAIL` y `NEXT_PUBLIC_SENDER_EMAIL` ya **no son necesarias** — las API keys de Resend se almacenan por instructor en la base de datos.

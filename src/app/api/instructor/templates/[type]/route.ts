@@ -13,7 +13,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
 
     const templateData = [
       ["tipoDocumento", "cedula", "nombres", "apellidos", "email"],
-      ["CC", "1020304050", "Juan Carlos", "Pérez Gómez", "jcperez@misena.edu.co"],
+      ["CC", "1020304050", "Juan Carlos", "Pérez Gómez", "jcperez@soy.sena.edu.co"],
       ["TI", "1000123456", "María Alejandra", "González Ruiz", ""],
       ["CE", "987654321", "Luis Fernando", "Martínez Díaz", "lmartinez@gmail.com"],
     ];

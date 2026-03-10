@@ -73,7 +73,7 @@ export function AboutModal({ open, onOpenChange }: AboutModalProps) {
           <div className="bg-sena-green/10 rounded-xl p-3 border border-sena-green/20 mt-2 text-left">
             <p className="text-xs font-semibold text-sena-green mb-1">Autor:</p>
             <p className="text-[11px] text-sena-gray-dark leading-tight">
-              Ing. {APP_CONFIG.nombreInstructor}, MSc., MBA Esp. PM. <br />
+              Ing. Mauricio Alexander Vargas Rodríguez, MSc., MBA Esp. PM. <br />
               Instructor G14 del área de telecomunicaciones
             </p>
           </div>

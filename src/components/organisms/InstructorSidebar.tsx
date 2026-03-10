@@ -12,6 +12,7 @@ import {
   LogOut,
   UserCog,
   ChevronRight,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -38,6 +39,11 @@ const navItems = [
     href: "/instructor/resultados",
     label: "Resultados",
     icon: BarChart2,
+  },
+  {
+    href: "/instructor/perfil",
+    label: "Mi Perfil",
+    icon: Settings,
   },
 ];
 

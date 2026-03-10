@@ -1,9 +1,4 @@
 export const APP_CONFIG = {
-  // Datos del instructor
-  instructorEmail:
-    process.env.NEXT_PUBLIC_INSTRUCTOR_EMAIL || "instructor@sena.edu.co",
-  nombreInstructor: "Mauricio Alexander Vargas Rodríguez",
-
   // Datos institucionales
   institution:
     "SENA - Centro de Electricidad, Electrónica y Telecomunicaciones (CEET)",
@@ -48,12 +43,4 @@ export const APP_CONFIG = {
   // en lugar del sistema legacy de archivos JSON.
   useDatabaseBackend: process.env.NEXT_PUBLIC_USE_DB_BACKEND === "true",
 
-  // Servicio de correo
-  email: {
-    provider: "resend",
-    resendApiKey: process.env.RESEND_API_KEY || "",
-    senderEmail:
-      process.env.NEXT_PUBLIC_SENDER_EMAIL || "evaluaciones@sena-ceet.edu.co",
-    fromName: "SENA CEET - Evaluaciones",
-  },
 };

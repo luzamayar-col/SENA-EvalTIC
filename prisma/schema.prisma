@@ -11,13 +11,15 @@ datasource db {
 }
 
 model Instructor {
-  id           String       @id @default(cuid())
-  email        String       @unique
-  nombre       String
-  password     String
-  isAdmin      Boolean      @default(false)
-  evaluaciones Evaluacion[]
-  creadoEn     DateTime     @default(now())
+  id                  String       @id @default(cuid())
+  email               String       @unique
+  nombre              String
+  password            String
+  isAdmin             Boolean      @default(false)
+  resendApiKey        String?
+  emailNotificaciones Boolean      @default(false)
+  evaluaciones        Evaluacion[]
+  creadoEn            DateTime     @default(now())
 }
 
 model Evaluacion {
