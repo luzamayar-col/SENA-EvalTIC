@@ -71,7 +71,8 @@ src/
 │   │       ├── fichas/       # CRUD fichas + detalle por ficha
 │   │       │   └── [id]/     # Detalle: aprendices, estadísticas, resultados
 │   │       ├── resultados/   # Resultados paginados + export Excel/CSV
-│   │       └── instructores/ # Gestión de instructores (solo admin)
+│   │       ├── instructores/ # Gestión de instructores (solo admin)
+│       └── configuracion/ # Configuración global del sistema (solo admin)
 │   └── api/
 │       ├── auth/[...nextauth]/
 │       ├── evaluacion/
@@ -94,7 +95,8 @@ src/
 │           ├── resultados/
 │           │   ├── export/            # CSV
 │           │   └── export-excel/      # XLSX (dos hojas: Resultados + Resumen)
-│           └── templates/[type]/      # GET plantillas descargables (aprendices.xlsx, preguntas.json)
+│           ├── templates/[type]/      # GET plantillas descargables (aprendices.xlsx, preguntas.json)
+│           └── admin/config/         # GET+PUT configuración global (senderEmail) — solo admin
 ├── components/
 │   ├── organisms/            # Header, tablas CRUD, PreguntasEditor, FichaDetailClient
 │   ├── molecules/            # Diálogos, badges, filtros, ExcelUploader, JsonUploader
@@ -127,6 +129,7 @@ Evaluacion      → tiene Ficha[], Resultado[]  (maxIntentos configurable)
 Ficha           → tiene Aprendiz[], Resultado[]
 Aprendiz        → cédula + intentosExtra por ficha
 Resultado       → intento (1,2,3...) + esPrueba (true/false)
+AppConfig       → clave/valor para configuración global (ej: senderEmail)
 ```
 
 - **Aprendiz**: los aprendices deben estar pre-cargados en la ficha antes de poder presentar la evaluación.
@@ -247,6 +250,10 @@ Acceso en `/instructor/login`. Incluye enlace **← Volver al inicio** para regr
 - Listar, crear, editar y eliminar instructores
 - Cada instructor gestiona sus propias evaluaciones
 
+### Configuración del sistema _(solo admin)_
+- Editar el correo remitente (`from`) de los emails de resultados
+- Almacenado en `AppConfig` DB — editable sin redespliegue
+
 ---
 
 ## Flujo del Aprendiz
@@ -342,8 +349,15 @@ Cada instructor gestiona su propio correo desde **Panel → Mi Perfil**:
 2. Ir a **API Keys** y generar una nueva clave
 3. En la app: `/instructor/perfil` → pegar la API key → activar el toggle
 
-El `from` siempre es `onboarding@resend.dev` (no requiere verificar dominio).
 Los correos llegan al email institucional del instructor dueño de cada evaluación.
+
+### Correo remitente (`from`) — configurable por el admin
+
+El campo `from` de todos los correos se almacena en la tabla `AppConfig` con la clave `senderEmail`.
+El valor por defecto es `EvalTIC SENA <onboarding@resend.dev>` (plan gratuito de Resend, sin verificación de dominio).
+
+El admin puede cambiarlo desde **Panel → Administración → Configuración del sistema** (`/instructor/configuracion`).
+Si en el futuro se verifica un dominio propio en Resend, solo hay que actualizar ese campo desde la UI.
 
 ---
 

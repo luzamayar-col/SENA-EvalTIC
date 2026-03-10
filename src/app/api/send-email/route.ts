@@ -104,10 +104,16 @@ export async function POST(req: Request) {
       </div>
     `;
 
+    const senderConfig = await prisma.appConfig.findUnique({
+      where: { clave: "senderEmail" },
+    });
+    const senderEmail =
+      senderConfig?.valor ?? "EvalTIC SENA <onboarding@resend.dev>";
+
     const resend = new Resend(resendApiKey);
 
     const { data, error } = await resend.emails.send({
-      from: "EvalTIC SENA <onboarding@resend.dev>",
+      from: senderEmail,
       to: [instructorEmail],
       subject: `Resultados Evaluación - ${nombres} ${apellidos} - Ficha ${ficha}`,
       html: htmlContent,

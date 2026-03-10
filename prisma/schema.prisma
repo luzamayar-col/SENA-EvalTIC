@@ -76,6 +76,11 @@ model Aprendiz {
   @@unique([cedula, fichaId])
 }
 
+model AppConfig {
+  clave String @id
+  valor String
+}
+
 model Resultado {
   id                 String     @id @default(cuid())
   cedula             String

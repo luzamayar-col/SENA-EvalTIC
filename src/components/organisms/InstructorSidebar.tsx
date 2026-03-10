@@ -13,6 +13,7 @@ import {
   UserCog,
   ChevronRight,
   Settings,
+  SlidersHorizontal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -52,6 +53,11 @@ const adminItems = [
     href: "/instructor/instructores",
     label: "Instructores",
     icon: UserCog,
+  },
+  {
+    href: "/instructor/configuracion",
+    label: "Configuración",
+    icon: SlidersHorizontal,
   },
 ];
 

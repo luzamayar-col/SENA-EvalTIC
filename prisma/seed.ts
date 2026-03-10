@@ -90,6 +90,16 @@ async function main() {
     });
   }
 
+  // Seed AppConfig defaults (idempotent)
+  const senderEmailExiste = await prisma.appConfig.findFirst({
+    where: { clave: "senderEmail" },
+  });
+  if (!senderEmailExiste) {
+    await prisma.appConfig.create({
+      data: { clave: "senderEmail", valor: "EvalTIC SENA <onboarding@resend.dev>" },
+    });
+  }
+
   console.log("\n✅ Seed completado exitosamente");
   console.log("──────────────────────────────────────");
   console.log("  Instructor:", instructor.email);
