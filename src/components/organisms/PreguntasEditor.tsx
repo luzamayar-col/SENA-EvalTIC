@@ -30,7 +30,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
-  GripVertical, Pencil, Trash2, Plus, Save, PlusCircle, Loader2, AlertCircle,
+  GripVertical, Pencil, Trash2, Plus, Save, PlusCircle, Loader2, AlertCircle, FileDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Pregunta, TipoPregunta, Opcion, Par } from "@/types/preguntas";
@@ -555,9 +555,17 @@ export function PreguntasEditor({
 
       {/* Question list */}
       {preguntas.length === 0 ? (
-        <div className="text-center py-16 text-sena-gray-dark/50 border-2 border-dashed border-sena-gray-dark/10 rounded-xl">
+        <div className="text-center py-16 text-sena-gray-dark/50 border-2 border-dashed border-sena-gray-dark/10 rounded-xl space-y-2">
           <p className="font-semibold">Sin preguntas</p>
           <p className="text-sm mt-1">Agrega preguntas usando el botón de abajo.</p>
+          <a
+            href="/api/instructor/templates/preguntas"
+            download={`plantilla-preguntas-${evaluacionNombre.toLowerCase().replace(/\s+/g, "-").slice(0, 40)}.json`}
+            className="inline-flex items-center gap-1.5 text-xs text-sena-blue underline underline-offset-2 hover:text-sena-green mt-1"
+          >
+            <FileDown size={13} />
+            Descargar plantilla JSON de ejemplo
+          </a>
         </div>
       ) : (
         <DndContext
@@ -584,15 +592,27 @@ export function PreguntasEditor({
         </DndContext>
       )}
 
-      {/* Add button */}
-      <Button
-        variant="outline"
-        className="w-full gap-2 border-dashed border-sena-green text-sena-green hover:bg-sena-green hover:text-white font-semibold"
-        onClick={openNew}
-      >
-        <PlusCircle size={16} />
-        Agregar pregunta
-      </Button>
+      {/* Add button + template download */}
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          className="flex-1 gap-2 border-dashed border-sena-green text-sena-green hover:bg-sena-green hover:text-white font-semibold"
+          onClick={openNew}
+        >
+          <PlusCircle size={16} />
+          Agregar pregunta
+        </Button>
+        <a
+          href="/api/instructor/templates/preguntas"
+          download={`plantilla-preguntas-${evaluacionNombre.toLowerCase().replace(/\s+/g, "-").slice(0, 40)}.json`}
+          title="Descargar plantilla JSON"
+        >
+          <Button variant="outline" type="button" className="gap-2 text-sena-blue border-sena-blue/30 hover:bg-sena-blue/5" asChild={false}>
+            <FileDown size={15} />
+            Plantilla JSON
+          </Button>
+        </a>
+      </div>
 
       {/* Edit dialog */}
       <EditPreguntaDialog
