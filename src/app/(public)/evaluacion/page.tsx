@@ -52,36 +52,65 @@ export default function EvaluacionPage() {
   const [finalizando, setFinalizando] = useState(false);
   const [showStartModal, setShowStartModal] = useState(true);
   const [tabBlurred, setTabBlurred] = useState(false);
+  const [tabSwitches, setTabSwitches] = useState(0);
 
-  // Anti-plagiarism: block copy/print shortcuts and right-click
+  // Fullscreen: request when evaluation starts, detect exit as focus-loss event
+  const requestFullscreen = () => {
+    if (document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    }
+  };
+
+  // Anti-plagiarism: block copy/print shortcuts, right-click, clipboard events
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
+      // NOTE: e.preventDefault() on PrintScreen does NOT prevent OS-level screenshots.
+      // Triggering blur manually ensures the NEXT attempt captures the overlay instead.
+      if (e.key === "PrintScreen") {
+        e.preventDefault();
+        setTabBlurred(true);
+        setTabSwitches((n) => n + 1);
+        return;
+      }
       const blocked =
         (e.ctrlKey && ["c", "a", "p", "u", "s"].includes(e.key.toLowerCase())) ||
         (e.ctrlKey && e.shiftKey && ["i", "j", "c"].includes(e.key.toLowerCase())) ||
-        e.key === "F12" ||
-        e.key === "PrintScreen";
+        e.key === "F12";
       if (blocked) e.preventDefault();
     };
+    // Block clipboard at the event level (complements Ctrl+C key blocking)
+    const handleClipboard = (e: ClipboardEvent) => e.preventDefault();
     const handleContext = (e: MouseEvent) => e.preventDefault();
     document.addEventListener("keydown", handleKey);
+    document.addEventListener("copy", handleClipboard);
+    document.addEventListener("cut", handleClipboard);
     document.addEventListener("contextmenu", handleContext);
     return () => {
       document.removeEventListener("keydown", handleKey);
+      document.removeEventListener("copy", handleClipboard);
+      document.removeEventListener("cut", handleClipboard);
       document.removeEventListener("contextmenu", handleContext);
     };
   }, []);
 
-  // Anti-plagiarism: blur content on tab/window focus loss (catches Win+Shift+S, Alt+Tab, etc.)
+  // Anti-plagiarism: blur content on focus loss (Alt+Tab, minimizar, cambio de app).
+  // NOTA: Win+Shift+S y capturas de móvil ocurren a nivel OS y NO disparan blur/visibilitychange;
+  // el watermark en pantalla hace esas capturas trazables.
   useEffect(() => {
-    const hide = () => setTabBlurred(true);
+    const hide = () => {
+      setTabBlurred(true);
+      setTabSwitches((n) => n + 1);
+    };
     const show = () => setTabBlurred(false);
     const handleVisibility = () => { if (document.hidden) hide(); else show(); };
+    const handleFullscreen = () => { if (!document.fullscreenElement) hide(); };
     document.addEventListener("visibilitychange", handleVisibility);
+    document.addEventListener("fullscreenchange", handleFullscreen);
     window.addEventListener("blur", hide);
     window.addEventListener("focus", show);
     return () => {
       document.removeEventListener("visibilitychange", handleVisibility);
+      document.removeEventListener("fullscreenchange", handleFullscreen);
       window.removeEventListener("blur", hide);
       window.removeEventListener("focus", show);
     };
@@ -167,14 +196,42 @@ export default function EvaluacionPage() {
       {/* Block printing */}
       <style>{`@media print { body { display: none !important; } }`}</style>
 
-      {/* Tab-switch overlay */}
+      {/* On-screen watermark: makes any screenshot (incl. Win+Shift+S and mobile) trazable */}
+      {datosAprendiz && !testMode && (
+        <div className="fixed inset-0 z-10 pointer-events-none overflow-hidden select-none" aria-hidden>
+          {Array.from({ length: 10 }).map((_, i) => (
+            <span
+              key={i}
+              className="absolute text-sena-blue/[0.07] font-bold text-base whitespace-nowrap"
+              style={{
+                top: `${i * 10}%`,
+                left: "-30%",
+                width: "160%",
+                transform: "rotate(-30deg)",
+              }}
+            >
+              {`${datosAprendiz.nombres} ${datosAprendiz.apellidos} · ${datosAprendiz.tipoDocumento}: ${datosAprendiz.numeroDocumento}`}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Tab-switch / focus-loss overlay */}
       {tabBlurred && (
-        <div className="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center gap-4">
+        <div
+          className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center gap-4"
+          onClick={() => setTabBlurred(false)}
+        >
           <ShieldAlert className="w-16 h-16 text-amber-400" />
           <p className="text-white text-xl font-bold">Evaluación en pausa</p>
           <p className="text-white/70 text-sm text-center max-w-xs">
-            Vuelve a esta pestaña para continuar. Se registra el cambio de pantalla.
+            Haz clic aquí o vuelve a esta pestaña para continuar.
           </p>
+          {tabSwitches > 0 && (
+            <p className="text-amber-400/80 text-xs font-mono mt-2">
+              Cambios de pantalla registrados: {tabSwitches}
+            </p>
+          )}
         </div>
       )}
 
@@ -184,7 +241,7 @@ export default function EvaluacionPage() {
       )}>
         <EvaluacionStartModal
           open={showStartModal}
-          onStart={() => setShowStartModal(false)}
+          onStart={() => { setShowStartModal(false); requestFullscreen(); }}
         />
 
         {/* Test mode banner */}

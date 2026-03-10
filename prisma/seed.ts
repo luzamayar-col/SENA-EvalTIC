@@ -23,17 +23,25 @@ async function main() {
     );
   }
 
+  const seedEmail = process.env.INSTRUCTOR_SEED_EMAIL;
+  if (!seedEmail) {
+    throw new Error(
+      "❌ INSTRUCTOR_SEED_EMAIL no está definido en .env.local\n" +
+        "   Agrega: INSTRUCTOR_SEED_EMAIL=tu-email@organizacion.edu.co"
+    );
+  }
+
   const hashedPassword = await bcrypt.hash(seedPassword, 12);
 
   // findFirst + create evita upsert (que usa transacciones, no soportadas en HTTP mode)
   let instructor = await prisma.instructor.findFirst({
-    where: { email: "mvargasr@sena.edu.co" },
+    where: { email: seedEmail },
   });
   if (!instructor) {
     instructor = await prisma.instructor.create({
       data: {
-        email: "mvargasr@sena.edu.co",
-        nombre: "Mauricio Alexander Vargas Rodríguez",
+        email: seedEmail,
+        nombre: process.env.INSTRUCTOR_SEED_NOMBRE ?? "Administrador EvalTIC",
         password: hashedPassword,
         isAdmin: true,
       },
@@ -102,7 +110,7 @@ async function main() {
 
   console.log("\n✅ Seed completado exitosamente");
   console.log("──────────────────────────────────────");
-  console.log("  Instructor:", instructor.email);
+  console.log("  Instructor:", instructor.email, `(${instructor.nombre})`);
   console.log("  Contraseña: [valor de INSTRUCTOR_SEED_PASSWORD]");
   console.log("  Admin:", instructor.isAdmin);
   console.log("  Evaluación:", evaluacion.nombre);

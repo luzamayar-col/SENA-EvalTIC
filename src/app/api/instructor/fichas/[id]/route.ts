@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireInstructor } from "@/lib/auth-utils";
 
 interface Params {
   params: Promise<{ id: string }>;
 }
+
+const editarFichaSchema = z.object({
+  numero: z.string().min(1).max(20).optional(),
+  programa: z.string().min(3).max(300).optional(),
+  descripcion: z.string().max(500).optional().nullable(),
+});
 
 async function getFichaOrFail(id: string, instructorId: string) {
   return prisma.ficha.findFirst({
@@ -25,8 +32,16 @@ export async function PUT(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: "No encontrada" }, { status: 404 });
     }
 
-    const body = await req.json();
-    const { numero, programa, descripcion } = body;
+    const rawBody = await req.json();
+    const parsed = editarFichaSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message ?? "Datos inválidos" },
+        { status: 400 },
+      );
+    }
+
+    const { numero, programa, descripcion } = parsed.data;
 
     const updated = await prisma.ficha.update({
       where: { id },

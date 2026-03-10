@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireInstructor } from "@/lib/auth-utils";
+import { encryptValue, safeDecrypt } from "@/lib/crypto";
+
+const perfilPutSchema = z.object({
+  emailNotificaciones: z.boolean().optional(),
+  resendApiKey: z.string().max(200).optional(),
+});
 
 export async function GET() {
   try {
@@ -21,10 +28,12 @@ export async function GET() {
       return NextResponse.json({ error: "Instructor no encontrado" }, { status: 404 });
     }
 
-    // Mask the API key: show only last 4 chars
-    const maskedKey = instructor.resendApiKey
-      ? `re_${"*".repeat(16)}${instructor.resendApiKey.slice(-4)}`
-      : null;
+    // Descifrar para obtener el valor real, luego enmascarar los primeros chars
+    let maskedKey: string | null = null;
+    if (instructor.resendApiKey) {
+      const plainKey = safeDecrypt(instructor.resendApiKey);
+      maskedKey = `re_${"*".repeat(16)}${plainKey.slice(-4)}`;
+    }
 
     return NextResponse.json({
       nombre: instructor.nombre,
@@ -43,23 +52,33 @@ export async function PUT(req: NextRequest) {
     const session = await requireInstructor();
     const id = session.user.instructorId;
 
-    const body = await req.json();
-    const { emailNotificaciones, resendApiKey } = body;
+    const rawBody = await req.json();
+    const parsed = perfilPutSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message ?? "Datos inválidos" },
+        { status: 400 },
+      );
+    }
 
+    const { emailNotificaciones, resendApiKey } = parsed.data;
     const data: Record<string, unknown> = {};
 
     if (typeof emailNotificaciones === "boolean") {
       data.emailNotificaciones = emailNotificaciones;
     }
 
-    // Only update the key if a new non-masked value is provided
     if (typeof resendApiKey === "string") {
       if (resendApiKey.trim() === "") {
         data.resendApiKey = null;
       } else if (!resendApiKey.includes("*")) {
-        // If it contains asterisks it's the masked version — don't overwrite
-        data.resendApiKey = resendApiKey.trim();
+        // No es la versión enmascarada — cifrar si hay ENCRYPTION_KEY, sino guardar plano
+        const shouldEncrypt = !!process.env.ENCRYPTION_KEY;
+        data.resendApiKey = shouldEncrypt
+          ? encryptValue(resendApiKey.trim())
+          : resendApiKey.trim();
       }
+      // Si contiene asteriscos es la versión enmascarada — no sobreescribir
     }
 
     const updated = await prisma.instructor.update({
@@ -71,9 +90,11 @@ export async function PUT(req: NextRequest) {
       },
     });
 
-    const maskedKey = updated.resendApiKey
-      ? `re_${"*".repeat(16)}${updated.resendApiKey.slice(-4)}`
-      : null;
+    let maskedKey: string | null = null;
+    if (updated.resendApiKey) {
+      const plainKey = safeDecrypt(updated.resendApiKey);
+      maskedKey = `re_${"*".repeat(16)}${plainKey.slice(-4)}`;
+    }
 
     return NextResponse.json({
       emailNotificaciones: updated.emailNotificaciones,

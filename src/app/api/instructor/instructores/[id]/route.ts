@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireInstructor } from "@/lib/auth-utils";
 import bcrypt from "bcryptjs";
@@ -6,6 +7,29 @@ import bcrypt from "bcryptjs";
 interface Params {
   params: Promise<{ id: string }>;
 }
+
+const passwordComplexSchema = z
+  .string()
+  .min(8, "Mínimo 8 caracteres")
+  .regex(/[A-Z]/, "Debe contener al menos una mayúscula")
+  .regex(/[0-9]/, "Debe contener al menos un número")
+  .regex(/[^A-Za-z0-9]/, "Debe contener al menos un carácter especial");
+
+const editarInstructorSchema = z.object({
+  nombre: z.string().min(4, "Nombre demasiado corto").max(150).trim(),
+  email: z.string().email("Email inválido").max(200).toLowerCase().trim(),
+  // Contraseña opcional: si se envía y no está vacía, debe cumplir complejidad
+  password: z
+    .string()
+    .refine(
+      (val) => !val || val.length === 0 || passwordComplexSchema.safeParse(val).success,
+      {
+        message:
+          "La contraseña debe tener mínimo 8 caracteres, una mayúscula, un número y un carácter especial",
+      },
+    )
+    .optional(),
+});
 
 export async function PUT(req: NextRequest, { params }: Params) {
   try {
@@ -22,25 +46,19 @@ export async function PUT(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: "Instructor no encontrado" }, { status: 404 });
     }
 
-    const body = await req.json();
-    const { nombre, email, password } = body;
-
-    if (!nombre?.trim() || !email?.trim()) {
-      return NextResponse.json({ error: "Nombre y email son obligatorios" }, { status: 400 });
-    }
-
-    if (password && password.length < 8) {
+    const rawBody = await req.json();
+    const parsed = editarInstructorSchema.safeParse(rawBody);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "La contraseña debe tener al menos 8 caracteres" },
+        { error: parsed.error.issues[0]?.message ?? "Datos inválidos" },
         { status: 400 },
       );
     }
 
-    const data: Record<string, unknown> = {
-      nombre: nombre.trim(),
-      email: email.trim(),
-    };
-    if (password?.trim()) {
+    const { nombre, email, password } = parsed.data;
+
+    const data: Record<string, unknown> = { nombre, email };
+    if (password && password.trim()) {
       data.password = await bcrypt.hash(password, 12);
     }
 

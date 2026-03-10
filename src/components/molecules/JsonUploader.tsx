@@ -45,9 +45,15 @@ export function JsonUploader({ onPreguntasLoad, onClear, className }: JsonUpload
   const [error, setError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
 
+  const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+
   const handleFile = (file: File) => {
-    if (!file.name.endsWith(".json")) {
+    if (!file.name.endsWith(".json") && file.type !== "application/json") {
       setError("El archivo debe ser de tipo JSON (.json)");
+      return;
+    }
+    if (file.size > MAX_SIZE_BYTES) {
+      setError("El archivo no puede superar los 5 MB");
       return;
     }
     const reader = new FileReader();

@@ -12,7 +12,13 @@ export const metadata = {
   title: "Instructores — EvalTIC Admin",
 };
 
-export default async function InstructoresPage() {
+const PAGE_SIZE = 20;
+
+export default async function InstructoresPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
   const session = await requireInstructor();
 
   // Only admins can access this page
@@ -20,17 +26,28 @@ export default async function InstructoresPage() {
     redirect("/instructor/dashboard");
   }
 
-  const instructores = await prisma.instructor.findMany({
-    orderBy: { creadoEn: "asc" },
-    select: {
-      id: true,
-      nombre: true,
-      email: true,
-      isAdmin: true,
-      creadoEn: true,
-      _count: { select: { evaluaciones: true } },
-    },
-  });
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(1, parseInt(pageParam ?? "1", 10));
+  const skip = (page - 1) * PAGE_SIZE;
+
+  const [instructores, total] = await Promise.all([
+    prisma.instructor.findMany({
+      orderBy: { creadoEn: "asc" },
+      skip,
+      take: PAGE_SIZE,
+      select: {
+        id: true,
+        nombre: true,
+        email: true,
+        isAdmin: true,
+        creadoEn: true,
+        _count: { select: { evaluaciones: true } },
+      },
+    }),
+    prisma.instructor.count(),
+  ]);
+
+  const totalPages = Math.ceil(total / PAGE_SIZE);
 
   const serialized = instructores.map((i) => ({
     ...i,
@@ -45,7 +62,8 @@ export default async function InstructoresPage() {
           <div>
             <h1 className="text-2xl font-black text-sena-blue">Instructores</h1>
             <p className="text-sm text-sena-gray-dark/60 mt-0.5">
-              Gestiona los accesos al panel de administración.
+              Gestiona los accesos al panel de administración.{" "}
+              <span className="font-semibold">{total}</span> en total.
             </p>
           </div>
         </div>
@@ -61,6 +79,7 @@ export default async function InstructoresPage() {
       <InstructoresTable
         instructores={serialized}
         currentInstructorId={session.user.instructorId}
+        pagination={{ page, totalPages }}
       />
     </div>
   );

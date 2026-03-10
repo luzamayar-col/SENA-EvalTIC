@@ -1,10 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireInstructor } from "@/lib/auth-utils";
 
 interface Params {
   params: Promise<{ id: string }>;
 }
+
+const editarEvaluacionSchema = z.object({
+  nombre: z.string().min(3).max(200).optional(),
+  descripcion: z.string().max(500).optional().nullable(),
+  competencia: z.string().min(3).max(300).optional(),
+  codigoCompetencia: z.string().min(1).max(20).optional(),
+  resultadoAprendizaje: z.string().min(3).max(500).optional(),
+  codigoRA: z.string().min(1).max(20).optional(),
+  preguntas: z.array(z.unknown()).optional(),
+  fechaInicio: z.string().datetime({ offset: true }).optional().nullable(),
+  fechaFin: z.string().datetime({ offset: true }).optional().nullable(),
+  config: z.record(z.string(), z.unknown()).optional(),
+  maxIntentos: z.number().int().min(1).max(10).optional(),
+});
 
 async function getEvaluacionOrFail(id: string, instructorId: string) {
   const ev = await prisma.evaluacion.findFirst({
@@ -39,7 +54,14 @@ export async function PUT(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: "No encontrada" }, { status: 404 });
     }
 
-    const body = await req.json();
+    const rawBody = await req.json();
+    const parsed = editarEvaluacionSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message ?? "Datos inválidos" },
+        { status: 400 },
+      );
+    }
 
     const {
       nombre,
@@ -53,7 +75,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
       fechaFin,
       config,
       maxIntentos,
-    } = body;
+    } = parsed.data;
 
     const updated = await prisma.evaluacion.update({
       where: { id },
@@ -68,7 +90,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
         fechaInicio: fechaInicio ? new Date(fechaInicio) : null,
         fechaFin: fechaFin ? new Date(fechaFin) : null,
         ...(config && { config }),
-        ...(typeof maxIntentos === "number" && maxIntentos >= 1 ? { maxIntentos } : {}),
+        ...(typeof maxIntentos === "number" ? { maxIntentos } : {}),
       },
     });
 

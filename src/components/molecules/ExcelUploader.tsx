@@ -148,9 +148,19 @@ export function ExcelUploader({ fichaId, onImportComplete }: ExcelUploaderProps)
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
 
+  const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB (listados SOFIA pueden ser grandes)
+  const VALID_MIME = [
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/vnd.ms-excel",
+  ];
+
   const handleFile = async (file: File) => {
-    if (!file.name.match(/\.(xlsx|xls)$/i)) {
+    if (!file.name.match(/\.(xlsx|xls)$/i) && !VALID_MIME.includes(file.type)) {
       setError("El archivo debe ser de tipo Excel (.xlsx o .xls)");
+      return;
+    }
+    if (file.size > MAX_SIZE_BYTES) {
+      setError("El archivo no puede superar los 10 MB");
       return;
     }
     setError(null);

@@ -22,7 +22,7 @@ Sistema interactivo de evaluación técnica en línea para aprendices del **SENA
 | **Editor de preguntas**     | Interfaz visual drag-and-drop para editar, reordenar y crear preguntas del banco                                            |
 | **Importación SOFIA Plus**  | Importar aprendices desde el Excel de SOFIA Plus (detección automática de columnas)                                         |
 | **Exportación Excel**       | Resultados exportables en `.xlsx` con dos hojas (Resultados y Resumen)                                                      |
-| **Antiplagio**              | Bloqueo de copia/captura; blur inmediato al perder foco (Win+Shift+S); marca de agua personalizada en PDF                   |
+| **Antiplagio**              | Marca de agua del aprendiz en pantalla y PDF; blur overlay + contador de cambios de contexto; Fullscreen API; bloqueo de copy/cut/print/DevTools; `@media print` oculto |
 | **Crédito parcial**         | Selección múltiple y emparejamiento otorgan puntos proporcionales a las opciones/pares correctos seleccionados               |
 | **Puntajes con decimales**  | `puntaje` almacenado como `Float`; se muestra con 1 decimal cuando hay crédito parcial (ej. 72.5%); aciertos ponderados (7.3/10) |
 | **Descarga PDF por aprendiz** | El instructor puede descargar el informe PDF del último intento de cada aprendiz directamente desde la tabla de la ficha   |
@@ -279,10 +279,19 @@ En el paso 4 se muestra el mensaje de intentos agotados y, si existe un resultad
 | **Instructor** | Dashboard, sus evaluaciones, fichas, aprendices, resultados |
 | **Aprendiz** | Flujo público: validar cédula → evaluación → resultados |
 
-- Las rutas `/instructor/(protected)/**` están protegidas por middleware NextAuth
-- Las APIs `/api/instructor/**` verifican sesión con `requireInstructor()`
-- Contraseñas hasheadas con bcryptjs (cost 12)
-- El modo prueba requiere token JWT de instructor para finalizar (no puede ser falsificado)
+### Medidas de seguridad implementadas
+
+- **Middleware centralizado** (`src/middleware.ts`): protege todas las rutas `/instructor/*` a nivel de enrutamiento con JWT
+- **API routes** `/api/instructor/**`: verifican sesión con `requireInstructor()` (doble protección)
+- **Contraseñas**: hasheadas con bcryptjs (cost 12); requisitos: 8+ chars, mayúscula, número y carácter especial
+- **JWT sessions**: expiración de 8 horas (jornada laboral); cookies `httpOnly`, `sameSite: lax`, `secure` en producción
+- **Horizontal privilege escalation**: todas las queries filtran por `instructorId` — un instructor no puede acceder a recursos de otro
+- **RBAC**: flag `isAdmin` verificado en todas las rutas admin
+- **Headers HTTP**: `X-Frame-Options`, `X-Content-Type-Options`, `Strict-Transport-Security`, `Referrer-Policy`, `Permissions-Policy`, `Content-Security-Policy` configurados en `next.config.ts`
+- **Correo server-side**: el envío de correos al instructor ocurre dentro de `/api/evaluacion/finalizar` — no hay endpoint público de email abusable
+- **Cifrado de API keys**: las API keys de Resend se cifran con AES-256-GCM (requiere `ENCRYPTION_KEY`) antes de guardarse en BD
+- **Modo prueba**: requiere token JWT de instructor para finalizar (no puede ser falsificado)
+- **Límites de upload**: JSON ≤ 5 MB, Excel ≤ 10 MB; validación de extensión y tipo MIME
 
 ---
 
@@ -322,9 +331,16 @@ El parser detecta automáticamente la fila de encabezados (busca en las primeras
 **Durante la evaluación (`/evaluacion`):**
 - `user-select: none` — impide seleccionar texto con el mouse
 - `contextmenu` bloqueado — sin clic derecho
-- Atajos bloqueados vía `keydown`: `Ctrl+C/A/P/U/S`, `Ctrl+Shift+I/J/C`, `F12`, `PrintScreen`
-- `window.blur` + `visibilitychange` unificados → blur CSS inmediato (`filter: blur(24px)`) sobre el contenido + overlay negro al perder el foco de ventana (captura `Win+Shift+S`, `Alt+Tab`, Snipping Tool)
+- Atajos bloqueados vía `keydown`: `Ctrl+C/A/P/U/S`, `Ctrl+Shift+I/J/C`, `F12`
+- Eventos `copy` y `cut` bloqueados directamente (cubre extensiones de navegador y menús del sistema, no solo Ctrl+C)
+- `PrintScreen` detectado: activa el blur overlay inmediatamente (el OS toma el screenshot antes del evento, pero reintentos solo capturan la pantalla negra)
+- **Fullscreen API**: se solicita pantalla completa al iniciar; salir de fullscreen (Win+D, F11, etc.) activa el overlay
+- `window.blur` + `visibilitychange` + `fullscreenchange` → blur CSS inmediato (`filter: blur(24px)`) + overlay negro `bg-black/95` al cambiar de contexto
+- **Contador de cambios de contexto** visible en el overlay durante la sesión
 - `@media print { display: none }` — página en blanco al imprimir
+- **Marca de agua en pantalla**: nombre y documento del aprendiz como texto diagonal semitransparente sobre toda la evaluación — hace trazable cualquier captura incluyendo `Win+Shift+S` y botones físicos de móvil (que el navegador no puede interceptar)
+
+> **Limitación técnica**: Las capturas con `Win+Shift+S` (overlay OS sin quitar foco al navegador) y los botones físicos de móvil (iOS/Android) no pueden bloquearse a nivel de navegador. La marca de agua en pantalla es la defensa efectiva para esos casos.
 
 **Informe PDF:**
 - Marca de agua diagonal personalizada en cada página con nombre + tipo + número de documento del aprendiz

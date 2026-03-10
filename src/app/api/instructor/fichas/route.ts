@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireInstructor } from "@/lib/auth-utils";
+
+const crearFichaSchema = z.object({
+  numero: z.string().min(1, "Número de ficha requerido").max(20),
+  programa: z.string().min(3, "Nombre de programa muy corto").max(300),
+  descripcion: z.string().max(500).optional(),
+  evaluacionId: z.string().min(1, "evaluacionId requerido").max(100),
+});
 
 export async function GET(req: NextRequest) {
   try {
@@ -29,15 +37,19 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await requireInstructor();
-    const body = await req.json();
+    const rawBody = await req.json();
 
-    const { numero, programa, descripcion, evaluacionId } = body;
-
-    if (!numero || !programa || !evaluacionId) {
-      return NextResponse.json({ error: "Faltan campos obligatorios" }, { status: 400 });
+    const parsed = crearFichaSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message ?? "Datos inválidos" },
+        { status: 400 },
+      );
     }
 
-    // Verify the evaluacion belongs to this instructor
+    const { numero, programa, descripcion, evaluacionId } = parsed.data;
+
+    // Verificar que la evaluación pertenece al instructor
     const evaluacion = await prisma.evaluacion.findFirst({
       where: { id: evaluacionId, instructorId: session.user.instructorId },
     });
@@ -57,7 +69,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(ficha, { status: 201 });
   } catch (err: unknown) {
-    // Unique constraint violation (numero + evaluacionId)
     if (
       err &&
       typeof err === "object" &&

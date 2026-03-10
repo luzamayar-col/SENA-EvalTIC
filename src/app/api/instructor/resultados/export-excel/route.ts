@@ -3,7 +3,8 @@ import { requireInstructor } from "@/lib/auth-utils";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
-  const session = await requireInstructor();
+  try {
+    const session = await requireInstructor();
   const { searchParams } = new URL(req.url);
 
   const evaluacionId = searchParams.get("evaluacionId") ?? undefined;
@@ -112,4 +113,8 @@ export async function GET(req: NextRequest) {
       "Content-Disposition": `attachment; filename="resultados-${Date.now()}.xlsx"`,
     },
   });
+  } catch (error) {
+    console.error("Error al exportar Excel:", error);
+    return NextResponse.json({ error: "Error al generar el archivo Excel" }, { status: 500 });
+  }
 }

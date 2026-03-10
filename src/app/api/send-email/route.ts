@@ -1,8 +1,20 @@
-import { NextResponse } from "next/server";
+/**
+ * Este endpoint ahora requiere autenticación de instructor.
+ * El envío automático de correos al finalizar la evaluación ocurre en
+ * /api/evaluacion/finalizar (server-side), no desde el cliente.
+ */
+import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
+import { requireInstructor } from "@/lib/auth-utils";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  // Requiere sesión de instructor para invocar manualmente
+  try {
+    await requireInstructor();
+  } catch {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
   try {
     const body = await req.json();
     const { datosAprendiz, resultado, tiempoTranscurrido, evaluacionId } = body;

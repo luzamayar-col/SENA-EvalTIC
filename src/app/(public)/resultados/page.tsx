@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useEvaluacionStore } from "@/stores/evaluacion-store";
 import { APP_CONFIG } from "@/lib/config";
@@ -19,7 +19,6 @@ import {
   Clock,
   FileDown,
   Home,
-  Loader2,
   ChevronDown,
   ChevronUp,
   MessageSquareText,
@@ -35,10 +34,8 @@ export default function ResultadosPage() {
   const [mounted, setMounted] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
-  const [emailStatus, setEmailStatus] = useState<
-    "idle" | "sending" | "success" | "error"
-  >("idle");
-  const emailSentRef = useRef(false);
+  // El correo al instructor ahora se envía server-side en /api/evaluacion/finalizar
+  // No se necesita estado de email en el cliente
 
   const {
     datosAprendiz,
@@ -75,34 +72,7 @@ export default function ResultadosPage() {
     );
   }, [mounted, estado, preguntasSeleccionadas, respuestas]);
 
-  // Trigger send-email API when result is ready
-  useEffect(() => {
-    if (result && datosAprendiz && !emailSentRef.current) {
-      emailSentRef.current = true;
-      setEmailStatus("sending");
-
-      fetch("/api/send-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          datosAprendiz,
-          resultado: result,
-          tiempoTranscurrido,
-          evaluacionId,
-        }),
-      })
-        .then((res) => {
-          if (res.ok) {
-            setEmailStatus("success");
-          } else {
-            setEmailStatus("error");
-          }
-        })
-        .catch(() => {
-          setEmailStatus("error");
-        });
-    }
-  }, [result, datosAprendiz, tiempoTranscurrido]);
+  // El correo al instructor se envía automáticamente server-side en finalizar/route.ts
 
   // In test mode build a synthetic DatosAprendiz from aprendizInfo
   const effectiveDatos = datosAprendiz ?? (testMode && aprendizInfo
@@ -327,33 +297,6 @@ export default function ResultadosPage() {
               <p className="text-sm font-bold text-amber-700">MODO PRUEBA — Los resultados no han sido guardados</p>
               <p className="text-xs text-amber-600">Este informe es solo para revisión del instructor y no quedará registrado en la base de datos.</p>
             </div>
-          </div>
-        )}
-
-        {/* Email Sending Feedback UI */}
-        {emailStatus !== "idle" && (
-          <div
-            className={`flex items-center gap-3 p-4 rounded-xl font-medium shadow-sm transition-all border ${
-              emailStatus === "sending"
-                ? "bg-blue-50 text-blue-700 border-blue-200"
-                : emailStatus === "success"
-                  ? "bg-green-50 text-sena-green border-green-200"
-                  : "bg-red-50 text-red-700 border-red-200"
-            }`}
-          >
-            {emailStatus === "sending" && (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            )}
-            {emailStatus === "success" && <CheckCircle2 className="h-5 w-5" />}
-            {emailStatus === "error" && <XCircle className="h-5 w-5" />}
-            <span>
-              {emailStatus === "sending" &&
-                "Enviando copia de los resultados al instructor..."}
-              {emailStatus === "success" &&
-                "Copia de los resultados enviada al instructor correctamente."}
-              {emailStatus === "error" &&
-                "No se pudo enviar la copia por correo. Verifique configuración Resend."}
-            </span>
           </div>
         )}
 

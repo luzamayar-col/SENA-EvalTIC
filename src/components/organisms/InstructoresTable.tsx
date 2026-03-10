@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   Table,
   TableBody,
@@ -37,11 +38,13 @@ interface Instructor {
 interface InstructoresTableProps {
   instructores: Instructor[];
   currentInstructorId: string;
+  pagination?: { page: number; totalPages: number };
 }
 
 export function InstructoresTable({
   instructores,
   currentInstructorId,
+  pagination,
 }: InstructoresTableProps) {
   const router = useRouter();
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -216,6 +219,33 @@ export function InstructoresTable({
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination */}
+      {pagination && pagination.totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 pt-2">
+          <Link
+            href={`?page=${pagination.page - 1}`}
+            aria-disabled={pagination.page <= 1}
+            className={pagination.page <= 1 ? "pointer-events-none opacity-30" : ""}
+          >
+            <Button variant="outline" size="sm" disabled={pagination.page <= 1}>
+              Anterior
+            </Button>
+          </Link>
+          <span className="text-sm text-sena-gray-dark/60 px-2">
+            Página {pagination.page} de {pagination.totalPages}
+          </span>
+          <Link
+            href={`?page=${pagination.page + 1}`}
+            aria-disabled={pagination.page >= pagination.totalPages}
+            className={pagination.page >= pagination.totalPages ? "pointer-events-none opacity-30" : ""}
+          >
+            <Button variant="outline" size="sm" disabled={pagination.page >= pagination.totalPages}>
+              Siguiente
+            </Button>
+          </Link>
+        </div>
+      )}
 
       {/* Edit dialog */}
       <Dialog

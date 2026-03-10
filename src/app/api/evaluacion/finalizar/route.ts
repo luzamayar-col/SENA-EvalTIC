@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { z } from "zod";
 import { APP_CONFIG } from "@/lib/config";
 import { calcularPuntaje } from "@/lib/score";
+import { enviarCorreoResultado } from "@/lib/email";
 import allQuestions from "@/data/preguntas.json";
 import fs from "fs";
 import path from "path";
@@ -11,28 +13,46 @@ const COMPLETED_EVALUATIONS_FILE = path.join(
   "src/data/evaluaciones-completadas.json",
 );
 
+const finalizarSchema = z.object({
+  cedula: z.string().min(4, "Cédula muy corta").max(20, "Cédula muy larga"),
+  tipoDocumento: z.string().max(10).optional(),
+  nombres: z.string().max(100).optional(),
+  apellidos: z.string().max(100).optional(),
+  email: z.string().max(200).optional(),
+  programaFormacion: z.string().max(300).optional(),
+  respuestasUsuario: z.record(z.string(), z.unknown()),
+  fichaId: z.string().max(100).optional(),
+  evaluacionId: z.string().max(100).optional(),
+  tiempoUsado: z.number().int().min(0).max(18000).optional(),
+  intentoNumero: z.number().int().min(1).max(100).optional(),
+  esPrueba: z.boolean().optional(),
+});
+
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const rawBody = await request.json();
+    const parsed = finalizarSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message ?? "Datos inválidos" },
+        { status: 400 },
+      );
+    }
+
+    const body = parsed.data;
     const {
       cedula,
       tipoDocumento,
       nombres,
       apellidos,
       email,
-      programaFormacion,
       respuestasUsuario,
-      // DB mode extras
       fichaId,
       evaluacionId,
       tiempoUsado,
       intentoNumero,
       esPrueba,
     } = body;
-
-    if (!cedula || !respuestasUsuario) {
-      return NextResponse.json({ error: "Datos incompletos" }, { status: 400 });
-    }
 
     // ═══ RAMA DB (feature flag) ═══════════════════════════════════════════════
     if (APP_CONFIG.useDatabaseBackend) {
@@ -65,9 +85,9 @@ export async function POST(request: NextRequest) {
         idsRespondidos.includes(q.id.toString()),
       );
 
-      const resultado = calcularPuntaje(preguntasEvaluadas, respuestasUsuario, passingScore);
+      const resultado = calcularPuntaje(preguntasEvaluadas, respuestasUsuario as any, passingScore);
 
-      // 3. Modo prueba del instructor: calcular pero NO guardar (fichaId es null en este modo)
+      // 3. Modo prueba del instructor: calcular pero NO guardar
       if (esPrueba === true) {
         const token = await getToken({ req: request });
         if (!token?.instructorId) {
@@ -91,9 +111,10 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const intento = typeof intentoNumero === "number" && intentoNumero > 0
-        ? intentoNumero
-        : 1;
+      const intento =
+        typeof intentoNumero === "number" && intentoNumero > 0
+          ? intentoNumero
+          : 1;
 
       try {
         await prisma.resultado.create({
@@ -124,6 +145,25 @@ export async function POST(request: NextRequest) {
         }
         throw dbErr;
       }
+
+      // 5. Enviar correo al instructor (server-side, no expone endpoint público)
+      // Fire-and-forget: no bloquear la respuesta si el correo falla
+      enviarCorreoResultado({
+        evaluacionId,
+        fichaId,
+        cedula,
+        tipoDocumento: tipoDocumento ?? "CC",
+        nombres: nombres ?? "",
+        apellidos: apellidos ?? "",
+        email: email ?? "",
+        tiempoUsado: tiempoUsado ?? 0,
+        resultado: {
+          puntajeTotal: resultado.puntajeTotal,
+          preguntasCorrectas: resultado.preguntasCorrectas,
+          totalPreguntas: resultado.totalPreguntas,
+          aprobado: resultado.aprobado,
+        },
+      }).catch((err) => console.error("Email dispatch error:", err));
 
       return NextResponse.json({
         resultado,
@@ -165,7 +205,7 @@ export async function POST(request: NextRequest) {
 
     const resultado = calcularPuntaje(
       preguntasEvaluadas,
-      respuestasUsuario,
+      respuestasUsuario as any,
       APP_CONFIG.passingScorePercentage,
     );
 
