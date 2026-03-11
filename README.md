@@ -22,7 +22,7 @@ Sistema interactivo de evaluación técnica en línea para aprendices del **SENA
 | **Editor de preguntas**     | Interfaz visual drag-and-drop para editar, reordenar y crear preguntas del banco                                            |
 | **Importación SOFIA Plus**  | Importar aprendices desde el Excel de SOFIA Plus (detección automática de columnas)                                         |
 | **Exportación Excel**       | Resultados exportables en `.xlsx` con dos hojas (Resultados y Resumen)                                                      |
-| **Antiplagio**              | Marca de agua en pantalla y PDF; blur overlay + contador de incidencias persistido en BD; alertas Bajo/Medio/Alto con umbrales configurables por evaluación; Fullscreen API; bloqueo de copy/cut/print/DevTools |
+| **Antiplagio**              | Marca de agua en pantalla y PDF; blur overlay + contador de incidencias persistido en BD; alertas Bajo/Medio/Alto con umbrales dinámicos (configurables por evaluación); Fullscreen API con restauración automática al volver; bloqueo de copy/cut/print/DevTools; tarjeta de integridad en resultados |
 | **Crédito parcial**         | Selección múltiple y emparejamiento otorgan puntos proporcionales a las opciones/pares correctos seleccionados               |
 | **Puntajes con decimales**  | `puntaje` almacenado como `Float`; se muestra con 1 decimal cuando hay crédito parcial (ej. 72.5%); aciertos ponderados (7.3/10) |
 | **Descarga PDF por aprendiz** | El instructor puede descargar el informe PDF del último intento de cada aprendiz directamente desde la tabla de la ficha   |
@@ -272,7 +272,7 @@ Acceso en `/instructor/login`. Incluye enlace **← Volver al inicio** para regr
 4. Ve pantalla de confirmación con nombre, ficha, competencia, RA e intentos restantes
 5. Ingresa (o confirma) su correo
 6. Inicia evaluación → responde preguntas → finaliza
-7. Ve resultados con PDF descargable y correo enviado al instructor (CC al aprendiz)
+7. Ve resultados con PDF descargable, tarjeta de **integridad de sesión** (incidencias antiplagio) y correo enviado al instructor (CC al aprendiz)
 
 **Si el aprendiz ya agotó sus intentos:**
 En el paso 4 se muestra el mensaje de intentos agotados y, si existe un resultado previo, aparece el botón **"Descargar mi informe (último intento)"** que genera el PDF directamente en el cliente sin necesidad de cuenta. La seguridad se garantiza verificando que la cédula ingresada coincida con la del resultado en la BD.
@@ -342,9 +342,10 @@ El parser detecta automáticamente la fila de encabezados (busca en las primeras
 - Atajos bloqueados vía `keydown`: `Ctrl+C/A/P/U/S`, `Ctrl+Shift+I/J/C`, `F12`
 - Eventos `copy` y `cut` bloqueados directamente (cubre extensiones de navegador y menús del sistema, no solo Ctrl+C)
 - `PrintScreen` detectado: activa el blur overlay inmediatamente (el OS toma el screenshot antes del evento, pero reintentos solo capturan la pantalla negra)
-- **Fullscreen API**: se solicita pantalla completa al iniciar; salir de fullscreen (Win+D, F11, etc.) activa el overlay
-- `window.blur` + `visibilitychange` + `fullscreenchange` → blur CSS inmediato (`filter: blur(24px)`) + overlay negro `bg-black/95` al cambiar de contexto
-- **Contador de incidencias** visible en el overlay; al finalizar se persiste en `Resultado.incidenciasAntiplagio` y el instructor ve el nivel (Normal / Bajo / Medio / Alto) en la tabla de aprendices y en el informe PDF. Los umbrales son configurables por evaluación.
+- **Fullscreen API**: se solicita pantalla completa al iniciar; salir de fullscreen (Win+D, F11, etc.) activa el overlay; al hacer clic en "Volver a la evaluación" se **restaura el fullscreen** automáticamente
+- `window.blur` + `visibilitychange` + `fullscreenchange` → blur CSS inmediato (`filter: blur(24px)`) + overlay negro `bg-black/95` al cambiar de contexto. Los tres eventos se desduplicam con un `ref` guard, contando **solo 1 incidencia** por cambio de pestaña/contexto (sin triple conteo)
+- **Contador de incidencias** visible en el overlay con colores dinámicos basados en `umbralMedio`/`umbralAlto` de la evaluación; al finalizar se persiste en `Resultado.incidenciasAntiplagio`. El instructor ve el nivel en la tabla de aprendices y en el informe PDF
+- **Tarjeta de integridad en resultados**: en `/resultados` se muestra una tarjeta con el conteo de incidencias y su severidad (verde / ámbar / rojo) usando los mismos umbrales dinámicos de la evaluación
 - `@media print { display: none }` — página en blanco al imprimir
 - **Marca de agua en pantalla**: nombre y documento del aprendiz como texto diagonal semitransparente sobre toda la evaluación — hace trazable cualquier captura incluyendo `Win+Shift+S` y botones físicos de móvil (que el navegador no puede interceptar)
 
