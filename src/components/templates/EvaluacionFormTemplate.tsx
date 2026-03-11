@@ -12,7 +12,6 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { JsonUploader } from "@/components/molecules/JsonUploader";
-import { Loader2, Save, BookOpen, Settings, CalendarDays, FileQuestion, Clock, Target, RefreshCw, CheckSquare, AlignLeft, Shuffle } from "lucide-react";
+import { Loader2, Save, BookOpen, Settings, CalendarDays, FileQuestion, Clock, Target, RefreshCw, CheckSquare, AlignLeft, Shuffle, ShieldAlert } from "lucide-react";
 
 const evaluacionSchema = z.object({
   nombre: z.string().min(4, "El nombre debe tener al menos 4 caracteres"),
@@ -37,6 +36,8 @@ const evaluacionSchema = z.object({
   seleccion_unica: z.number().min(0),
   seleccion_multiple: z.number().min(0),
   emparejamiento: z.number().min(0),
+  umbralMedio: z.number().int().min(1, "Mínimo 1").max(20, "Máximo 20"),
+  umbralAlto: z.number().int().min(2, "Mínimo 2").max(50, "Máximo 50"),
 });
 
 type EvaluacionFormValues = z.infer<typeof evaluacionSchema>;
@@ -76,6 +77,8 @@ export function EvaluacionFormTemplate({
       seleccion_unica: 5,
       seleccion_multiple: 3,
       emparejamiento: 2,
+      umbralMedio: 3,
+      umbralAlto: 6,
       ...defaultValues,
     },
   });
@@ -108,6 +111,10 @@ export function EvaluacionFormTemplate({
           emparejamiento: values.emparejamiento,
         },
         aleatorizarOpciones: true,
+        umbralAntiplagio: {
+          medio: values.umbralMedio,
+          alto: values.umbralAlto,
+        },
       },
     };
 
@@ -487,6 +494,95 @@ export function EvaluacionFormTemplate({
                     (form.watch("emparejamiento") || 0)}
                 </span>
               </div>
+            </div>
+
+            {/* Umbrales antiplagio */}
+            <div className="rounded-xl border border-red-100 bg-red-50/30 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <ShieldAlert size={15} className="text-red-500/70" />
+                <p className="text-xs font-bold text-sena-blue uppercase tracking-wide">
+                  Umbrales de alerta antiplagio
+                </p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <FormField
+                  control={form.control}
+                  name="umbralMedio"
+                  render={({ field }) => (
+                    <FormItem className="bg-white rounded-lg border border-amber-200 p-3">
+                      <div className="flex items-center gap-1.5 mb-1.5">
+                        <ShieldAlert size={13} className="text-amber-600 shrink-0" />
+                        <FormLabel className="text-[11px] font-bold text-amber-700 uppercase tracking-wide">
+                          Nivel Medio desde
+                        </FormLabel>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min={1}
+                            max={20}
+                            className="h-9 text-lg font-black text-amber-600 text-center border-amber-200 w-20"
+                            value={field.value}
+                            onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                          />
+                        </FormControl>
+                        <span className="text-xs text-sena-gray-dark/60">incidencias</span>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="umbralAlto"
+                  render={({ field }) => (
+                    <FormItem className="bg-white rounded-lg border border-red-200 p-3">
+                      <div className="flex items-center gap-1.5 mb-1.5">
+                        <ShieldAlert size={13} className="text-red-600 shrink-0" />
+                        <FormLabel className="text-[11px] font-bold text-red-700 uppercase tracking-wide">
+                          Nivel Alto desde
+                        </FormLabel>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min={2}
+                            max={50}
+                            className="h-9 text-lg font-black text-red-600 text-center border-red-200 w-20"
+                            value={field.value}
+                            onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                          />
+                        </FormControl>
+                        <span className="text-xs text-sena-gray-dark/60">incidencias</span>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              {/* Live preview */}
+              {(() => {
+                const m = form.watch("umbralMedio") || 3;
+                const a = form.watch("umbralAlto") || 6;
+                return (
+                  <div className="mt-3 flex flex-wrap items-center gap-1.5 bg-white rounded-lg border border-sena-gray-dark/10 px-4 py-2 text-[10px] font-bold">
+                    <span className="text-sena-gray-dark/50 font-normal text-xs mr-1">Vista previa:</span>
+                    <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-700">Normal (0)</span>
+                    <span className="text-sena-gray-dark/30">→</span>
+                    <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                      Bajo (1–{m - 1 >= 1 ? m - 1 : 1})
+                    </span>
+                    <span className="text-sena-gray-dark/30">→</span>
+                    <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
+                      Medio ({m}–{a - 1 >= m ? a - 1 : m})
+                    </span>
+                    <span className="text-sena-gray-dark/30">→</span>
+                    <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700">Alto ({a}+)</span>
+                  </div>
+                );
+              })()}
             </div>
 
           </CardContent>

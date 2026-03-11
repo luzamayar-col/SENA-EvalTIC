@@ -225,8 +225,11 @@ export async function generatePDF(
   preguntasSeleccionadas: unknown[],
   respuestas: Record<string, RespuestaAprendiz>,
   incidenciasAntiplagio?: number,
+  umbralAntiplagio?: { medio: number; alto: number },
 ) {
   await ensureAssets();
+  const umbralMedio = umbralAntiplagio?.medio ?? 3;
+  const umbralAlto = umbralAntiplagio?.alto ?? 6;
 
   const doc = new jsPDF({ unit: "mm", format: "letter" });
   const font = registerFonts(doc);
@@ -417,9 +420,9 @@ export async function generatePDF(
         "Incidencias Antiplagio",
         incidenciasAntiplagio === 0
           ? "Sin incidencias"
-          : incidenciasAntiplagio <= 2
+          : incidenciasAntiplagio < umbralMedio
           ? `Nivel Bajo — ${incidenciasAntiplagio} incidencia${incidenciasAntiplagio > 1 ? "s" : ""} detectada${incidenciasAntiplagio > 1 ? "s" : ""}`
-          : incidenciasAntiplagio <= 5
+          : incidenciasAntiplagio < umbralAlto
           ? `Nivel Medio — ${incidenciasAntiplagio} incidencias detectadas`
           : `Nivel Alto — ${incidenciasAntiplagio} incidencias detectadas`,
       ]] : []),
@@ -442,15 +445,15 @@ export async function generatePDF(
       if (incidenciasAntiplagio !== undefined && data.row.index === 4) {
         // Row 4 = Incidencias Antiplagio row (0-based: Puntaje, Estado, Correctas, Tiempo, Incidencias)
         const c = incidenciasAntiplagio === 0 ? [220, 252, 231]
-          : incidenciasAntiplagio <= 2 ? [254, 243, 199]
-          : incidenciasAntiplagio <= 5 ? [255, 237, 213]
+          : incidenciasAntiplagio < umbralMedio ? [254, 243, 199]
+          : incidenciasAntiplagio < umbralAlto ? [255, 237, 213]
           : [254, 226, 226];
         data.cell.styles.fillColor = c as [number, number, number];
         if (data.column.index === 1) {
           data.cell.styles.textColor =
             incidenciasAntiplagio === 0 ? [22, 101, 52]
-            : incidenciasAntiplagio <= 2 ? [120, 53, 15]
-            : incidenciasAntiplagio <= 5 ? [154, 52, 18]
+            : incidenciasAntiplagio < umbralMedio ? [120, 53, 15]
+            : incidenciasAntiplagio < umbralAlto ? [154, 52, 18]
             : [153, 27, 27] as [number, number, number];
         }
       }

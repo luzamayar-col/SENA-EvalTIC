@@ -30,12 +30,19 @@ export default async function FichaDetailPage({ params }: Props) {
           activa: true,
           fechaInicio: true,
           fechaFin: true,
+          config: true,
         },
       },
     },
   });
 
   if (!ficha) notFound();
+
+  const evalConfig = ficha.evaluacion.config as { umbralAntiplagio?: { medio: number; alto: number } } | null;
+  const umbralAntiplagio = {
+    medio: evalConfig?.umbralAntiplagio?.medio ?? 3,
+    alto: evalConfig?.umbralAntiplagio?.alto ?? 6,
+  };
 
   // Fetch aprendices with their result stats
   const aprendicesRaw = await prisma.aprendiz.findMany({
@@ -215,6 +222,7 @@ export default async function FichaDetailPage({ params }: Props) {
         evaluacionMaxIntentos={ficha.evaluacion.maxIntentos}
         resultados={resultados}
         exportExcelUrl={exportExcelUrl}
+        umbralAntiplagio={umbralAntiplagio}
       />
     </div>
   );

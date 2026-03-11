@@ -22,7 +22,7 @@ Sistema interactivo de evaluación técnica en línea para aprendices del **SENA
 | **Editor de preguntas**     | Interfaz visual drag-and-drop para editar, reordenar y crear preguntas del banco                                            |
 | **Importación SOFIA Plus**  | Importar aprendices desde el Excel de SOFIA Plus (detección automática de columnas)                                         |
 | **Exportación Excel**       | Resultados exportables en `.xlsx` con dos hojas (Resultados y Resumen)                                                      |
-| **Antiplagio**              | Marca de agua del aprendiz en pantalla y PDF; blur overlay + contador de cambios de contexto; Fullscreen API; bloqueo de copy/cut/print/DevTools; `@media print` oculto |
+| **Antiplagio**              | Marca de agua en pantalla y PDF; blur overlay + contador de incidencias persistido en BD; alertas Bajo/Medio/Alto con umbrales configurables por evaluación; Fullscreen API; bloqueo de copy/cut/print/DevTools |
 | **Crédito parcial**         | Selección múltiple y emparejamiento otorgan puntos proporcionales a las opciones/pares correctos seleccionados               |
 | **Puntajes con decimales**  | `puntaje` almacenado como `Float`; se muestra con 1 decimal cuando hay crédito parcial (ej. 72.5%); aciertos ponderados (7.3/10) |
 | **Descarga PDF por aprendiz** | El instructor puede descargar el informe PDF del último intento de cada aprendiz directamente desde la tabla de la ficha   |
@@ -228,7 +228,7 @@ Acceso en `/instructor/login`. Incluye enlace **← Volver al inicio** para regr
 
 ### Evaluaciones
 - Crear/editar evaluaciones con banco de preguntas (subir `.json` o usar el editor visual)
-- Configurar: tiempo límite, % para aprobar, **máx. intentos**, distribución de tipos de pregunta
+- Configurar: tiempo límite, % para aprobar, **máx. intentos**, distribución de tipos de pregunta, **umbrales de alerta antiplagio** (Bajo / Medio / Alto)
 - **Editor de preguntas** (`/instructor/evaluaciones/[id]/preguntas`): drag-reorder, crear/editar/eliminar preguntas de los 3 tipos
 - **Modo prueba** (botón ⚗): el instructor presenta la evaluación sin guardar resultado; muestra banner ámbar
 - Activar/desactivar + fechas de vigencia por evaluación
@@ -240,14 +240,14 @@ Acceso en `/instructor/login`. Incluye enlace **← Volver al inicio** para regr
 
 ### Detalle de Ficha (`/instructor/fichas/[id]`)
 - **4 métricas**: total aprendices, presentaciones, tasa aprobación, promedio puntaje
-- **Tab Aprendices**: tabla con cédula, nombre, intentos (X/Y), último resultado
+- **Tab Aprendices**: tabla con cédula, nombre, intentos (X/Y), último resultado e **integridad** (badge Normal/Bajo/Medio/Alto según umbrales configurados)
   - Agregar aprendiz individual
   - Importar desde Excel SOFIA Plus (detección automática de columnas)
   - Descargar plantilla `.xlsx`
   - Conceder intentos extra (+1) por aprendiz
   - Editar/eliminar aprendices
   - Descargar informe PDF del último intento por aprendiz (ícono ↓)
-- **Tab Resultados**: tabla de presentaciones + exportar Excel
+- **Tab Resultados**: tabla de presentaciones + columna de integridad antiplagio + exportar Excel
 
 ### Resultados
 - Tabla paginada con filtros por evaluación, ficha y resultado
@@ -344,7 +344,7 @@ El parser detecta automáticamente la fila de encabezados (busca en las primeras
 - `PrintScreen` detectado: activa el blur overlay inmediatamente (el OS toma el screenshot antes del evento, pero reintentos solo capturan la pantalla negra)
 - **Fullscreen API**: se solicita pantalla completa al iniciar; salir de fullscreen (Win+D, F11, etc.) activa el overlay
 - `window.blur` + `visibilitychange` + `fullscreenchange` → blur CSS inmediato (`filter: blur(24px)`) + overlay negro `bg-black/95` al cambiar de contexto
-- **Contador de cambios de contexto** visible en el overlay durante la sesión
+- **Contador de incidencias** visible en el overlay; al finalizar se persiste en `Resultado.incidenciasAntiplagio` y el instructor ve el nivel (Normal / Bajo / Medio / Alto) en la tabla de aprendices y en el informe PDF. Los umbrales son configurables por evaluación.
 - `@media print { display: none }` — página en blanco al imprimir
 - **Marca de agua en pantalla**: nombre y documento del aprendiz como texto diagonal semitransparente sobre toda la evaluación — hace trazable cualquier captura incluyendo `Win+Shift+S` y botones físicos de móvil (que el navegador no puede interceptar)
 

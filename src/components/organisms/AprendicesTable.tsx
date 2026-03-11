@@ -56,6 +56,7 @@ interface AprendicesTableProps {
   fichaId: string;
   fichaNumero: string;
   fichaPrograma: string;
+  umbralAntiplagio?: { medio: number; alto: number };
 }
 
 export function AprendicesTable({
@@ -64,7 +65,10 @@ export function AprendicesTable({
   fichaId,
   fichaNumero,
   fichaPrograma,
+  umbralAntiplagio,
 }: AprendicesTableProps) {
+  const umbralMedio = umbralAntiplagio?.medio ?? 3;
+  const umbralAlto = umbralAntiplagio?.alto ?? 6;
   const router = useRouter();
   const [deleting, setDeleting] = useState<string | null>(null);
   const [deletingAll, setDeletingAll] = useState(false);
@@ -189,7 +193,7 @@ export function AprendicesTable({
         alert("No se pudo obtener los datos del informe");
         return;
       }
-      const { resultado, preguntas, passingScore } = await res.json();
+      const { resultado, preguntas, passingScore, umbralAntiplagio: umbral } = await res.json();
       const datosAprendiz: DatosAprendiz = {
         nombres: resultado.nombres,
         apellidos: resultado.apellidos,
@@ -201,7 +205,7 @@ export function AprendicesTable({
       };
       const respuestas = resultado.respuestas as Record<string, RespuestaAprendiz>;
       const evaluacionResultado = calcularPuntaje(preguntas, respuestas, passingScore);
-      const bytes = await generatePDF(datosAprendiz, evaluacionResultado, resultado.tiempoUsado, preguntas, respuestas, resultado.incidenciasAntiplagio);
+      const bytes = await generatePDF(datosAprendiz, evaluacionResultado, resultado.tiempoUsado, preguntas, respuestas, resultado.incidenciasAntiplagio, umbral);
       const fileName = `Evaluacion_${resultado.nombres.replace(/\s+/g, "")}_${resultado.cedula}_I${resultado.intento}.pdf`;
       savePdf(bytes, fileName);
     } finally {
@@ -341,12 +345,12 @@ export function AprendicesTable({
                     ) : (() => {
                       const n = a.ultimoResultado.incidenciasAntiplagio;
                       if (n === 0) return <span className="text-xs text-green-700 font-medium">Normal</span>;
-                      const cls = n <= 2
+                      const cls = n < umbralMedio
                         ? "bg-amber-100 text-amber-700 border-amber-200"
-                        : n <= 5
+                        : n < umbralAlto
                         ? "bg-orange-100 text-orange-700 border-orange-200"
                         : "bg-red-100 text-red-700 border-red-200";
-                      const label = n <= 2 ? "Bajo" : n <= 5 ? "Medio" : "Alto";
+                      const label = n < umbralMedio ? "Bajo" : n < umbralAlto ? "Medio" : "Alto";
                       return (
                         <span className={cn("inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded border", cls)}>
                           <ShieldAlert size={9} />

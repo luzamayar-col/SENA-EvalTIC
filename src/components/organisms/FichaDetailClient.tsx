@@ -45,6 +45,7 @@ interface FichaDetailClientProps {
   evaluacionMaxIntentos: number;
   resultados: ResultadoRow[];
   exportExcelUrl: string;
+  umbralAntiplagio?: { medio: number; alto: number };
 }
 
 function formatTime(seconds: number) {
@@ -61,7 +62,10 @@ export function FichaDetailClient({
   evaluacionMaxIntentos,
   resultados,
   exportExcelUrl,
+  umbralAntiplagio,
 }: FichaDetailClientProps) {
+  const umbralMedio = umbralAntiplagio?.medio ?? 3;
+  const umbralAlto = umbralAntiplagio?.alto ?? 6;
   const router = useRouter();
   const [importOpen, setImportOpen] = useState(false);
 
@@ -137,6 +141,7 @@ export function FichaDetailClient({
           fichaId={fichaId}
           fichaNumero={fichaNumero}
           fichaPrograma={fichaPrograma}
+          umbralAntiplagio={umbralAntiplagio}
         />
       </TabsContent>
 
@@ -228,14 +233,14 @@ export function FichaDetailClient({
                       ) : (
                         <span className={cn(
                           "inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded border",
-                          r.incidenciasAntiplagio <= 2
+                          r.incidenciasAntiplagio < umbralMedio
                             ? "bg-amber-100 text-amber-700 border-amber-200"
-                            : r.incidenciasAntiplagio <= 5
+                            : r.incidenciasAntiplagio < umbralAlto
                             ? "bg-orange-100 text-orange-700 border-orange-200"
                             : "bg-red-100 text-red-700 border-red-200"
                         )}>
                           <ShieldAlert size={9} />
-                          {r.incidenciasAntiplagio <= 2 ? "Bajo" : r.incidenciasAntiplagio <= 5 ? "Medio" : "Alto"}
+                          {r.incidenciasAntiplagio < umbralMedio ? "Bajo" : r.incidenciasAntiplagio < umbralAlto ? "Medio" : "Alto"}
                           {" "}·{" "}{r.incidenciasAntiplagio}
                         </span>
                       )}
