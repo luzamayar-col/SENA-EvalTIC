@@ -62,7 +62,10 @@ export default function ResultadosPage() {
       !mounted ||
       estado !== "resultados" ||
       !preguntasSeleccionadas.length ||
-      !preguntasSeleccionadas[0].hasOwnProperty("respuestaCorrecta")
+      !(
+        preguntasSeleccionadas[0].hasOwnProperty("respuestaCorrecta") ||
+        preguntasSeleccionadas[0].hasOwnProperty("pares")
+      )
     ) {
       return null;
     }

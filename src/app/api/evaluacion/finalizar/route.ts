@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
 
       // 3. Modo prueba del instructor: calcular pero NO guardar
       if (esPrueba === true) {
-        const token = await getToken({ req: request });
+        const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
         if (!token?.instructorId) {
           return NextResponse.json(
             { error: "No autorizado para modo prueba" },
