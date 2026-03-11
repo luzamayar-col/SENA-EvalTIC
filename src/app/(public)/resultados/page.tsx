@@ -26,9 +26,11 @@ import {
   FlaskConical,
   LayoutDashboard,
   Loader2,
+  ShieldAlert,
+  AlertTriangle,
 } from "lucide-react";
 import { generatePDF, savePdf } from "@/lib/pdf-generator";
-import { fmtScore } from "@/lib/utils";
+import { fmtScore, cn } from "@/lib/utils";
 
 export default function ResultadosPage() {
   const router = useRouter();
@@ -51,6 +53,9 @@ export default function ResultadosPage() {
     incidenciasAntiplagio,
     umbralAntiplagio,
   } = useEvaluacionStore();
+
+  const umbralMedio = umbralAntiplagio?.medio ?? 3;
+  const umbralAlto = umbralAntiplagio?.alto ?? 5;
 
   useEffect(() => {
     setMounted(true);
@@ -428,6 +433,48 @@ export default function ResultadosPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Session integrity / antiplagio */}
+        {incidenciasAntiplagio !== null && (
+          <Card className={cn(
+            "shadow-md border-t-[4px]",
+            incidenciasAntiplagio < umbralMedio
+              ? "border-t-sena-green"
+              : incidenciasAntiplagio < umbralAlto
+              ? "border-t-amber-400"
+              : "border-t-red-500"
+          )}>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg font-bold text-sena-blue flex items-center gap-2">
+                <ShieldAlert className="w-5 h-5" />
+                Integridad de Sesión
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <span className={cn(
+                "inline-flex items-center gap-2 text-sm font-bold px-4 py-2 rounded-full shrink-0",
+                incidenciasAntiplagio < umbralMedio
+                  ? "bg-green-100 text-green-700"
+                  : incidenciasAntiplagio < umbralAlto
+                  ? "bg-amber-100 text-amber-700"
+                  : "bg-red-100 text-red-700"
+              )}>
+                {incidenciasAntiplagio < umbralMedio ? (
+                  <><CheckCircle2 className="w-4 h-4" /> {incidenciasAntiplagio === 0 ? "Sin incidencias" : `${incidenciasAntiplagio} ${incidenciasAntiplagio === 1 ? "incidencia" : "incidencias"}`}</>
+                ) : (
+                  <><AlertTriangle className="w-4 h-4" /> {incidenciasAntiplagio} {incidenciasAntiplagio === 1 ? "incidencia registrada" : "incidencias registradas"}</>
+                )}
+              </span>
+              <p className="text-sm text-sena-gray-dark/70">
+                {incidenciasAntiplagio < umbralMedio
+                  ? "La sesión transcurrió sin incidencias significativas."
+                  : incidenciasAntiplagio < umbralAlto
+                  ? "Se detectaron cambios de contexto durante la evaluación. El instructor revisará el reporte."
+                  : "Se registraron múltiples incidencias. El instructor evaluará la integridad de esta sesión."}
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Detailed question review — collapsible */}
         <Card className="shadow-lg border-t-[6px] border-t-sena-green">
