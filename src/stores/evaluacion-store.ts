@@ -162,7 +162,7 @@ export const useEvaluacionStore = create<EvaluacionState>((set, get) => ({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          cedula: state.datosAprendiz?.numeroDocumento ?? ai?.nombres ?? "instructor",
+          cedula: state.datosAprendiz?.numeroDocumento ?? "PRUEBA",
           tipoDocumento: state.datosAprendiz?.tipoDocumento ?? ai?.tipoDocumento ?? "CC",
           nombres: state.datosAprendiz?.nombres ?? ai?.nombres ?? "",
           apellidos: state.datosAprendiz?.apellidos ?? ai?.apellidos ?? "",
