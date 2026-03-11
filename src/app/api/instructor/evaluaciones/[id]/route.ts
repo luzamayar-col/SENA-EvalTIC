@@ -16,8 +16,8 @@ const editarEvaluacionSchema = z.object({
   resultadoAprendizaje: z.string().min(3).max(500).optional(),
   codigoRA: z.string().min(1).max(20).optional(),
   preguntas: z.array(z.unknown()).optional(),
-  fechaInicio: z.string().datetime({ offset: true }).optional().nullable(),
-  fechaFin: z.string().datetime({ offset: true }).optional().nullable(),
+  fechaInicio: z.string().optional().nullable(),
+  fechaFin: z.string().optional().nullable(),
   config: z.record(z.string(), z.unknown()).optional(),
   maxIntentos: z.number().int().min(1).max(10).optional(),
 });

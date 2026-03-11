@@ -12,8 +12,8 @@ const crearEvaluacionSchema = z.object({
   resultadoAprendizaje: z.string().min(3, "Resultado de aprendizaje muy corto").max(500),
   codigoRA: z.string().min(1, "Código RA requerido").max(20),
   preguntas: z.array(z.unknown()).min(1, "Debes cargar el banco de preguntas"),
-  fechaInicio: z.string().datetime({ offset: true }).optional().nullable(),
-  fechaFin: z.string().datetime({ offset: true }).optional().nullable(),
+  fechaInicio: z.string().optional().nullable(),
+  fechaFin: z.string().optional().nullable(),
   config: z.record(z.string(), z.unknown()).optional(),
   maxIntentos: z.number().int().min(1).max(10).optional(),
 });
