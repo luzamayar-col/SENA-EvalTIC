@@ -25,7 +25,7 @@ const finalizarSchema = z.object({
   fichaId: z.string().max(100).optional(),
   evaluacionId: z.string().max(100).optional(),
   tiempoUsado: z.number().int().min(0).max(18000).optional(),
-  intentoNumero: z.number().int().min(1).max(100).optional(),
+  intentoNumero: z.number().int().min(0).max(100).optional(),
   esPrueba: z.boolean().optional(),
   incidenciasAntiplagio: z.number().int().min(0).max(500).optional(),
 });
