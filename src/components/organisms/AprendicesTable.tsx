@@ -269,6 +269,7 @@ export function AprendicesTable({
               <TableHead className="font-bold text-sena-blue">Nombre</TableHead>
               <TableHead className="font-bold text-sena-blue text-center">Intentos</TableHead>
               <TableHead className="font-bold text-sena-blue hidden md:table-cell">Último resultado</TableHead>
+              <TableHead className="font-bold text-sena-blue text-center">Integridad</TableHead>
               <TableHead className="font-bold text-sena-blue text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
@@ -321,36 +322,38 @@ export function AprendicesTable({
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
                     {a.ultimoResultado ? (
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-sena-blue text-sm">
-                            {fmtScore(a.ultimoResultado.puntaje)}%
-                          </span>
-                          <ResultadoBadge aprobado={a.ultimoResultado.aprobado} />
-                          <span className="text-xs text-sena-gray-dark/40">
-                            {new Date(a.ultimoResultado.presentadoEn).toLocaleDateString("es-CO")}
-                          </span>
-                        </div>
-                        {(() => {
-                          const n = a.ultimoResultado.incidenciasAntiplagio;
-                          if (n === 0) return null;
-                          const cls = n <= 2
-                            ? "bg-amber-100 text-amber-700 border-amber-200"
-                            : n <= 5
-                            ? "bg-orange-100 text-orange-700 border-orange-200"
-                            : "bg-red-100 text-red-700 border-red-200";
-                          const label = n <= 2 ? "Bajo" : n <= 5 ? "Medio" : "Alto";
-                          return (
-                            <span className={cn("inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded border w-fit", cls)}>
-                              <ShieldAlert size={9} />
-                              {label} · {n} incidencia{n !== 1 ? "s" : ""}
-                            </span>
-                          );
-                        })()}
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-sena-blue text-sm">
+                          {fmtScore(a.ultimoResultado.puntaje)}%
+                        </span>
+                        <ResultadoBadge aprobado={a.ultimoResultado.aprobado} />
+                        <span className="text-xs text-sena-gray-dark/40">
+                          {new Date(a.ultimoResultado.presentadoEn).toLocaleDateString("es-CO")}
+                        </span>
                       </div>
                     ) : (
                       <span className="text-xs text-sena-gray-dark/40">Sin presentar</span>
                     )}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {!a.ultimoResultado ? (
+                      <span className="text-xs text-sena-gray-dark/30">—</span>
+                    ) : (() => {
+                      const n = a.ultimoResultado.incidenciasAntiplagio;
+                      if (n === 0) return <span className="text-xs text-green-700 font-medium">Normal</span>;
+                      const cls = n <= 2
+                        ? "bg-amber-100 text-amber-700 border-amber-200"
+                        : n <= 5
+                        ? "bg-orange-100 text-orange-700 border-orange-200"
+                        : "bg-red-100 text-red-700 border-red-200";
+                      const label = n <= 2 ? "Bajo" : n <= 5 ? "Medio" : "Alto";
+                      return (
+                        <span className={cn("inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded border", cls)}>
+                          <ShieldAlert size={9} />
+                          {label} · {n}
+                        </span>
+                      );
+                    })()}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
