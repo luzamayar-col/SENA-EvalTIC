@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useEvaluacionStore } from "@/stores/evaluacion-store";
 import { APP_CONFIG } from "@/lib/config";
@@ -58,6 +58,8 @@ export default function EvaluacionPage() {
   const [tabBlurred, setTabBlurred] = useState(false);
   const [tabSwitches, setTabSwitches] = useState(0);
   const [showFirstWarning, setShowFirstWarning] = useState(false);
+  // Guard against multiple events firing simultaneously (blur + visibilitychange + fullscreenchange)
+  const isHiddenRef = useRef(false);
 
   // Fullscreen: request when evaluation starts, detect exit as focus-loss event
   const requestFullscreen = () => {
@@ -110,13 +112,22 @@ export default function EvaluacionPage() {
   // NOTA: Win+Shift+S y capturas de móvil ocurren a nivel OS y NO disparan blur/visibilitychange;
   // el watermark en pantalla hace esas capturas trazables.
   useEffect(() => {
+    // Guard: blur + visibilitychange + fullscreenchange all fire at once on tab switch.
+    // Only count ONE incidence per "leave" event using a ref flag.
     const hide = () => {
+      if (isHiddenRef.current) return;
+      isHiddenRef.current = true;
       setTabBlurred(true);
       setTabSwitches((n) => n + 1);
     };
-    const show = () => setTabBlurred(false);
+    const show = () => {
+      isHiddenRef.current = false;
+      setTabBlurred(false);
+    };
     const handleVisibility = () => { if (document.hidden) hide(); else show(); };
-    const handleFullscreen = () => { if (!document.fullscreenElement) hide(); };
+    // fullscreenchange: only count as incident when losing fullscreen while page is visible
+    // (avoid double-counting with visibilitychange when switching tabs)
+    const handleFullscreen = () => { if (!document.fullscreenElement && !document.hidden) hide(); };
     document.addEventListener("visibilitychange", handleVisibility);
     document.addEventListener("fullscreenchange", handleFullscreen);
     window.addEventListener("blur", hide);
@@ -233,7 +244,7 @@ export default function EvaluacionPage() {
       {tabBlurred && (
         <div
           className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center gap-4"
-          onClick={() => setTabBlurred(false)}
+          onClick={() => { setTabBlurred(false); requestFullscreen(); }}
         >
           <ShieldAlert className={cn(
             "w-16 h-16",
@@ -258,7 +269,7 @@ export default function EvaluacionPage() {
           </div>
           <button
             className="mt-2 bg-white/10 hover:bg-white/20 text-white text-sm px-6 py-2 rounded-lg transition-colors"
-            onClick={() => setTabBlurred(false)}
+            onClick={() => { setTabBlurred(false); requestFullscreen(); }}
           >
             Volver a la evaluación
           </button>

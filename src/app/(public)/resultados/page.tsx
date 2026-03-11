@@ -149,41 +149,7 @@ export default function ResultadosPage() {
       );
 
       const fileName = `Evaluacion_${effectiveDatos.nombres.replace(" ", "")}_${testMode ? "ModoPrueba" : effectiveDatos.numeroDocumento}.pdf`;
-
-      // Use File System Access API to show a centred native "Save As" dialog
-      if (typeof window !== "undefined" && "showSaveFilePicker" in window) {
-        try {
-          const blob = new Blob([bytes], { type: "application/pdf" });
-          const handle = await (
-            window as typeof window & {
-              showSaveFilePicker: (
-                opts: object,
-              ) => Promise<FileSystemFileHandle>;
-            }
-          ).showSaveFilePicker({
-            suggestedName: fileName,
-            types: [
-              {
-                description: "Documento PDF",
-                accept: { "application/pdf": [".pdf"] },
-              },
-            ],
-          });
-          const writable = await handle.createWritable();
-          await writable.write(blob);
-          await writable.close();
-        } catch (err: unknown) {
-          // User cancelled (AbortError) → do nothing; other errors → fallback download
-          if (
-            !(err instanceof Error) ||
-            (err as DOMException).name !== "AbortError"
-          ) {
-            savePdf(bytes, fileName);
-          }
-        }
-      } else {
-        savePdf(bytes, fileName);
-      }
+      savePdf(bytes, fileName);
     } catch (error) {
       console.error("Error al generar PDF:", error);
       alert("Hubo un error al generar el PDF. Por favor, intente de nuevo.");
