@@ -175,7 +175,8 @@ export function FormularioRegistro({ fichas = [] }: FormularioRegistroProps) {
         data.evaluacionId ?? null,
         data.intentoNumero ?? null,
         data.aprendizInfo ?? null,
-        false
+        false,
+        data.umbralAntiplagio ?? null,
       );
 
       router.push("/evaluacion");
@@ -512,7 +513,7 @@ function LegacyForm({ fichas }: { fichas: FichaOption[] }) {
       }
 
       setDatosAprendiz(values);
-      iniciarEvaluacion(data.preguntas, data.tiempoLimite, data.fichaId ?? null, data.evaluacionId ?? null);
+      iniciarEvaluacion(data.preguntas, data.tiempoLimite, data.fichaId ?? null, data.evaluacionId ?? null, null, null, false, data.umbralAntiplagio ?? null);
       router.push("/evaluacion");
     } catch {
       setErrorMsg("Error de conexión.");

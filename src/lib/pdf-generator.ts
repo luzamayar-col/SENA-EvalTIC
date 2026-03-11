@@ -229,7 +229,7 @@ export async function generatePDF(
 ) {
   await ensureAssets();
   const umbralMedio = umbralAntiplagio?.medio ?? 3;
-  const umbralAlto = umbralAntiplagio?.alto ?? 6;
+  const umbralAlto = umbralAntiplagio?.alto ?? 5;
 
   const doc = new jsPDF({ unit: "mm", format: "letter" });
   const font = registerFonts(doc);

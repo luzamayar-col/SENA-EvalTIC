@@ -48,6 +48,8 @@ export default function ResultadosPage() {
     testMode,
     aprendizInfo,
     evaluacionId,
+    incidenciasAntiplagio,
+    umbralAntiplagio,
   } = useEvaluacionStore();
 
   useEffect(() => {
@@ -142,6 +144,8 @@ export default function ResultadosPage() {
         tiempoTranscurrido,
         preguntasSeleccionadas,
         respuestas,
+        incidenciasAntiplagio ?? undefined,
+        umbralAntiplagio ?? undefined,
       );
 
       const fileName = `Evaluacion_${effectiveDatos.nombres.replace(" ", "")}_${testMode ? "ModoPrueba" : effectiveDatos.numeroDocumento}.pdf`;

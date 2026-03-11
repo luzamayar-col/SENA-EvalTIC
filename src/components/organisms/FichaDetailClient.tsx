@@ -65,7 +65,7 @@ export function FichaDetailClient({
   umbralAntiplagio,
 }: FichaDetailClientProps) {
   const umbralMedio = umbralAntiplagio?.medio ?? 3;
-  const umbralAlto = umbralAntiplagio?.alto ?? 6;
+  const umbralAlto = umbralAntiplagio?.alto ?? 5;
   const router = useRouter();
   const [importOpen, setImportOpen] = useState(false);
 

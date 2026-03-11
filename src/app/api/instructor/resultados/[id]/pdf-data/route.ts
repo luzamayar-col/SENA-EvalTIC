@@ -44,7 +44,7 @@ export async function GET(
     APP_CONFIG.passingScorePercentage;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const umbralAntiplagio = (resultado.evaluacion.config as any)?.umbralAntiplagio ?? { medio: 3, alto: 6 };
+  const umbralAntiplagio = (resultado.evaluacion.config as any)?.umbralAntiplagio ?? { medio: 3, alto: 5 };
 
   return NextResponse.json({
     resultado: {

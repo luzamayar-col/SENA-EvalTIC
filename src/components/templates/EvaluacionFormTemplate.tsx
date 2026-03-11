@@ -78,7 +78,7 @@ export function EvaluacionFormTemplate({
       seleccion_multiple: 3,
       emparejamiento: 2,
       umbralMedio: 3,
-      umbralAlto: 6,
+      umbralAlto: 5,
       ...defaultValues,
     },
   });
@@ -565,7 +565,7 @@ export function EvaluacionFormTemplate({
               {/* Live preview */}
               {(() => {
                 const m = form.watch("umbralMedio") || 3;
-                const a = form.watch("umbralAlto") || 6;
+                const a = form.watch("umbralAlto") || 5;
                 return (
                   <div className="mt-3 flex flex-wrap items-center gap-1.5 bg-white rounded-lg border border-sena-gray-dark/10 px-4 py-2 text-[10px] font-bold">
                     <span className="text-sena-gray-dark/50 font-normal text-xs mr-1">Vista previa:</span>

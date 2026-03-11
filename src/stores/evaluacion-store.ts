@@ -46,6 +46,8 @@ export interface EvaluacionState {
   intentoNumero: number | null;
   testMode: boolean;
   aprendizInfo: AprendizInfo | null;
+  incidenciasAntiplagio: number | null;
+  umbralAntiplagio: { medio: number; alto: number } | null;
 
   // Acciones
   setDatosAprendiz: (datos: DatosAprendiz) => void;
@@ -57,6 +59,7 @@ export interface EvaluacionState {
     intentoNumero?: number | null,
     aprendizInfo?: AprendizInfo | null,
     testMode?: boolean,
+    umbralAntiplagio?: { medio: number; alto: number } | null,
   ) => void;
   responderPregunta: (respuesta: RespuestaAprendiz) => void;
   siguientePregunta: () => void;
@@ -82,6 +85,8 @@ export const useEvaluacionStore = create<EvaluacionState>((set, get) => ({
   intentoNumero: null,
   testMode: false,
   aprendizInfo: null,
+  incidenciasAntiplagio: null,
+  umbralAntiplagio: null,
 
   setDatosAprendiz: (datos) => set({ datosAprendiz: datos }),
 
@@ -93,6 +98,7 @@ export const useEvaluacionStore = create<EvaluacionState>((set, get) => ({
     intentoNumero = null,
     aprendizInfo = null,
     testMode = false,
+    umbralAntiplagio = null,
   ) => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("evaluacion-storage");
@@ -109,6 +115,8 @@ export const useEvaluacionStore = create<EvaluacionState>((set, get) => ({
       intentoNumero,
       aprendizInfo,
       testMode,
+      umbralAntiplagio,
+      incidenciasAntiplagio: null,
     });
   },
 
@@ -190,6 +198,7 @@ export const useEvaluacionStore = create<EvaluacionState>((set, get) => ({
         estado: "resultados",
         preguntasSeleccionadas:
           data.preguntasCompletas || state.preguntasSeleccionadas,
+        incidenciasAntiplagio: incidenciasAntiplagio ?? 0,
       });
     } catch (error) {
       console.error(error);
@@ -214,6 +223,8 @@ export const useEvaluacionStore = create<EvaluacionState>((set, get) => ({
       intentoNumero: null,
       testMode: false,
       aprendizInfo: null,
+      incidenciasAntiplagio: null,
+      umbralAntiplagio: null,
     });
   },
 }));

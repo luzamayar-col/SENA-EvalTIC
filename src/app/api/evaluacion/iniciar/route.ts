@@ -164,6 +164,7 @@ export async function POST(request: Request) {
           emparejamiento: number;
         };
         aleatorizarOpciones: boolean;
+        umbralAntiplagio?: { medio: number; alto: number };
       };
       const banco = fichaDB.evaluacion.preguntas as any[];
       const preguntasCliente = prepareQuestionsForClient(
@@ -179,6 +180,7 @@ export async function POST(request: Request) {
         fichaId: fichaDB.id,
         evaluacionId: fichaDB.evaluacionId,
         intentoNumero: intentosUsados + 1,
+        umbralAntiplagio: config.umbralAntiplagio ?? { medio: 3, alto: 5 },
         aprendizInfo: {
           nombres: aprendiz.nombres,
           apellidos: aprendiz.apellidos,

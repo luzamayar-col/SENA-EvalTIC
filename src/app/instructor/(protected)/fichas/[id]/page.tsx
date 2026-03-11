@@ -41,7 +41,7 @@ export default async function FichaDetailPage({ params }: Props) {
   const evalConfig = ficha.evaluacion.config as { umbralAntiplagio?: { medio: number; alto: number } } | null;
   const umbralAntiplagio = {
     medio: evalConfig?.umbralAntiplagio?.medio ?? 3,
-    alto: evalConfig?.umbralAntiplagio?.alto ?? 6,
+    alto: evalConfig?.umbralAntiplagio?.alto ?? 5,
   };
 
   // Fetch aprendices with their result stats

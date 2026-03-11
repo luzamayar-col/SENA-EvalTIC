@@ -89,6 +89,7 @@ export function EvaluacionesTable({ evaluaciones }: EvaluacionesTableProps) {
         data.intentoNumero,
         data.aprendizInfo,
         true,
+        data.umbralAntiplagio ?? null,
       );
       router.push("/evaluacion");
     } finally {

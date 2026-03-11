@@ -26,6 +26,7 @@ export async function POST(_req: NextRequest, { params }: Params) {
       emparejamiento: number;
     };
     aleatorizarOpciones: boolean;
+    umbralAntiplagio?: { medio: number; alto: number };
   };
 
   const banco = evaluacion.preguntas as any[];
@@ -71,6 +72,7 @@ export async function POST(_req: NextRequest, { params }: Params) {
     evaluacionId: id,
     intentoNumero: 0,
     testMode: true,
+    umbralAntiplagio: config.umbralAntiplagio ?? { medio: 3, alto: 5 },
     aprendizInfo: {
       nombres: session.user.name ?? "Instructor",
       apellidos: "(Modo Prueba)",

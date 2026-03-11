@@ -68,7 +68,7 @@ export function AprendicesTable({
   umbralAntiplagio,
 }: AprendicesTableProps) {
   const umbralMedio = umbralAntiplagio?.medio ?? 3;
-  const umbralAlto = umbralAntiplagio?.alto ?? 6;
+  const umbralAlto = umbralAntiplagio?.alto ?? 5;
   const router = useRouter();
   const [deleting, setDeleting] = useState<string | null>(null);
   const [deletingAll, setDeletingAll] = useState(false);
