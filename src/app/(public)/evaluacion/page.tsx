@@ -47,7 +47,11 @@ export default function EvaluacionPage() {
     aprendizInfo,
     tiempoRestante,
     tiempoTranscurrido,
+    umbralAntiplagio,
   } = useEvaluacionStore();
+
+  const umbralMedio = umbralAntiplagio?.medio ?? 3;
+  const umbralAlto = umbralAntiplagio?.alto ?? 5;
 
   const [finalizando, setFinalizando] = useState(false);
   const [showStartModal, setShowStartModal] = useState(true);
@@ -233,19 +237,19 @@ export default function EvaluacionPage() {
         >
           <ShieldAlert className={cn(
             "w-16 h-16",
-            tabSwitches > 3 ? "text-red-400" : "text-amber-400"
+            tabSwitches >= umbralAlto ? "text-red-400" : "text-amber-400"
           )} />
           <p className="text-white text-xl font-bold">Evaluación en pausa</p>
           <p className="text-white/70 text-sm text-center max-w-sm px-4">
             {tabSwitches <= 1
               ? "Se detectó un cambio de pantalla. Esta actividad ha quedado registrada en tu sesión."
-              : tabSwitches <= 3
+              : tabSwitches <= umbralMedio
               ? "Has salido de la evaluación varias veces. Cada incidencia queda registrada en tu reporte."
               : "¡Atención! Se han registrado múltiples incidencias. El instructor revisará la integridad de tu sesión."}
           </p>
           <div className={cn(
             "flex items-center gap-1.5 text-xs font-mono px-3 py-1.5 rounded-full",
-            tabSwitches > 3
+            tabSwitches >= umbralAlto
               ? "bg-red-500/20 text-red-300"
               : "bg-amber-500/20 text-amber-300"
           )}>
@@ -484,7 +488,7 @@ export default function EvaluacionPage() {
                       "inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full",
                       tabSwitches === 0
                         ? "bg-green-100 text-green-700"
-                        : tabSwitches <= 2
+                        : tabSwitches < umbralMedio
                         ? "bg-amber-100 text-amber-700"
                         : "bg-red-100 text-red-700"
                     )}>
@@ -498,9 +502,9 @@ export default function EvaluacionPage() {
                   {tabSwitches > 0 && (
                     <p className={cn(
                       "text-[10px] leading-tight",
-                      tabSwitches <= 2 ? "text-amber-600" : "text-red-600"
+                      tabSwitches < umbralMedio ? "text-amber-600" : "text-red-600"
                     )}>
-                      {tabSwitches <= 2
+                      {tabSwitches < umbralMedio
                         ? "Tu actividad ha sido registrada."
                         : "El instructor revisará tu sesión."}
                     </p>
