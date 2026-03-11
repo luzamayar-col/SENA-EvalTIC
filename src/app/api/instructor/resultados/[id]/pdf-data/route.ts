@@ -58,6 +58,7 @@ export async function GET(
       intento: resultado.intento,
       presentadoEn: resultado.presentadoEn.toISOString(),
       respuestas: resultado.respuestas,
+      incidenciasAntiplagio: resultado.incidenciasAntiplagio,
     },
     preguntas: preguntasEvaluadas,
     passingScore,

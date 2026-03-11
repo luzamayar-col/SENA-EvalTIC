@@ -27,7 +27,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { BookOpen, Target, FlaskConical, Hash, ShieldAlert } from "lucide-react";
+import { BookOpen, Target, FlaskConical, Hash, ShieldAlert, CheckCircle2, AlertTriangle, X } from "lucide-react";
 
 export default function EvaluacionPage() {
   const router = useRouter();
@@ -53,6 +53,7 @@ export default function EvaluacionPage() {
   const [showStartModal, setShowStartModal] = useState(true);
   const [tabBlurred, setTabBlurred] = useState(false);
   const [tabSwitches, setTabSwitches] = useState(0);
+  const [showFirstWarning, setShowFirstWarning] = useState(false);
 
   // Fullscreen: request when evaluation starts, detect exit as focus-loss event
   const requestFullscreen = () => {
@@ -60,6 +61,14 @@ export default function EvaluacionPage() {
       document.documentElement.requestFullscreen().catch(() => {});
     }
   };
+
+  // First-incident banner: show once when tabSwitches first becomes 1, auto-dismiss after 8s
+  useEffect(() => {
+    if (tabSwitches !== 1) return;
+    setShowFirstWarning(true);
+    const t = setTimeout(() => setShowFirstWarning(false), 8000);
+    return () => clearTimeout(t);
+  }, [tabSwitches]);
 
   // Anti-plagiarism: block copy/print shortcuts, right-click, clipboard events
   useEffect(() => {
@@ -134,7 +143,7 @@ export default function EvaluacionPage() {
     if (estado !== "evaluando") return;
     if (finalizando) return;
     setFinalizando(true);
-    finalizarEvaluacion().finally(() => setFinalizando(false));
+    finalizarEvaluacion(tabSwitches).finally(() => setFinalizando(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tiempoRestante]);
 
@@ -151,7 +160,7 @@ export default function EvaluacionPage() {
 
   const handleFinalizar = async () => {
     setFinalizando(true);
-    await finalizarEvaluacion();
+    await finalizarEvaluacion(tabSwitches);
     setFinalizando(false);
   };
 
@@ -222,16 +231,33 @@ export default function EvaluacionPage() {
           className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center gap-4"
           onClick={() => setTabBlurred(false)}
         >
-          <ShieldAlert className="w-16 h-16 text-amber-400" />
+          <ShieldAlert className={cn(
+            "w-16 h-16",
+            tabSwitches > 3 ? "text-red-400" : "text-amber-400"
+          )} />
           <p className="text-white text-xl font-bold">Evaluación en pausa</p>
-          <p className="text-white/70 text-sm text-center max-w-xs">
-            Haz clic aquí o vuelve a esta pestaña para continuar.
+          <p className="text-white/70 text-sm text-center max-w-sm px-4">
+            {tabSwitches <= 1
+              ? "Se detectó un cambio de pantalla. Esta actividad ha quedado registrada en tu sesión."
+              : tabSwitches <= 3
+              ? "Has salido de la evaluación varias veces. Cada incidencia queda registrada en tu reporte."
+              : "¡Atención! Se han registrado múltiples incidencias. El instructor revisará la integridad de tu sesión."}
           </p>
-          {tabSwitches > 0 && (
-            <p className="text-amber-400/80 text-xs font-mono mt-2">
-              Cambios de pantalla registrados: {tabSwitches}
-            </p>
-          )}
+          <div className={cn(
+            "flex items-center gap-1.5 text-xs font-mono px-3 py-1.5 rounded-full",
+            tabSwitches > 3
+              ? "bg-red-500/20 text-red-300"
+              : "bg-amber-500/20 text-amber-300"
+          )}>
+            <AlertTriangle size={12} />
+            {tabSwitches} {tabSwitches === 1 ? "incidencia registrada" : "incidencias registradas"}
+          </div>
+          <button
+            className="mt-2 bg-white/10 hover:bg-white/20 text-white text-sm px-6 py-2 rounded-lg transition-colors"
+            onClick={() => setTabBlurred(false)}
+          >
+            Volver a la evaluación
+          </button>
         </div>
       )}
 
@@ -264,6 +290,26 @@ export default function EvaluacionPage() {
             </span>
           )}
         </div>
+
+        {/* First-incident warning banner — auto-dismisses after 8s */}
+        {showFirstWarning && (
+          <div className="flex items-start gap-3 bg-amber-50 border border-amber-300 rounded-xl px-4 py-3 animate-fade-in-up">
+            <ShieldAlert className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-amber-700">Actividad registrada</p>
+              <p className="text-xs text-amber-600 mt-0.5">
+                Se detectó un cambio de contexto. Tu actividad durante la evaluación queda registrada y el instructor podrá verla en el reporte de tu sesión.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowFirstWarning(false)}
+              className="text-amber-500 hover:text-amber-700 shrink-0 p-0.5"
+              aria-label="Cerrar aviso"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        )}
 
         {/* Competencia & Resultado de Aprendizaje Banner */}
         <div className="bg-white border border-sena-gray-dark/10 rounded-xl shadow-sm p-4">
@@ -428,6 +474,37 @@ export default function EvaluacionPage() {
                   <span className="font-bold text-red-500">
                     {faltanPorResponder}
                   </span>
+                </div>
+
+                {/* Integrity monitor — visible in both real and test mode */}
+                <div className="w-full border-t border-sena-gray-dark/10 mt-1 pt-2 space-y-1">
+                  <div className="flex items-center justify-between w-full">
+                    <span className="text-sena-gray-dark">Integridad:</span>
+                    <span className={cn(
+                      "inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full",
+                      tabSwitches === 0
+                        ? "bg-green-100 text-green-700"
+                        : tabSwitches <= 2
+                        ? "bg-amber-100 text-amber-700"
+                        : "bg-red-100 text-red-700"
+                    )}>
+                      {tabSwitches === 0 ? (
+                        <><CheckCircle2 size={10} /> Normal</>
+                      ) : (
+                        <><AlertTriangle size={10} /> {tabSwitches} {tabSwitches === 1 ? "incidencia" : "incidencias"}</>
+                      )}
+                    </span>
+                  </div>
+                  {tabSwitches > 0 && (
+                    <p className={cn(
+                      "text-[10px] leading-tight",
+                      tabSwitches <= 2 ? "text-amber-600" : "text-red-600"
+                    )}>
+                      {tabSwitches <= 2
+                        ? "Tu actividad ha sido registrada."
+                        : "El instructor revisará tu sesión."}
+                    </p>
+                  )}
                 </div>
               </CardFooter>
             </Card>

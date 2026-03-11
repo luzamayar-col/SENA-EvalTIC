@@ -66,6 +66,7 @@ export default async function FichaDetailPage({ params }: Props) {
       puntaje: true,
       aprobado: true,
       presentadoEn: true,
+      incidenciasAntiplagio: true,
     },
   });
   const ultimoMap = new Map<string, typeof todosUltimosResultados[0]>();
@@ -96,6 +97,7 @@ export default async function FichaDetailPage({ params }: Props) {
             puntaje: ultimo.puntaje,
             aprobado: ultimo.aprobado,
             presentadoEn: ultimo.presentadoEn.toISOString(),
+            incidenciasAntiplagio: ultimo.incidenciasAntiplagio,
           }
         : null,
     };
@@ -123,6 +125,7 @@ export default async function FichaDetailPage({ params }: Props) {
     intento: r.intento,
     esPrueba: r.esPrueba,
     presentadoEn: r.presentadoEn.toISOString(),
+    incidenciasAntiplagio: r.incidenciasAntiplagio,
   }));
 
   // Stats

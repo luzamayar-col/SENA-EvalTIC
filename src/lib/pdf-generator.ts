@@ -224,6 +224,7 @@ export async function generatePDF(
   tiempoTranscurrido: number,
   preguntasSeleccionadas: unknown[],
   respuestas: Record<string, RespuestaAprendiz>,
+  incidenciasAntiplagio?: number,
 ) {
   await ensureAssets();
 
@@ -412,6 +413,16 @@ export async function generatePDF(
           : `${resultado.preguntasCorrectas} de ${resultado.totalPreguntas}`,
       ],
       ["Tiempo Empleado", mns + " min " + scs + " seg"],
+      ...(incidenciasAntiplagio !== undefined ? [[
+        "Incidencias Antiplagio",
+        incidenciasAntiplagio === 0
+          ? "Sin incidencias"
+          : incidenciasAntiplagio <= 2
+          ? `Nivel Bajo — ${incidenciasAntiplagio} incidencia${incidenciasAntiplagio > 1 ? "s" : ""} detectada${incidenciasAntiplagio > 1 ? "s" : ""}`
+          : incidenciasAntiplagio <= 5
+          ? `Nivel Medio — ${incidenciasAntiplagio} incidencias detectadas`
+          : `Nivel Alto — ${incidenciasAntiplagio} incidencias detectadas`,
+      ]] : []),
     ],
     theme: "grid",
     headStyles: {
@@ -427,6 +438,23 @@ export async function generatePDF(
       1: { cellWidth: CONTENT_W * 0.5, halign: "center" },
     },
     margin: { top: HEADER_BOTTOM, left: MARGIN, right: MARGIN, bottom: 22 },
+    didParseCell: (data) => {
+      if (incidenciasAntiplagio !== undefined && data.row.index === 4) {
+        // Row 4 = Incidencias Antiplagio row (0-based: Puntaje, Estado, Correctas, Tiempo, Incidencias)
+        const c = incidenciasAntiplagio === 0 ? [220, 252, 231]
+          : incidenciasAntiplagio <= 2 ? [254, 243, 199]
+          : incidenciasAntiplagio <= 5 ? [255, 237, 213]
+          : [254, 226, 226];
+        data.cell.styles.fillColor = c as [number, number, number];
+        if (data.column.index === 1) {
+          data.cell.styles.textColor =
+            incidenciasAntiplagio === 0 ? [22, 101, 52]
+            : incidenciasAntiplagio <= 2 ? [120, 53, 15]
+            : incidenciasAntiplagio <= 5 ? [154, 52, 18]
+            : [153, 27, 27] as [number, number, number];
+        }
+      }
+    },
     didDrawPage: (data) => {
       addFooter(doc, font);
       if (data.pageNumber > 1) { addHeader(doc, dateStr, font); addWatermark(doc, watermarkText); }

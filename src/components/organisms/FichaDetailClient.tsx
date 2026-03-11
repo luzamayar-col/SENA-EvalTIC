@@ -16,7 +16,7 @@ import { ResultadoBadge } from "@/components/molecules/ResultadoBadge";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { FileSpreadsheet, Download, Clock } from "lucide-react";
+import { FileSpreadsheet, Download, Clock, ShieldAlert } from "lucide-react";
 import { cn, fmtScore } from "@/lib/utils";
 
 interface ResultadoRow {
@@ -34,6 +34,7 @@ interface ResultadoRow {
   intento: number;
   esPrueba: boolean;
   presentadoEn: string;
+  incidenciasAntiplagio: number;
 }
 
 interface FichaDetailClientProps {
@@ -174,6 +175,7 @@ export function FichaDetailClient({
                   <TableHead className="font-bold text-sena-blue text-center">Puntaje</TableHead>
                   <TableHead className="font-bold text-sena-blue text-center">Estado</TableHead>
                   <TableHead className="font-bold text-sena-blue text-center hidden md:table-cell">Tiempo</TableHead>
+                  <TableHead className="font-bold text-sena-blue text-center">Integridad</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -219,6 +221,24 @@ export function FichaDetailClient({
                         <Clock size={12} />
                         {formatTime(r.tiempoUsado)}
                       </span>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {r.incidenciasAntiplagio === 0 ? (
+                        <span className="text-xs text-green-700 font-medium">—</span>
+                      ) : (
+                        <span className={cn(
+                          "inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded border",
+                          r.incidenciasAntiplagio <= 2
+                            ? "bg-amber-100 text-amber-700 border-amber-200"
+                            : r.incidenciasAntiplagio <= 5
+                            ? "bg-orange-100 text-orange-700 border-orange-200"
+                            : "bg-red-100 text-red-700 border-red-200"
+                        )}>
+                          <ShieldAlert size={9} />
+                          {r.incidenciasAntiplagio <= 2 ? "Bajo" : r.incidenciasAntiplagio <= 5 ? "Medio" : "Alto"}
+                          {" "}·{" "}{r.incidenciasAntiplagio}
+                        </span>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

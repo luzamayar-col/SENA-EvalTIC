@@ -63,7 +63,7 @@ export interface EvaluacionState {
   preguntaAnterior: () => void;
   avanzarAPregunta: (index: number) => void;
   tickTiempo: () => void;
-  finalizarEvaluacion: () => Promise<void>;
+  finalizarEvaluacion: (incidenciasAntiplagio?: number) => Promise<void>;
   reiniciarEstado: () => void;
 }
 
@@ -150,7 +150,7 @@ export const useEvaluacionStore = create<EvaluacionState>((set, get) => ({
       };
     }),
 
-  finalizarEvaluacion: async () => {
+  finalizarEvaluacion: async (incidenciasAntiplagio?: number) => {
     const state = get();
     if (state.estado !== "evaluando") return;
     // In test mode datosAprendiz may be null; allow it through
@@ -174,6 +174,7 @@ export const useEvaluacionStore = create<EvaluacionState>((set, get) => ({
           tiempoUsado: state.tiempoTranscurrido,
           intentoNumero: state.intentoNumero,
           esPrueba: state.testMode,
+          incidenciasAntiplagio: incidenciasAntiplagio ?? 0,
         }),
       });
 

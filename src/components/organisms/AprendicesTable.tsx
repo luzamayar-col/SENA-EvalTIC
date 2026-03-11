@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { ConfirmDialog } from "@/components/molecules/ConfirmDialog";
 import { ResultadoBadge } from "@/components/molecules/ResultadoBadge";
-import { Pencil, Trash2, Loader2, PlusCircle, Eraser, FileDown } from "lucide-react";
+import { Pencil, Trash2, Loader2, PlusCircle, Eraser, FileDown, ShieldAlert } from "lucide-react";
 import { generatePDF, savePdf } from "@/lib/pdf-generator";
 import { calcularPuntaje } from "@/lib/score";
 import { DatosAprendiz, RespuestaAprendiz } from "@/stores/evaluacion-store";
@@ -46,6 +46,7 @@ export interface AprendizRow {
     puntaje: number;
     aprobado: boolean;
     presentadoEn: string;
+    incidenciasAntiplagio: number;
   } | null;
 }
 
@@ -200,7 +201,7 @@ export function AprendicesTable({
       };
       const respuestas = resultado.respuestas as Record<string, RespuestaAprendiz>;
       const evaluacionResultado = calcularPuntaje(preguntas, respuestas, passingScore);
-      const bytes = await generatePDF(datosAprendiz, evaluacionResultado, resultado.tiempoUsado, preguntas, respuestas);
+      const bytes = await generatePDF(datosAprendiz, evaluacionResultado, resultado.tiempoUsado, preguntas, respuestas, resultado.incidenciasAntiplagio);
       const fileName = `Evaluacion_${resultado.nombres.replace(/\s+/g, "")}_${resultado.cedula}_I${resultado.intento}.pdf`;
       savePdf(bytes, fileName);
     } finally {
@@ -320,14 +321,32 @@ export function AprendicesTable({
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
                     {a.ultimoResultado ? (
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-sena-blue text-sm">
-                          {fmtScore(a.ultimoResultado.puntaje)}%
-                        </span>
-                        <ResultadoBadge aprobado={a.ultimoResultado.aprobado} />
-                        <span className="text-xs text-sena-gray-dark/40">
-                          {new Date(a.ultimoResultado.presentadoEn).toLocaleDateString("es-CO")}
-                        </span>
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-sena-blue text-sm">
+                            {fmtScore(a.ultimoResultado.puntaje)}%
+                          </span>
+                          <ResultadoBadge aprobado={a.ultimoResultado.aprobado} />
+                          <span className="text-xs text-sena-gray-dark/40">
+                            {new Date(a.ultimoResultado.presentadoEn).toLocaleDateString("es-CO")}
+                          </span>
+                        </div>
+                        {(() => {
+                          const n = a.ultimoResultado.incidenciasAntiplagio;
+                          if (n === 0) return null;
+                          const cls = n <= 2
+                            ? "bg-amber-100 text-amber-700 border-amber-200"
+                            : n <= 5
+                            ? "bg-orange-100 text-orange-700 border-orange-200"
+                            : "bg-red-100 text-red-700 border-red-200";
+                          const label = n <= 2 ? "Bajo" : n <= 5 ? "Medio" : "Alto";
+                          return (
+                            <span className={cn("inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded border w-fit", cls)}>
+                              <ShieldAlert size={9} />
+                              {label} · {n} incidencia{n !== 1 ? "s" : ""}
+                            </span>
+                          );
+                        })()}
                       </div>
                     ) : (
                       <span className="text-xs text-sena-gray-dark/40">Sin presentar</span>

@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { APP_CONFIG } from "@/lib/config";
-import { BookOpen, Target, AlertTriangle } from "lucide-react";
+import { BookOpen, Target, AlertTriangle, ShieldAlert } from "lucide-react";
 
 interface EvaluacionStartModalProps {
   open: boolean;
@@ -61,6 +61,20 @@ export function EvaluacionStartModal({
               <p className="text-sena-gray-dark/80 mt-1">
                 {APP_CONFIG.resultadoAprendizaje.nombre}
               </p>
+            </div>
+          </div>
+
+          {/* Integrity monitoring notice */}
+          <div className="flex gap-3 items-start bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <ShieldAlert className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+            <div className="text-sm">
+              <p className="font-bold text-blue-700">Monitoreo de integridad</p>
+              <ul className="text-blue-700/80 mt-1.5 space-y-1 text-xs list-disc list-inside">
+                <li>Los cambios de pestaña y salidas de pantalla quedan registrados</li>
+                <li>Las capturas de pantalla llevan tu nombre e identificación visibles</li>
+                <li>El portapapeles (copiar/pegar) está deshabilitado durante la evaluación</li>
+                <li>El instructor verá el número de incidencias detectadas en tu sesión</li>
+              </ul>
             </div>
           </div>
 
