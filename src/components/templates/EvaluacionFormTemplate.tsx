@@ -38,6 +38,9 @@ const evaluacionSchema = z.object({
   emparejamiento: z.number().min(0),
   umbralMedio: z.number().int().min(1, "Mínimo 1").max(20, "Máximo 20"),
   umbralAlto: z.number().int().min(2, "Mínimo 2").max(50, "Máximo 50"),
+}).refine((d) => d.umbralAlto > d.umbralMedio, {
+  message: "El umbral alto debe ser mayor que el umbral medio",
+  path: ["umbralAlto"],
 });
 
 type EvaluacionFormValues = z.infer<typeof evaluacionSchema>;
@@ -77,7 +80,7 @@ export function EvaluacionFormTemplate({
       seleccion_unica: 5,
       seleccion_multiple: 3,
       emparejamiento: 2,
-      umbralMedio: 3,
+      umbralMedio: 2,
       umbralAlto: 3,
       ...defaultValues,
     },

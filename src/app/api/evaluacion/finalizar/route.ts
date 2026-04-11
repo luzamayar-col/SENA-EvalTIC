@@ -28,7 +28,6 @@ const finalizarSchema = z.object({
   intentoNumero: z.number().int().min(0).max(100).optional(),
   esPrueba: z.boolean().optional(),
   incidenciasAntiplagio: z.number().int().min(0).max(500).optional(),
-  anulada: z.boolean().optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -56,7 +55,6 @@ export async function POST(request: NextRequest) {
       intentoNumero,
       esPrueba,
       incidenciasAntiplagio,
-      anulada,
     } = body;
 
     // ═══ RAMA DB (feature flag) ═══════════════════════════════════════════════
@@ -84,6 +82,10 @@ export async function POST(request: NextRequest) {
         (evaluacion.config as any).passingScorePercentage ??
         APP_CONFIG.passingScorePercentage;
 
+      // Calcular anulada server-side (no confiar en el cliente)
+      const umbralAltoConfig = (evaluacion.config as any)?.umbralAntiplagio?.alto ?? 3;
+      const anuladaComputada = (incidenciasAntiplagio ?? 0) >= umbralAltoConfig;
+
       // 2. Filtrar solo las preguntas que fueron respondidas
       const idsRespondidos = Object.keys(respuestasUsuario);
       const preguntasEvaluadas = bancoCompleto.filter((q) =>
@@ -91,7 +93,7 @@ export async function POST(request: NextRequest) {
       );
 
       // 2b. Si la evaluación fue anulada por antiplagio, forzar puntaje 0
-      const resultado = anulada
+      const resultado = anuladaComputada
         ? {
             puntajeTotal: 0,
             aprobado: false,
@@ -115,6 +117,7 @@ export async function POST(request: NextRequest) {
           resultado,
           preguntasCompletas: preguntasEvaluadas,
           esPrueba: true,
+          anulada: anuladaComputada,
         });
       }
 
@@ -148,7 +151,7 @@ export async function POST(request: NextRequest) {
             intento,
             esPrueba: false,
             incidenciasAntiplagio: incidenciasAntiplagio ?? 0,
-            anulada: anulada ?? false,
+            anulada: anuladaComputada,
             evaluacionId,
             fichaId,
           },
@@ -185,7 +188,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         resultado,
         preguntasCompletas: preguntasEvaluadas,
-        anulada: anulada ?? false,
+        anulada: anuladaComputada,
       });
     }
 
@@ -221,11 +224,12 @@ export async function POST(request: NextRequest) {
       idsRespondidos.includes(q.id.toString()),
     );
 
-    const resultado = calcularPuntaje(
-      preguntasEvaluadas,
-      respuestasUsuario as any,
-      APP_CONFIG.passingScorePercentage,
-    );
+    // Aplicar lógica de anulación también en rama legacy
+    const umbralAltoLegacy = (allQuestions as any)?.config?.umbralAntiplagio?.alto ?? 3;
+    const anuladaLegacy = (incidenciasAntiplagio ?? 0) >= umbralAltoLegacy;
+    const resultado = anuladaLegacy
+      ? { puntajeTotal: 0, aprobado: false, preguntasCorrectas: 0, preguntasParciales: 0, totalPreguntas: preguntasEvaluadas.length, puntajePorTema: {} }
+      : calcularPuntaje(preguntasEvaluadas, respuestasUsuario as any, APP_CONFIG.passingScorePercentage);
 
     const nuevoRegistro = {
       cedula,
@@ -255,6 +259,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       resultado,
+      anulada: anuladaLegacy,
       preguntasCompletas: preguntasEvaluadas,
     });
   } catch (error) {

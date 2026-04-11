@@ -50,8 +50,8 @@ export default function EvaluacionPage() {
     umbralAntiplagio,
   } = useEvaluacionStore();
 
-  const umbralMedio = umbralAntiplagio?.medio ?? 3;
-  const umbralAlto = umbralAntiplagio?.alto ?? 5;
+  const umbralMedio = umbralAntiplagio?.medio ?? 2;
+  const umbralAlto = umbralAntiplagio?.alto ?? 3;
 
   const [finalizando, setFinalizando] = useState(false);
   const [showStartModal, setShowStartModal] = useState(true);
@@ -85,6 +85,7 @@ export default function EvaluacionPage() {
       // Triggering blur manually ensures the NEXT attempt captures the overlay instead.
       if (e.key === "PrintScreen") {
         e.preventDefault();
+        isHiddenRef.current = true;
         setTabBlurred(true);
         setTabSwitches((n) => n + 1);
         return;
@@ -116,6 +117,9 @@ export default function EvaluacionPage() {
   useEffect(() => {
     // Guard: blur + visibilitychange + fullscreenchange all fire at once on tab switch.
     // Only count ONE incidence per "leave" event using a ref flag.
+    // Don't register incidents before the student starts (modal still open).
+    if (showStartModal) return;
+
     const hide = () => {
       if (isHiddenRef.current) return;
       isHiddenRef.current = true;
@@ -129,7 +133,10 @@ export default function EvaluacionPage() {
     const handleVisibility = () => { if (document.hidden) hide(); else show(); };
     // fullscreenchange: only count as incident when losing fullscreen while page is visible
     // (avoid double-counting with visibilitychange when switching tabs)
-    const handleFullscreen = () => { if (!document.fullscreenElement && !document.hidden) hide(); };
+    const handleFullscreen = () => {
+      if (document.fullscreenElement) { show(); }
+      else if (!document.hidden) { hide(); }
+    };
     document.addEventListener("visibilitychange", handleVisibility);
     document.addEventListener("fullscreenchange", handleFullscreen);
     window.addEventListener("blur", hide);
@@ -140,16 +147,26 @@ export default function EvaluacionPage() {
       window.removeEventListener("blur", hide);
       window.removeEventListener("focus", show);
     };
-  }, []);
+  }, [showStartModal]);
+
+  const dispararAnulacion = () => {
+    if (anulandoRef.current) return;
+    anulandoRef.current = true;
+    setAnulando(true);
+    finalizarEvaluacion(tabSwitches, true).then(() => {
+      setAnulando(false);
+    }).catch(() => {
+      // finalizarEvaluacion never rejects — this is a safety net
+      anulandoRef.current = false;
+      setAnulando(false);
+    });
+  };
 
   // Auto-anular: when antiplagio incidents reach umbralAlto, submit with score=0
   useEffect(() => {
     if (tabSwitches < umbralAlto) return;
     if (estado !== "evaluando") return;
-    if (anulandoRef.current) return;
-    anulandoRef.current = true;
-    setAnulando(true);
-    finalizarEvaluacion(tabSwitches, true).finally(() => setAnulando(false));
+    dispararAnulacion();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tabSwitches, umbralAlto, estado]);
 
@@ -170,6 +187,7 @@ export default function EvaluacionPage() {
     if (tiempoTranscurrido === 0) return; // hasn't started yet
     if (estado !== "evaluando") return;
     if (finalizando) return;
+    if (anulandoRef.current) return;
     setFinalizando(true);
     finalizarEvaluacion(tabSwitches).finally(() => setFinalizando(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -187,6 +205,7 @@ export default function EvaluacionPage() {
   }
 
   const handleFinalizar = async () => {
+    if (anulandoRef.current) return;
     setFinalizando(true);
     await finalizarEvaluacion(tabSwitches);
     setFinalizando(false);
@@ -256,15 +275,7 @@ export default function EvaluacionPage() {
       {/* Tab-switch / focus-loss overlay */}
       {tabBlurred && (
         <div
-          className={cn(
-            "fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center gap-4",
-            !anulando && tabSwitches < umbralAlto && "cursor-pointer"
-          )}
-          onClick={() => {
-            if (tabSwitches >= umbralAlto) return; // no permitir volver si fue anulada
-            setTabBlurred(false);
-            requestFullscreen();
-          }}
+          className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center gap-4"
         >
           <ShieldAlert className={cn(
             "w-16 h-16",
@@ -287,6 +298,13 @@ export default function EvaluacionPage() {
                   <Loader2 size={16} className="animate-spin" />
                   Guardando resultado...
                 </div>
+              ) : estado === "evaluando" ? (
+                <button
+                  className="mt-2 bg-red-500/30 hover:bg-red-500/50 text-white text-sm px-6 py-2 rounded-lg transition-colors"
+                  onClick={() => { anulandoRef.current = false; dispararAnulacion(); }}
+                >
+                  Reintentar
+                </button>
               ) : (
                 <p className="mt-2 text-white/50 text-xs">Redirigiendo al resumen...</p>
               )}

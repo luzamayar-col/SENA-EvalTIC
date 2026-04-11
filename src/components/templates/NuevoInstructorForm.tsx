@@ -31,7 +31,7 @@ const schema = z
     nombre: z.string().min(4, "El nombre debe tener al menos 4 caracteres"),
     email: z.string().email("Ingresa un email válido"),
     password: passwordSchema,
-    confirmPassword: z.string().min(1, "Confirmá la contraseña"),
+    confirmPassword: z.string().min(1, "Confirme la contraseña"),
     isAdmin: z.boolean(),
   })
   .refine((d) => d.password === d.confirmPassword, {
@@ -223,7 +223,7 @@ export function NuevoInstructorForm() {
                     <div className="relative">
                       <Input
                         type={showConfirm ? "text" : "password"}
-                        placeholder="Repetí la contraseña"
+                        placeholder="Repita la contraseña"
                         className="pr-10"
                         {...field}
                       />

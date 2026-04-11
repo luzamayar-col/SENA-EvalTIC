@@ -56,8 +56,8 @@ export default function ResultadosPage() {
     anulada,
   } = useEvaluacionStore();
 
-  const umbralMedio = umbralAntiplagio?.medio ?? 3;
-  const umbralAlto = umbralAntiplagio?.alto ?? 5;
+  const umbralMedio = umbralAntiplagio?.medio ?? 2;
+  const umbralAlto = umbralAntiplagio?.alto ?? 3;
 
   useEffect(() => {
     setMounted(true);
@@ -155,7 +155,7 @@ export default function ResultadosPage() {
   const handleDescargarPDF = async () => {
     try {
       setIsGeneratingPDF(true);
-      if (!effectiveDatos || !result) return;
+      if (!effectiveDatos || !displayResult) return;
 
       const bytes = await generatePDF(
         effectiveDatos,
@@ -167,7 +167,7 @@ export default function ResultadosPage() {
         umbralAntiplagio ?? undefined,
       );
 
-      const fileName = `Evaluacion_${effectiveDatos.nombres.replace(" ", "")}_${testMode ? "ModoPrueba" : effectiveDatos.numeroDocumento}.pdf`;
+      const fileName = `Evaluacion_${effectiveDatos.nombres.replaceAll(" ", "")}_${testMode ? "ModoPrueba" : effectiveDatos.numeroDocumento}.pdf`;
       savePdf(bytes, fileName);
     } catch (error) {
       console.error("Error al generar PDF:", error);
@@ -514,8 +514,8 @@ export default function ResultadosPage() {
           </Card>
         )}
 
-        {/* Detailed question review — collapsible */}
-        <Card className="shadow-lg border-t-[6px] border-t-sena-green">
+        {/* Detailed question review — hidden when annulled (no answer key leak) */}
+        {!anulada && <Card className="shadow-lg border-t-[6px] border-t-sena-green">
           <CardHeader
             className="cursor-pointer select-none"
             onClick={() => setShowDetail(!showDetail)}
@@ -630,7 +630,7 @@ export default function ResultadosPage() {
               })}
             </CardContent>
           )}
-        </Card>
+        </Card>}
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-center pt-6">

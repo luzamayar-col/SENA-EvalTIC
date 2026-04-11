@@ -103,6 +103,7 @@ export function InstructoresTable({
   const [editForm, setEditForm] = useState({ nombre: "", email: "", password: "", confirmPassword: "" });
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [showEditPassword, setShowEditPassword] = useState(false);
   const [showEditConfirm, setShowEditConfirm] = useState(false);
 
@@ -162,8 +163,15 @@ export function InstructoresTable({
   };
 
   const handleDelete = async (id: string) => {
+    setDeleteError(null);
     setDeleting(id);
-    await fetch(`/api/instructor/instructores/${id}`, { method: "DELETE" });
+    const res = await fetch(`/api/instructor/instructores/${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setDeleteError(data.error ?? "Error al eliminar el instructor");
+      setDeleting(null);
+      return;
+    }
     router.refresh();
     setDeleting(null);
   };
@@ -178,6 +186,11 @@ export function InstructoresTable({
 
   return (
     <>
+      {deleteError && (
+        <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+          {deleteError}
+        </div>
+      )}
       <div className="rounded-xl border border-sena-gray-dark/10 overflow-hidden">
         <Table>
           <TableHeader>
@@ -396,7 +409,7 @@ export function InstructoresTable({
                     type={showEditConfirm ? "text" : "password"}
                     value={editForm.confirmPassword}
                     onChange={(e) => setEditForm((f) => ({ ...f, confirmPassword: e.target.value }))}
-                    placeholder="Repetí la contraseña"
+                    placeholder="Repita la contraseña"
                     className="pr-10"
                   />
                   <button
