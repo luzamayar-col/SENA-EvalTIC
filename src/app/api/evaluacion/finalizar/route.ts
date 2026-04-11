@@ -132,9 +132,7 @@ export async function POST(request: NextRequest) {
           : 1;
 
       try {
-        // NOTE: `anulada` field requires `prisma db push && prisma generate` to be reflected in types.
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await (prisma.resultado.create as any)({
+        await prisma.resultado.create({
           data: {
             cedula,
             tipoDocumento: tipoDocumento ?? "CC",
