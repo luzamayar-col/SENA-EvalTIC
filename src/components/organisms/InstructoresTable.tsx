@@ -35,6 +35,7 @@ function PasswordStrengthBar({ value }: { value: string }) {
     /[^A-Za-z0-9]/.test(value),
   ];
   const count = reqs.filter(Boolean).length;
+  const strength = count === 4 ? "strong" : count >= 3 ? "good" : count >= 2 ? "weak" : "very-weak";
   const reqLabels = [
     { label: "Mínimo 8 caracteres", met: reqs[0] },
     { label: "Una mayúscula", met: reqs[1] },
@@ -46,10 +47,15 @@ function PasswordStrengthBar({ value }: { value: string }) {
       <div className="flex gap-0.5 h-1">
         {[0,1,2,3].map((i) => (
           <div key={i} className={cn("flex-1 rounded-full transition-colors",
-            i < count ? count === 4 ? "bg-green-500" : count >= 3 ? "bg-amber-500" : "bg-red-400" : "bg-gray-200"
+            i < count ? strength === "strong" ? "bg-green-500" : strength === "good" ? "bg-amber-500" : "bg-red-400" : "bg-gray-200"
           )} />
         ))}
       </div>
+      <p className={cn("text-[10px] font-bold",
+        strength === "strong" ? "text-green-600" : strength === "good" ? "text-amber-600" : "text-red-500"
+      )}>
+        {strength === "strong" ? "Contraseña segura" : strength === "good" ? "Contraseña aceptable" : strength === "weak" ? "Contraseña débil" : "Contraseña muy débil"}
+      </p>
       <ul className="space-y-0.5">
         {reqLabels.map((r) => (
           <li key={r.label} className={cn("flex items-center gap-1 text-[10px]", r.met ? "text-green-700" : "text-gray-400")}>
@@ -59,6 +65,15 @@ function PasswordStrengthBar({ value }: { value: string }) {
         ))}
       </ul>
     </div>
+  );
+}
+
+function passwordMeetsRequirements(value: string) {
+  return (
+    value.length >= 8 &&
+    /[A-Z]/.test(value) &&
+    /[0-9]/.test(value) &&
+    /[^A-Za-z0-9]/.test(value)
   );
 }
 
@@ -418,7 +433,10 @@ export function InstructoresTable({
                 saving ||
                 !editForm.nombre.trim() ||
                 !editForm.email.trim() ||
-                (editForm.password.trim().length > 0 && editForm.password !== editForm.confirmPassword)
+                (editForm.password.trim().length > 0 && (
+                  !passwordMeetsRequirements(editForm.password) ||
+                  editForm.password !== editForm.confirmPassword
+                ))
               }
               className="bg-sena-green hover:bg-sena-green-dark text-white font-bold gap-2"
             >
