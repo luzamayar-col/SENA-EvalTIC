@@ -28,6 +28,7 @@ import {
   Loader2,
   ShieldAlert,
   AlertTriangle,
+  Ban,
 } from "lucide-react";
 import { generatePDF, savePdf } from "@/lib/pdf-generator";
 import { fmtScore, cn } from "@/lib/utils";
@@ -52,6 +53,7 @@ export default function ResultadosPage() {
     evaluacionId,
     incidenciasAntiplagio,
     umbralAntiplagio,
+    anulada,
   } = useEvaluacionStore();
 
   const umbralMedio = umbralAntiplagio?.medio ?? 3;
@@ -98,7 +100,7 @@ export default function ResultadosPage() {
       }
     : null);
 
-  if (!mounted || estado !== "resultados" || !result || !effectiveDatos) {
+  if (!mounted || estado !== "resultados" || (!anulada && !result) || !effectiveDatos) {
     return (
       <div className="flex h-[calc(100vh-140px)] items-center justify-center">
         <div className="animate-pulse flex flex-col items-center gap-4">
@@ -109,6 +111,18 @@ export default function ResultadosPage() {
     );
   }
 
+  // Para evaluaciones anuladas, forzar puntaje 0 independientemente del cálculo cliente
+  const anuladaResult = {
+    puntajeTotal: 0,
+    aprobado: false,
+    preguntasCorrectas: 0,
+    preguntasIncorrectas: preguntasSeleccionadas.length,
+    preguntasParciales: 0,
+    totalPreguntas: result?.totalPreguntas ?? preguntasSeleccionadas.length,
+    puntajePorTema: {} as Record<string, number>,
+  };
+  const displayResult = anulada ? anuladaResult : result!;
+
   const {
     puntajeTotal,
     preguntasCorrectas,
@@ -116,7 +130,7 @@ export default function ResultadosPage() {
     totalPreguntas,
     aprobado,
     puntajePorTema,
-  } = result;
+  } = displayResult;
 
   // Bar chart data
   const temasData = puntajePorTema
@@ -145,7 +159,7 @@ export default function ResultadosPage() {
 
       const bytes = await generatePDF(
         effectiveDatos,
-        result,
+        displayResult,
         tiempoTranscurrido,
         preguntasSeleccionadas,
         respuestas,
@@ -268,6 +282,30 @@ export default function ResultadosPage() {
   return (
     <div className="w-full min-h-[calc(100vh-140px)] flex flex-col items-center py-8 px-4 bg-sena-gray-light/30">
       <div className="container max-w-4xl mx-auto space-y-8 animate-slideUpAndFade">
+        {/* Evaluación anulada — banner prominente */}
+        {anulada && (
+          <div className="flex items-start gap-4 bg-red-50 border-2 border-red-400 rounded-xl px-5 py-4">
+            <Ban className="h-7 w-7 text-red-500 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-base font-black text-red-700 uppercase tracking-wide">Evaluación Anulada por Antiplagio</p>
+              <p className="text-sm text-red-600 mt-1">
+                Se superó el límite de incidencias registradas durante la sesión. Esta evaluación ha sido
+                calificada automáticamente con <span className="font-bold">0%</span> y quedó registrada en la base de datos.
+              </p>
+              {(aprendizInfo?.competencia || aprendizInfo?.resultadoAprendizaje) && (
+                <div className="mt-3 space-y-1 text-xs text-red-700/80">
+                  {aprendizInfo.competencia && (
+                    <p><span className="font-semibold">Competencia:</span> {aprendizInfo.competencia}</p>
+                  )}
+                  {aprendizInfo.resultadoAprendizaje && (
+                    <p><span className="font-semibold">Resultado de Aprendizaje:</span> {aprendizInfo.resultadoAprendizaje}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Test mode banner */}
         {testMode && (
           <div className="flex items-center gap-3 bg-amber-50 border border-amber-300 rounded-xl px-4 py-3">

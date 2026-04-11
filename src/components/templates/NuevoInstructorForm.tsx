@@ -16,26 +16,91 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Save, ShieldCheck, User } from "lucide-react";
+import { Loader2, Save, ShieldCheck, User, Eye, EyeOff, Check, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-const schema = z.object({
-  nombre: z.string().min(4, "El nombre debe tener al menos 4 caracteres"),
-  email: z.string().email("Ingresa un email válido"),
-  password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres"),
-  isAdmin: z.boolean(),
-});
+const passwordSchema = z
+  .string()
+  .min(8, "Mínimo 8 caracteres")
+  .regex(/[A-Z]/, "Debe contener al menos una mayúscula")
+  .regex(/[0-9]/, "Debe contener al menos un número")
+  .regex(/[^A-Za-z0-9]/, "Debe contener al menos un carácter especial");
+
+const schema = z
+  .object({
+    nombre: z.string().min(4, "El nombre debe tener al menos 4 caracteres"),
+    email: z.string().email("Ingresa un email válido"),
+    password: passwordSchema,
+    confirmPassword: z.string().min(1, "Confirmá la contraseña"),
+    isAdmin: z.boolean(),
+  })
+  .refine((d) => d.password === d.confirmPassword, {
+    message: "Las contraseñas no coinciden",
+    path: ["confirmPassword"],
+  });
 
 type FormValues = z.infer<typeof schema>;
+
+function PasswordRequirements({ value }: { value: string }) {
+  const reqs = [
+    { label: "Mínimo 8 caracteres", met: value.length >= 8 },
+    { label: "Al menos una mayúscula (A-Z)", met: /[A-Z]/.test(value) },
+    { label: "Al menos un número (0-9)", met: /[0-9]/.test(value) },
+    { label: "Al menos un carácter especial (!@#$...)", met: /[^A-Za-z0-9]/.test(value) },
+  ];
+  const metCount = reqs.filter((r) => r.met).length;
+  const strength = metCount === 4 ? "strong" : metCount >= 3 ? "good" : metCount >= 2 ? "weak" : "very-weak";
+
+  return (
+    <div className="mt-2 space-y-1.5">
+      <div className="flex gap-1 h-1.5">
+        {[0, 1, 2, 3].map((i) => (
+          <div
+            key={i}
+            className={cn(
+              "flex-1 rounded-full transition-colors duration-300",
+              i < metCount
+                ? strength === "strong"
+                  ? "bg-green-500"
+                  : strength === "good"
+                  ? "bg-amber-500"
+                  : "bg-red-400"
+                : "bg-sena-gray-dark/10"
+            )}
+          />
+        ))}
+      </div>
+      <p className={cn(
+        "text-[10px] font-bold",
+        strength === "strong" ? "text-green-600" : strength === "good" ? "text-amber-600" : "text-red-500"
+      )}>
+        {strength === "strong" ? "Contraseña segura" : strength === "good" ? "Contraseña aceptable" : strength === "weak" ? "Contraseña débil" : "Contraseña muy débil"}
+      </p>
+      <ul className="space-y-0.5">
+        {reqs.map((r) => (
+          <li key={r.label} className={cn("flex items-center gap-1.5 text-[11px]", r.met ? "text-green-700" : "text-sena-gray-dark/50")}>
+            {r.met ? <Check size={10} className="shrink-0" /> : <X size={10} className="shrink-0" />}
+            {r.label}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 export function NuevoInstructorForm() {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { nombre: "", email: "", password: "", isAdmin: false },
+    defaultValues: { nombre: "", email: "", password: "", confirmPassword: "", isAdmin: false },
   });
+
+  const passwordValue = form.watch("password");
 
   const onSubmit = async (values: FormValues) => {
     setError(null);
@@ -45,7 +110,12 @@ export function NuevoInstructorForm() {
       const res = await fetch("/api/instructor/instructores", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          nombre: values.nombre,
+          email: values.email,
+          password: values.password,
+          isAdmin: values.isAdmin,
+        }),
       });
 
       if (!res.ok) {
@@ -103,6 +173,8 @@ export function NuevoInstructorForm() {
                 </FormItem>
               )}
             />
+
+            {/* Contraseña */}
             <FormField
               control={form.control}
               name="password"
@@ -112,7 +184,59 @@ export function NuevoInstructorForm() {
                     Contraseña *
                   </FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="Mínimo 8 caracteres" {...field} />
+                    <div className="relative">
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Mínimo 8 caracteres"
+                        className="pr-10"
+                        {...field}
+                      />
+                      <button
+                        type="button"
+                        tabIndex={-1}
+                        onClick={() => setShowPassword((v) => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-sena-gray-dark/40 hover:text-sena-gray-dark transition-colors"
+                        aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                      >
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                  {passwordValue.length > 0 && (
+                    <PasswordRequirements value={passwordValue} />
+                  )}
+                </FormItem>
+              )}
+            />
+
+            {/* Confirmar contraseña */}
+            <FormField
+              control={form.control}
+              name="confirmPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="font-semibold text-sena-blue">
+                    Confirmar contraseña *
+                  </FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input
+                        type={showConfirm ? "text" : "password"}
+                        placeholder="Repetí la contraseña"
+                        className="pr-10"
+                        {...field}
+                      />
+                      <button
+                        type="button"
+                        tabIndex={-1}
+                        onClick={() => setShowConfirm((v) => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-sena-gray-dark/40 hover:text-sena-gray-dark transition-colors"
+                        aria-label={showConfirm ? "Ocultar contraseña" : "Mostrar contraseña"}
+                      >
+                        {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

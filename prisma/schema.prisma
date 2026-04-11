@@ -97,6 +97,7 @@ model Resultado {
   intento                Int        @default(1)
   esPrueba               Boolean    @default(false)
   incidenciasAntiplagio  Int        @default(0)
+  anulada                Boolean    @default(false)
   evaluacion             Evaluacion @relation(fields: [evaluacionId], references: [id])
   evaluacionId       String
   ficha              Ficha      @relation(fields: [fichaId], references: [id])

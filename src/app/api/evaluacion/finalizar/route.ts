@@ -28,6 +28,7 @@ const finalizarSchema = z.object({
   intentoNumero: z.number().int().min(0).max(100).optional(),
   esPrueba: z.boolean().optional(),
   incidenciasAntiplagio: z.number().int().min(0).max(500).optional(),
+  anulada: z.boolean().optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -55,6 +56,7 @@ export async function POST(request: NextRequest) {
       intentoNumero,
       esPrueba,
       incidenciasAntiplagio,
+      anulada,
     } = body;
 
     // ═══ RAMA DB (feature flag) ═══════════════════════════════════════════════
@@ -88,7 +90,17 @@ export async function POST(request: NextRequest) {
         idsRespondidos.includes(q.id.toString()),
       );
 
-      const resultado = calcularPuntaje(preguntasEvaluadas, respuestasUsuario as any, passingScore);
+      // 2b. Si la evaluación fue anulada por antiplagio, forzar puntaje 0
+      const resultado = anulada
+        ? {
+            puntajeTotal: 0,
+            aprobado: false,
+            preguntasCorrectas: 0,
+            preguntasParciales: 0,
+            totalPreguntas: preguntasEvaluadas.length,
+            puntajePorTema: {},
+          }
+        : calcularPuntaje(preguntasEvaluadas, respuestasUsuario as any, passingScore);
 
       // 3. Modo prueba del instructor: calcular pero NO guardar
       if (esPrueba === true) {
@@ -120,7 +132,9 @@ export async function POST(request: NextRequest) {
           : 1;
 
       try {
-        await prisma.resultado.create({
+        // NOTE: `anulada` field requires `prisma db push && prisma generate` to be reflected in types.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (prisma.resultado.create as any)({
           data: {
             cedula,
             tipoDocumento: tipoDocumento ?? "CC",
@@ -136,6 +150,7 @@ export async function POST(request: NextRequest) {
             intento,
             esPrueba: false,
             incidenciasAntiplagio: incidenciasAntiplagio ?? 0,
+            anulada: anulada ?? false,
             evaluacionId,
             fichaId,
           },
@@ -172,6 +187,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         resultado,
         preguntasCompletas: preguntasEvaluadas,
+        anulada: anulada ?? false,
       });
     }
 

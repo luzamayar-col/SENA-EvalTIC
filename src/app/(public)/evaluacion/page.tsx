@@ -27,7 +27,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { BookOpen, Target, FlaskConical, Hash, ShieldAlert, CheckCircle2, AlertTriangle, X } from "lucide-react";
+import { BookOpen, Target, FlaskConical, Hash, ShieldAlert, CheckCircle2, AlertTriangle, X, Loader2 } from "lucide-react";
 
 export default function EvaluacionPage() {
   const router = useRouter();
@@ -58,6 +58,8 @@ export default function EvaluacionPage() {
   const [tabBlurred, setTabBlurred] = useState(false);
   const [tabSwitches, setTabSwitches] = useState(0);
   const [showFirstWarning, setShowFirstWarning] = useState(false);
+  const [anulando, setAnulando] = useState(false);
+  const anulandoRef = useRef(false);
   // Guard against multiple events firing simultaneously (blur + visibilitychange + fullscreenchange)
   const isHiddenRef = useRef(false);
 
@@ -139,6 +141,17 @@ export default function EvaluacionPage() {
       window.removeEventListener("focus", show);
     };
   }, []);
+
+  // Auto-anular: when antiplagio incidents reach umbralAlto, submit with score=0
+  useEffect(() => {
+    if (tabSwitches < umbralAlto) return;
+    if (estado !== "evaluando") return;
+    if (anulandoRef.current) return;
+    anulandoRef.current = true;
+    setAnulando(true);
+    finalizarEvaluacion(tabSwitches, true).finally(() => setAnulando(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tabSwitches, umbralAlto, estado]);
 
   useEffect(() => {
     // eslint-disable-next-line
@@ -243,36 +256,64 @@ export default function EvaluacionPage() {
       {/* Tab-switch / focus-loss overlay */}
       {tabBlurred && (
         <div
-          className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center gap-4"
-          onClick={() => { setTabBlurred(false); requestFullscreen(); }}
+          className={cn(
+            "fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center gap-4",
+            !anulando && tabSwitches < umbralAlto && "cursor-pointer"
+          )}
+          onClick={() => {
+            if (tabSwitches >= umbralAlto) return; // no permitir volver si fue anulada
+            setTabBlurred(false);
+            requestFullscreen();
+          }}
         >
           <ShieldAlert className={cn(
             "w-16 h-16",
             tabSwitches >= umbralAlto ? "text-red-400" : "text-amber-400"
           )} />
-          <p className="text-white text-xl font-bold">Evaluación en pausa</p>
-          <p className="text-white/70 text-sm text-center max-w-sm px-4">
-            {tabSwitches <= 1
-              ? "Se detectó un cambio de pantalla. Esta actividad ha quedado registrada en tu sesión."
-              : tabSwitches <= umbralMedio
-              ? "Has salido de la evaluación varias veces. Cada incidencia queda registrada en tu reporte."
-              : "¡Atención! Se han registrado múltiples incidencias. El instructor revisará la integridad de tu sesión."}
-          </p>
-          <div className={cn(
-            "flex items-center gap-1.5 text-xs font-mono px-3 py-1.5 rounded-full",
-            tabSwitches >= umbralAlto
-              ? "bg-red-500/20 text-red-300"
-              : "bg-amber-500/20 text-amber-300"
-          )}>
-            <AlertTriangle size={12} />
-            {tabSwitches} {tabSwitches === 1 ? "incidencia registrada" : "incidencias registradas"}
-          </div>
-          <button
-            className="mt-2 bg-white/10 hover:bg-white/20 text-white text-sm px-6 py-2 rounded-lg transition-colors"
-            onClick={() => { setTabBlurred(false); requestFullscreen(); }}
-          >
-            Volver a la evaluación
-          </button>
+
+          {tabSwitches >= umbralAlto ? (
+            /* ── Pantalla de anulación ── */
+            <>
+              <p className="text-white text-2xl font-black uppercase tracking-widest">Evaluación Anulada</p>
+              <p className="text-white/70 text-sm text-center max-w-sm px-4">
+                Se superó el límite de incidencias antiplagio ({umbralAlto}). Esta evaluación ha sido registrada con calificación <span className="text-red-400 font-bold">0%</span>.
+              </p>
+              <div className="flex items-center gap-1.5 text-xs font-mono px-3 py-1.5 rounded-full bg-red-500/20 text-red-300">
+                <AlertTriangle size={12} />
+                {tabSwitches} incidencias registradas
+              </div>
+              {anulando ? (
+                <div className="mt-2 flex items-center gap-2 text-white/60 text-sm">
+                  <Loader2 size={16} className="animate-spin" />
+                  Guardando resultado...
+                </div>
+              ) : (
+                <p className="mt-2 text-white/50 text-xs">Redirigiendo al resumen...</p>
+              )}
+            </>
+          ) : (
+            /* ── Pantalla de pausa normal ── */
+            <>
+              <p className="text-white text-xl font-bold">Evaluación en pausa</p>
+              <p className="text-white/70 text-sm text-center max-w-sm px-4">
+                {tabSwitches <= 1
+                  ? "Se detectó un cambio de pantalla. Esta actividad ha quedado registrada en tu sesión."
+                  : tabSwitches <= umbralMedio
+                  ? "Has salido de la evaluación varias veces. Cada incidencia queda registrada en tu reporte."
+                  : `¡Atención! Solo quedan ${umbralAlto - tabSwitches} incidencia(s) antes de que la evaluación sea anulada automáticamente.`}
+              </p>
+              <div className="flex items-center gap-1.5 text-xs font-mono px-3 py-1.5 rounded-full bg-amber-500/20 text-amber-300">
+                <AlertTriangle size={12} />
+                {tabSwitches} {tabSwitches === 1 ? "incidencia registrada" : "incidencias registradas"}
+              </div>
+              <button
+                className="mt-2 bg-white/10 hover:bg-white/20 text-white text-sm px-6 py-2 rounded-lg transition-colors"
+                onClick={(e) => { e.stopPropagation(); setTabBlurred(false); requestFullscreen(); }}
+              >
+                Volver a la evaluación
+              </button>
+            </>
+          )}
         </div>
       )}
 

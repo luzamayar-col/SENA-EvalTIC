@@ -48,6 +48,7 @@ export interface EvaluacionState {
   aprendizInfo: AprendizInfo | null;
   incidenciasAntiplagio: number | null;
   umbralAntiplagio: { medio: number; alto: number } | null;
+  anulada: boolean;
 
   // Acciones
   setDatosAprendiz: (datos: DatosAprendiz) => void;
@@ -66,7 +67,7 @@ export interface EvaluacionState {
   preguntaAnterior: () => void;
   avanzarAPregunta: (index: number) => void;
   tickTiempo: () => void;
-  finalizarEvaluacion: (incidenciasAntiplagio?: number) => Promise<void>;
+  finalizarEvaluacion: (incidenciasAntiplagio?: number, anulada?: boolean) => Promise<void>;
   reiniciarEstado: () => void;
 }
 
@@ -87,6 +88,7 @@ export const useEvaluacionStore = create<EvaluacionState>((set, get) => ({
   aprendizInfo: null,
   incidenciasAntiplagio: null,
   umbralAntiplagio: null,
+  anulada: false,
 
   setDatosAprendiz: (datos) => set({ datosAprendiz: datos }),
 
@@ -117,6 +119,7 @@ export const useEvaluacionStore = create<EvaluacionState>((set, get) => ({
       testMode,
       umbralAntiplagio,
       incidenciasAntiplagio: null,
+      anulada: false,
     });
   },
 
@@ -158,7 +161,7 @@ export const useEvaluacionStore = create<EvaluacionState>((set, get) => ({
       };
     }),
 
-  finalizarEvaluacion: async (incidenciasAntiplagio?: number) => {
+  finalizarEvaluacion: async (incidenciasAntiplagio?: number, anulada?: boolean) => {
     const state = get();
     if (state.estado !== "evaluando") return;
     // In test mode datosAprendiz may be null; allow it through
@@ -183,6 +186,7 @@ export const useEvaluacionStore = create<EvaluacionState>((set, get) => ({
           intentoNumero: state.intentoNumero ?? undefined,
           esPrueba: state.testMode,
           incidenciasAntiplagio: incidenciasAntiplagio ?? 0,
+          anulada: anulada ?? false,
         }),
       });
 
@@ -199,6 +203,7 @@ export const useEvaluacionStore = create<EvaluacionState>((set, get) => ({
         preguntasSeleccionadas:
           data.preguntasCompletas || state.preguntasSeleccionadas,
         incidenciasAntiplagio: incidenciasAntiplagio ?? 0,
+        anulada: data.anulada ?? false,
       });
     } catch (error) {
       console.error(error);
@@ -225,6 +230,7 @@ export const useEvaluacionStore = create<EvaluacionState>((set, get) => ({
       aprendizInfo: null,
       incidenciasAntiplagio: null,
       umbralAntiplagio: null,
+      anulada: false,
     });
   },
 }));

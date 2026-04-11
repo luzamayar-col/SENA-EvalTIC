@@ -78,7 +78,7 @@ export function EvaluacionFormTemplate({
       seleccion_multiple: 3,
       emparejamiento: 2,
       umbralMedio: 3,
-      umbralAlto: 5,
+      umbralAlto: 3,
       ...defaultValues,
     },
   });

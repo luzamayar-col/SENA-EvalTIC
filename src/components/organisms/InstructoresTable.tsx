@@ -23,8 +23,44 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { ConfirmDialog } from "@/components/molecules/ConfirmDialog";
-import { Pencil, Trash2, ShieldCheck, Loader2 } from "lucide-react";
+import { Pencil, Trash2, ShieldCheck, Loader2, Eye, EyeOff, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+function PasswordStrengthBar({ value }: { value: string }) {
+  if (!value) return null;
+  const reqs = [
+    value.length >= 8,
+    /[A-Z]/.test(value),
+    /[0-9]/.test(value),
+    /[^A-Za-z0-9]/.test(value),
+  ];
+  const count = reqs.filter(Boolean).length;
+  const reqLabels = [
+    { label: "Mínimo 8 caracteres", met: reqs[0] },
+    { label: "Una mayúscula", met: reqs[1] },
+    { label: "Un número", met: reqs[2] },
+    { label: "Un carácter especial", met: reqs[3] },
+  ];
+  return (
+    <div className="mt-1.5 space-y-1">
+      <div className="flex gap-0.5 h-1">
+        {[0,1,2,3].map((i) => (
+          <div key={i} className={cn("flex-1 rounded-full transition-colors",
+            i < count ? count === 4 ? "bg-green-500" : count >= 3 ? "bg-amber-500" : "bg-red-400" : "bg-gray-200"
+          )} />
+        ))}
+      </div>
+      <ul className="space-y-0.5">
+        {reqLabels.map((r) => (
+          <li key={r.label} className={cn("flex items-center gap-1 text-[10px]", r.met ? "text-green-700" : "text-gray-400")}>
+            {r.met ? <Check size={9} className="shrink-0" /> : <X size={9} className="shrink-0" />}
+            {r.label}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 interface Instructor {
   id: string;
@@ -49,20 +85,43 @@ export function InstructoresTable({
   const router = useRouter();
   const [deleting, setDeleting] = useState<string | null>(null);
   const [editingInstructor, setEditingInstructor] = useState<Instructor | null>(null);
-  const [editForm, setEditForm] = useState({ nombre: "", email: "", password: "" });
+  const [editForm, setEditForm] = useState({ nombre: "", email: "", password: "", confirmPassword: "" });
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [showEditPassword, setShowEditPassword] = useState(false);
+  const [showEditConfirm, setShowEditConfirm] = useState(false);
 
   const openEdit = (instructor: Instructor) => {
     setSaveError(null);
     setEditingInstructor(instructor);
-    setEditForm({ nombre: instructor.nombre, email: instructor.email, password: "" });
+    setEditForm({ nombre: instructor.nombre, email: instructor.email, password: "", confirmPassword: "" });
+    setShowEditPassword(false);
+    setShowEditConfirm(false);
   };
 
   const handleEdit = async () => {
     if (!editingInstructor) return;
-    setSaving(true);
     setSaveError(null);
+
+    // Validate password if provided
+    if (editForm.password.trim()) {
+      if (editForm.password !== editForm.confirmPassword) {
+        setSaveError("Las contraseñas no coinciden");
+        return;
+      }
+      const passwordReqs = [
+        editForm.password.length >= 8,
+        /[A-Z]/.test(editForm.password),
+        /[0-9]/.test(editForm.password),
+        /[^A-Za-z0-9]/.test(editForm.password),
+      ];
+      if (!passwordReqs.every(Boolean)) {
+        setSaveError("La contraseña no cumple los requisitos de seguridad");
+        return;
+      }
+    }
+
+    setSaving(true);
     try {
       const body: Record<string, string> = {
         nombre: editForm.nombre,
@@ -292,13 +351,57 @@ export function InstructoresTable({
                   (dejar vacío para no cambiar)
                 </span>
               </Label>
-              <Input
-                type="password"
-                value={editForm.password}
-                onChange={(e) => setEditForm((f) => ({ ...f, password: e.target.value }))}
-                placeholder="Mínimo 8 caracteres"
-              />
+              <div className="relative">
+                <Input
+                  type={showEditPassword ? "text" : "password"}
+                  value={editForm.password}
+                  onChange={(e) => setEditForm((f) => ({ ...f, password: e.target.value }))}
+                  placeholder="Mínimo 8 caracteres"
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => setShowEditPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-sena-gray-dark/40 hover:text-sena-gray-dark transition-colors"
+                  aria-label={showEditPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                >
+                  {showEditPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
+              <PasswordStrengthBar value={editForm.password} />
             </div>
+            {editForm.password.trim() && (
+              <div className="grid gap-1.5">
+                <Label className="font-semibold text-sena-blue text-xs">
+                  Confirmar nueva contraseña *
+                </Label>
+                <div className="relative">
+                  <Input
+                    type={showEditConfirm ? "text" : "password"}
+                    value={editForm.confirmPassword}
+                    onChange={(e) => setEditForm((f) => ({ ...f, confirmPassword: e.target.value }))}
+                    placeholder="Repetí la contraseña"
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    onClick={() => setShowEditConfirm((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-sena-gray-dark/40 hover:text-sena-gray-dark transition-colors"
+                    aria-label={showEditConfirm ? "Ocultar contraseña" : "Mostrar contraseña"}
+                  >
+                    {showEditConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+                {editForm.confirmPassword && editForm.password !== editForm.confirmPassword && (
+                  <p className="text-[11px] text-red-600">Las contraseñas no coinciden</p>
+                )}
+                {editForm.confirmPassword && editForm.password === editForm.confirmPassword && (
+                  <p className="text-[11px] text-green-600 flex items-center gap-1"><Check size={10} /> Contraseñas coinciden</p>
+                )}
+              </div>
+            )}
           </div>
 
           <DialogFooter>
@@ -315,7 +418,7 @@ export function InstructoresTable({
                 saving ||
                 !editForm.nombre.trim() ||
                 !editForm.email.trim() ||
-                (editForm.password.length > 0 && editForm.password.length < 8)
+                (editForm.password.trim().length > 0 && editForm.password !== editForm.confirmPassword)
               }
               className="bg-sena-green hover:bg-sena-green-dark text-white font-bold gap-2"
             >
