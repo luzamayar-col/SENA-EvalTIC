@@ -1,4 +1,9 @@
 import type { NextConfig } from "next";
+import { readFileSync } from "fs";
+
+const { version } = JSON.parse(readFileSync("./package.json", "utf8")) as {
+  version: string;
+};
 
 const securityHeaders = [
   // Fuerza HTTPS durante 2 años, incluye subdominios
@@ -38,6 +43,9 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_APP_VERSION: version,
+  },
   // Evita que Prisma Client sea empaquetado por el bundler de Next.js en Vercel.
   // Prisma 7 genera el cliente en src/generated/prisma; el bundler debe excluirlo.
   serverExternalPackages: ["@prisma/client", ".prisma/client"],

@@ -48,7 +48,7 @@ export function Header() {
         {/* Actions (Right) - Desktop */}
         <div className="hidden md:flex items-center gap-2 shrink-0">
           <span className="text-[10px] font-medium bg-white/10 text-white/90 px-2 py-1 rounded-full mr-2 border border-white/20 select-none">
-            v1.0
+            v{APP_CONFIG.version}
           </span>
           <Button
             onClick={() => setShowHelp(true)}
@@ -127,7 +127,7 @@ export function Header() {
                 SENA EvalTIC
               </span>
               <span className="text-[10px] font-medium bg-white/10 text-white/80 px-2 py-0.5 rounded-full border border-white/20">
-                v1.0
+                v{APP_CONFIG.version}
               </span>
             </div>
           </div>

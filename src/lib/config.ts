@@ -43,4 +43,6 @@ export const APP_CONFIG = {
   // en lugar del sistema legacy de archivos JSON.
   useDatabaseBackend: process.env.NEXT_PUBLIC_USE_DB_BACKEND === "true",
 
+  version: process.env.NEXT_PUBLIC_APP_VERSION ?? "0.0.0",
+
 };
