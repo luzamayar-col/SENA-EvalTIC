@@ -24,7 +24,7 @@ export default async function DashboardPage() {
   const instructorId = session.user.instructorId;
 
   // Fetch stats + email config directly from DB (server component)
-  const [evaluaciones, resultados, instructorConfig] = await Promise.all([
+  const [evaluaciones, resultados, instructorConfig, totalAprendices] = await Promise.all([
     prisma.evaluacion.findMany({
       where: { instructorId },
       include: { _count: { select: { resultados: true } } },
@@ -40,6 +40,9 @@ export default async function DashboardPage() {
     prisma.instructor.findUnique({
       where: { id: instructorId },
       select: { emailNotificaciones: true, resendApiKey: true },
+    }),
+    prisma.aprendiz.count({
+      where: { ficha: { evaluacion: { instructorId } } },
     }),
   ]);
 
@@ -99,9 +102,9 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <InstructorStatCard
           title="Total Presentaciones"
-          value={totalResultados}
+          value={`${totalResultados} / ${totalAprendices}`}
           icon={BarChart2}
-          description="Evaluaciones completadas"
+          description="Presentaciones sobre total de aprendices"
           color="blue"
         />
         <InstructorStatCard
