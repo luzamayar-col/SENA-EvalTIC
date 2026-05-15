@@ -602,6 +602,14 @@ export function PreguntasEditor({
           <PlusCircle size={16} />
           Agregar pregunta
         </Button>
+        {preguntas.length > 0 && (
+          <Button variant="outline" className="gap-2 text-sena-green border-sena-green/30 hover:bg-sena-green/5" asChild>
+            <a href={`/api/instructor/evaluaciones/${evaluacionId}/preguntas`}>
+              <FileDown size={15} />
+              Descargar banco
+            </a>
+          </Button>
+        )}
         <Button variant="outline" className="gap-2 text-sena-blue border-sena-blue/30 hover:bg-sena-blue/5" asChild>
           <a
             href="/api/instructor/templates/preguntas"
