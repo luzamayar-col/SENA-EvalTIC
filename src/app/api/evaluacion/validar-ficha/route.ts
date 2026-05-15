@@ -48,11 +48,15 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({
           valida: false,
           error: `Disponible desde el ${vigencia.fecha.toLocaleDateString("es-CO")}`,
+          fechaEfectivaInicio: eff.fechaInicio?.toISOString() ?? null,
+          fechaEfectivaFin: eff.fechaFin?.toISOString() ?? null,
         });
       }
       return NextResponse.json({
         valida: false,
         error: `Venció el ${vigencia.fecha.toLocaleDateString("es-CO")}`,
+        fechaEfectivaInicio: eff.fechaInicio?.toISOString() ?? null,
+        fechaEfectivaFin: eff.fechaFin?.toISOString() ?? null,
       });
     }
 

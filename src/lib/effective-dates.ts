@@ -8,12 +8,12 @@
 
 type DateLike = Date | string | null | undefined;
 
-interface DateSource {
+export interface DateSource {
   fechaInicio: DateLike;
   fechaFin: DateLike;
 }
 
-interface Effective {
+export interface Effective {
   fechaInicio: Date | null;
   fechaFin: Date | null;
 }

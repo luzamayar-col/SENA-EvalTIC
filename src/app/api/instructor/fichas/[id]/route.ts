@@ -7,13 +7,21 @@ interface Params {
   params: Promise<{ id: string }>;
 }
 
-const editarFichaSchema = z.object({
-  numero: z.string().min(1).max(20).optional(),
-  programa: z.string().min(3).max(300).optional(),
-  descripcion: z.string().max(500).optional().nullable(),
-  fechaInicio: z.string().optional().nullable(),
-  fechaFin: z.string().optional().nullable(),
-});
+const editarFichaSchema = z
+  .object({
+    numero: z.string().min(1).max(20).optional(),
+    programa: z.string().min(3).max(300).optional(),
+    descripcion: z.string().max(500).optional().nullable(),
+    fechaInicio: z.string().optional().nullable(),
+    fechaFin: z.string().optional().nullable(),
+  })
+  .refine(
+    (d) => {
+      if (d.fechaInicio && d.fechaFin) return new Date(d.fechaFin) >= new Date(d.fechaInicio);
+      return true;
+    },
+    { message: "fechaFin debe ser igual o posterior a fechaInicio", path: ["fechaFin"] },
+  );
 
 async function getFichaOrFail(id: string, instructorId: string) {
   return prisma.ficha.findFirst({

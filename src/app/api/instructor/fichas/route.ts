@@ -3,14 +3,22 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireInstructor } from "@/lib/auth-utils";
 
-const crearFichaSchema = z.object({
-  numero: z.string().min(1, "Número de ficha requerido").max(20),
-  programa: z.string().min(3, "Nombre de programa muy corto").max(300),
-  descripcion: z.string().max(500).optional(),
-  evaluacionId: z.string().min(1, "evaluacionId requerido").max(100),
-  fechaInicio: z.string().optional().nullable(),
-  fechaFin: z.string().optional().nullable(),
-});
+const crearFichaSchema = z
+  .object({
+    numero: z.string().min(1, "Número de ficha requerido").max(20),
+    programa: z.string().min(3, "Nombre de programa muy corto").max(300),
+    descripcion: z.string().max(500).optional(),
+    evaluacionId: z.string().min(1, "evaluacionId requerido").max(100),
+    fechaInicio: z.string().optional().nullable(),
+    fechaFin: z.string().optional().nullable(),
+  })
+  .refine(
+    (d) => {
+      if (d.fechaInicio && d.fechaFin) return new Date(d.fechaFin) >= new Date(d.fechaInicio);
+      return true;
+    },
+    { message: "fechaFin debe ser igual o posterior a fechaInicio", path: ["fechaFin"] },
+  );
 
 export async function GET(req: NextRequest) {
   try {
