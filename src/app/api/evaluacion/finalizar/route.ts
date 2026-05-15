@@ -166,24 +166,54 @@ export async function POST(request: NextRequest) {
         throw dbErr;
       }
 
-      // 5. Enviar correo al instructor (server-side, no expone endpoint público)
-      // Fire-and-forget: no bloquear la respuesta si el correo falla
-      enviarCorreoResultado({
-        evaluacionId,
-        fichaId,
-        cedula,
-        tipoDocumento: tipoDocumento ?? "CC",
-        nombres: nombres ?? "",
-        apellidos: apellidos ?? "",
-        email: email ?? "",
-        tiempoUsado: tiempoUsado ?? 0,
-        resultado: {
-          puntajeTotal: resultado.puntajeTotal,
-          preguntasCorrectas: resultado.preguntasCorrectas,
-          totalPreguntas: resultado.totalPreguntas,
-          aprobado: resultado.aprobado,
-        },
-      }).catch((err) => console.error("Email dispatch error:", err));
+      // 5. Enviar correo al instructor y al aprendiz (fire-and-forget)
+      // Buscar emailPersonal del aprendiz registrado en la ficha
+      ;(async () => {
+        try {
+          const aprendizData = fichaId
+            ? await prisma.aprendiz.findFirst({
+                where: { cedula, fichaId },
+                select: { emailPersonal: true },
+              })
+            : null;
+
+          const evaluacionData = await prisma.evaluacion.findUnique({
+            where: { id: evaluacionId },
+            select: { maxIntentos: true, config: true },
+          });
+
+          const emailAprendiz = aprendizData?.emailPersonal ?? null;
+          const maxIntentosEval = evaluacionData?.maxIntentos ?? 1;
+          const umbralAntiplagio = {
+            medio: (evaluacionData?.config as any)?.umbralAntiplagio?.medio ?? 3,
+            alto:  (evaluacionData?.config as any)?.umbralAntiplagio?.alto  ?? 5,
+          };
+
+          await enviarCorreoResultado({
+            evaluacionId,
+            fichaId,
+            cedula,
+            tipoDocumento: tipoDocumento ?? "CC",
+            nombres: nombres ?? "",
+            apellidos: apellidos ?? "",
+            email: email ?? "",
+            emailAprendiz,
+            tiempoUsado: tiempoUsado ?? 0,
+            intento,
+            maxIntentos: maxIntentosEval,
+            incidenciasAntiplagio: incidenciasAntiplagio ?? 0,
+            resultado: {
+              puntajeTotal: resultado.puntajeTotal,
+              preguntasCorrectas: resultado.preguntasCorrectas,
+              totalPreguntas: resultado.totalPreguntas,
+              aprobado: resultado.aprobado,
+            },
+            umbralAntiplagio,
+          });
+        } catch (err) {
+          console.error("Email dispatch error:", err);
+        }
+      })();
 
       return NextResponse.json({
         resultado,
