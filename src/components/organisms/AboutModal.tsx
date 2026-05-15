@@ -39,7 +39,7 @@ export function AboutModal({ open, onOpenChange }: AboutModalProps) {
               {APP_CONFIG.title}
             </h3>
             <p className="text-xs text-sena-gray-dark font-medium mt-0.5">
-              Versión 1.0.0
+              Versión {APP_CONFIG.version}
             </p>
           </div>
 
