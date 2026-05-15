@@ -73,8 +73,6 @@ export function EvaluacionFormTemplate({
       codigoCompetencia: "38199",
       resultadoAprendizaje: "PROPONER SOLUCIONES A LAS NECESIDADES DEL CONTEXTO SEGÚN RESULTADOS DE LA INVESTIGACIÓN",
       codigoRA: "580873",
-      fechaInicio: "",
-      fechaFin: "",
       timeLimitMinutes: 15,
       passingScorePercentage: 65,
       maxIntentos: 1,
