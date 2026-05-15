@@ -23,7 +23,8 @@ import {
 } from "@/components/ui/dialog";
 import { ConfirmDialog } from "@/components/molecules/ConfirmDialog";
 import { ResultadoBadge } from "@/components/molecules/ResultadoBadge";
-import { Pencil, Trash2, Loader2, PlusCircle, Eraser, FileDown, ShieldAlert } from "lucide-react";
+import { Pencil, Trash2, Loader2, PlusCircle, Eraser, FileDown, ShieldAlert, Bell } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { generatePDF, savePdf } from "@/lib/pdf-generator";
 import { calcularPuntaje } from "@/lib/score";
 import { DatosAprendiz, RespuestaAprendiz } from "@/stores/evaluacion-store";
@@ -85,6 +86,35 @@ export function AprendicesTable({
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [downloadingPdfId, setDownloadingPdfId] = useState<string | null>(null);
+
+  // ── Notificar aprendices ─────────────────────────────────────────────────
+  const [notificarOpen, setNotificarOpen] = useState(false);
+  const [notificarMensaje, setNotificarMensaje] = useState("");
+  const [notificando, setNotificando] = useState(false);
+  const [notificarResult, setNotificarResult] = useState<{ enviados: number; sinEmail: number } | null>(null);
+  const [notificarError, setNotificarError] = useState<string | null>(null);
+
+  const aprendicesConEmail = aprendices.filter((a) => a.emailPersonal).length;
+
+  const handleNotificar = async () => {
+    setNotificando(true);
+    setNotificarError(null);
+    try {
+      const res = await fetch(`/api/instructor/fichas/${fichaId}/notificar`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mensaje: notificarMensaje.trim() || undefined }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setNotificarError(data.error ?? "Error al enviar notificaciones");
+        return;
+      }
+      setNotificarResult({ enviados: data.enviados, sinEmail: data.sinEmail });
+    } finally {
+      setNotificando(false);
+    }
+  };
 
   // ── Add single aprendiz ──────────────────────────────────────────────────
   const [addOpen, setAddOpen] = useState(false);
@@ -255,13 +285,28 @@ export function AprendicesTable({
           confirmLabel="Sí, eliminar todos"
           onConfirm={handleDeleteAll}
         />
-        <Button
-          onClick={() => setAddOpen(true)}
-          size="sm"
-          className="bg-sena-green hover:bg-sena-green-dark text-white gap-1"
-        >
-          <PlusCircle size={14} /> Agregar aprendiz
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 border-sena-blue/30 text-sena-blue hover:bg-sena-blue/5"
+            onClick={() => {
+              setNotificarResult(null);
+              setNotificarError(null);
+              setNotificarMensaje("");
+              setNotificarOpen(true);
+            }}
+          >
+            <Bell size={14} /> Notificar aprendices
+          </Button>
+          <Button
+            onClick={() => setAddOpen(true)}
+            size="sm"
+            className="bg-sena-green hover:bg-sena-green-dark text-white gap-1"
+          >
+            <PlusCircle size={14} /> Agregar aprendiz
+          </Button>
+        </div>
       </div>
 
       <div className="rounded-xl border border-sena-gray-dark/10 overflow-hidden">
@@ -490,6 +535,76 @@ export function AprendicesTable({
       {/* Add dialog */}
       <AddDialog open={addOpen} onClose={() => setAddOpen(false)} form={addForm}
         setForm={setAddForm} onAdd={handleAdd} adding={adding} addError={addError} />
+
+      {/* Notificar aprendices dialog */}
+      <Dialog open={notificarOpen} onOpenChange={(open) => !open && setNotificarOpen(false)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-sena-blue flex items-center gap-2">
+              <Bell size={16} /> Notificar aprendices
+            </DialogTitle>
+          </DialogHeader>
+
+          {notificarResult ? (
+            <div className="space-y-3 py-2">
+              <div className="bg-sena-green/5 border border-sena-green/20 rounded-md px-4 py-3 text-sm text-sena-blue">
+                <p className="font-semibold">Notificación enviada</p>
+                <p className="mt-1">
+                  Se notificaron <strong>{notificarResult.enviados}</strong> aprendice{notificarResult.enviados !== 1 ? "s" : ""}.
+                  {notificarResult.sinEmail > 0 && (
+                    <> {notificarResult.sinEmail} aprendice{notificarResult.sinEmail !== 1 ? "s" : ""} no tiene{notificarResult.sinEmail !== 1 ? "n" : ""} correo personal registrado.</>
+                  )}
+                </p>
+              </div>
+              <DialogFooter>
+                <Button onClick={() => setNotificarOpen(false)} className="bg-sena-green hover:bg-sena-green-dark text-white">
+                  Cerrar
+                </Button>
+              </DialogFooter>
+            </div>
+          ) : (
+            <div className="space-y-4 py-2">
+              <p className="text-sm text-sena-gray-dark/70">
+                Se enviará un email a los aprendices que tengan correo personal registrado.
+              </p>
+              <div className="bg-sena-blue/5 border border-sena-blue/20 rounded-md px-3 py-2 text-sm text-sena-blue font-medium">
+                {aprendicesConEmail} de {aprendices.length} aprendice{aprendices.length !== 1 ? "s" : ""} tiene{aprendices.length !== 1 ? "n" : ""} correo personal
+              </div>
+              {notificarError && (
+                <div className="bg-red-50 border border-red-200 rounded-md px-3 py-2 text-sm text-red-700">
+                  {notificarError}
+                </div>
+              )}
+              <div className="grid gap-1.5">
+                <Label className="text-xs font-semibold text-sena-blue">
+                  Instrucciones adicionales (opcional)
+                </Label>
+                <Textarea
+                  value={notificarMensaje}
+                  onChange={(e) => setNotificarMensaje(e.target.value)}
+                  placeholder="Ej: Recuerden ingresar con su cédula el día martes a partir de las 8am..."
+                  rows={3}
+                  maxLength={2000}
+                  className="resize-none text-sm"
+                />
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setNotificarOpen(false)} disabled={notificando}>
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleNotificar}
+                  disabled={notificando || aprendicesConEmail === 0}
+                  className="bg-sena-blue hover:bg-sena-blue/90 text-white font-bold gap-2"
+                >
+                  {notificando && <Loader2 size={14} className="animate-spin" />}
+                  {notificando ? "Enviando..." : `Enviar a ${aprendicesConEmail} aprendice${aprendicesConEmail !== 1 ? "s" : ""}`}
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
