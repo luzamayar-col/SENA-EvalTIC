@@ -21,6 +21,7 @@ const editSchema = z.object({
   nombres: z.string().min(1).optional(),
   apellidos: z.string().min(1).optional(),
   email: z.string().email().optional().or(z.literal("")).optional(),
+  emailInstitucional: z.string().email().optional().or(z.literal("")).optional(),
   emailPersonal: z.string().email().optional().or(z.literal("")).optional(),
   tipoDocumento: z.string().min(2).optional(),
   intentosExtra: z.number().int().min(0).optional(),
@@ -44,12 +45,13 @@ export async function PUT(req: NextRequest, { params }: Params) {
     );
   }
 
-  const { email, emailPersonal, ...rest } = parsed.data;
+  const { email, emailInstitucional, emailPersonal, ...rest } = parsed.data;
   const updated = await prisma.aprendiz.update({
     where: { id },
     data: {
       ...rest,
       ...(email !== undefined ? { email: email.trim() || null } : {}),
+      ...(emailInstitucional !== undefined ? { emailInstitucional: emailInstitucional.trim() || null } : {}),
       ...(emailPersonal !== undefined ? { emailPersonal: emailPersonal.trim() || null } : {}),
     },
   });

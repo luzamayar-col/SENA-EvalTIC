@@ -11,6 +11,7 @@ type ParsedAprendiz = {
   nombres: string;
   apellidos: string;
   email: string | null;
+  emailInstitucional: string | null;
   emailPersonal: string | null;
 };
 
@@ -28,13 +29,14 @@ interface ExcelUploaderProps {
 // ── SOFIA Plus parser ─────────────────────────────────────────────────────────
 
 const COL_ALIASES: Record<string, string[]> = {
-  cedula:        ["no. documento", "numero documento", "cedula", "cédula", "nro. documento", "documento", "nro documento"],
-  tipoDocumento: ["tipo doc", "tipo de documento", "tipo documento", "tipo"],
-  nombres:       ["nombres", "nombre"],
-  apellidos:     ["apellidos", "apellido"],
-  email:         ["correo soy.sena", "correo misena", "correo sena", "correo institucional", "correo inst", "correo electrónico inst", "correo electronico inst", "email inst", "correo", "email", "correo electrónico", "correo electronico"],
-  emailPersonal: ["correo personal", "email personal", "correo electrónico personal", "correo electronico personal", "correo electronico personal", "correo alternativo"],
-  estado:        ["estado aprendiz", "estado del aprendiz", "estado"],
+  cedula:             ["no. documento", "numero documento", "cedula", "cédula", "nro. documento", "documento", "nro documento"],
+  tipoDocumento:      ["tipo doc", "tipo de documento", "tipo documento", "tipo"],
+  nombres:            ["nombres", "nombre"],
+  apellidos:          ["apellidos", "apellido"],
+  emailInstitucional: ["correo soy.sena", "correo misena", "correo sena", "correo institucional", "correo inst", "correo electrónico inst", "correo electronico inst", "email inst", "corporativo"],
+  emailPersonal:      ["correo personal", "email personal", "correo electrónico personal", "correo electronico personal", "correo alternativo", "privado", "gmail", "yahoo"],
+  emailGenerico:      ["correo", "email", "correo electrónico", "correo electronico"],
+  estado:             ["estado aprendiz", "estado del aprendiz", "estado"],
 };
 
 // Estados de SOFIA Plus que NO se deben importar
@@ -94,13 +96,14 @@ async function parseSOFIAPlus(buffer: ArrayBuffer): Promise<ParsedAprendiz[]> {
   // 2. Map columns (normalizeHeader handles "Tipo\r\nDoc." → "tipo doc.")
   const headers = rows[headerRowIndex].map(normalizeHeader);
   const colMap = {
-    cedula:        findCol(headers, COL_ALIASES.cedula),
-    tipoDocumento: findCol(headers, COL_ALIASES.tipoDocumento),
-    nombres:       findCol(headers, COL_ALIASES.nombres),
-    apellidos:     findCol(headers, COL_ALIASES.apellidos),
-    email:         findCol(headers, COL_ALIASES.email),
-    emailPersonal: findCol(headers, COL_ALIASES.emailPersonal),
-    estado:        findCol(headers, COL_ALIASES.estado),
+    cedula:             findCol(headers, COL_ALIASES.cedula),
+    tipoDocumento:      findCol(headers, COL_ALIASES.tipoDocumento),
+    nombres:            findCol(headers, COL_ALIASES.nombres),
+    apellidos:          findCol(headers, COL_ALIASES.apellidos),
+    emailInstitucional: findCol(headers, COL_ALIASES.emailInstitucional),
+    emailPersonal:      findCol(headers, COL_ALIASES.emailPersonal),
+    emailGenerico:      findCol(headers, COL_ALIASES.emailGenerico),
+    estado:             findCol(headers, COL_ALIASES.estado),
   };
 
   if (colMap.cedula == null || colMap.nombres == null || colMap.apellidos == null) {
@@ -108,6 +111,12 @@ async function parseSOFIAPlus(buffer: ArrayBuffer): Promise<ParsedAprendiz[]> {
       "No se encontraron las columnas requeridas (cédula, nombres, apellidos). Revise el archivo."
     );
   }
+
+  // Si hay una sola columna genérica de email (sin columnas específicas), usarla como emailPersonal
+  const usarGenericoComoPersonal =
+    colMap.emailInstitucional == null &&
+    colMap.emailPersonal == null &&
+    colMap.emailGenerico != null;
 
   // 3. Parse data rows — filter out inactive learners and non-numeric cedulas (e.g. legend rows)
   return rows
@@ -120,20 +129,32 @@ async function parseSOFIAPlus(buffer: ArrayBuffer): Promise<ParsedAprendiz[]> {
       if (colMap.estado == null) return true;
       return isEstadoActivo(String(row[colMap.estado] ?? ""));
     })
-    .map((row) => ({
-      cedula:        String(row[colMap.cedula!] ?? "").trim(),
-      tipoDocumento: colMap.tipoDocumento != null
-        ? (String(row[colMap.tipoDocumento] ?? "").trim() || "CC")
-        : "CC",
-      nombres:       String(row[colMap.nombres!] ?? "").trim(),
-      apellidos:     String(row[colMap.apellidos!] ?? "").trim(),
-      email:         colMap.email != null
-        ? (String(row[colMap.email] ?? "").trim() || null)
-        : null,
-      emailPersonal: colMap.emailPersonal != null
+    .map((row) => {
+      const emailInstitucional = colMap.emailInstitucional != null
+        ? (String(row[colMap.emailInstitucional] ?? "").trim() || null)
+        : null;
+      const emailPersonal = colMap.emailPersonal != null
         ? (String(row[colMap.emailPersonal] ?? "").trim() || null)
-        : null,
-    }))
+        : usarGenericoComoPersonal
+        ? (String(row[colMap.emailGenerico!] ?? "").trim() || null)
+        : null;
+      // Campo legacy email: usar emailInstitucional si está disponible, si no el genérico
+      const email = emailInstitucional
+        ?? (colMap.emailGenerico != null && !usarGenericoComoPersonal
+          ? (String(row[colMap.emailGenerico] ?? "").trim() || null)
+          : null);
+      return {
+        cedula:             String(row[colMap.cedula!] ?? "").trim(),
+        tipoDocumento:      colMap.tipoDocumento != null
+          ? (String(row[colMap.tipoDocumento] ?? "").trim() || "CC")
+          : "CC",
+        nombres:            String(row[colMap.nombres!] ?? "").trim(),
+        apellidos:          String(row[colMap.apellidos!] ?? "").trim(),
+        email,
+        emailInstitucional,
+        emailPersonal,
+      };
+    })
     .filter((r) => r.cedula && r.nombres && r.apellidos);
 }
 

@@ -67,6 +67,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
       nombres: a.nombres,
       apellidos: a.apellidos,
       email: a.email,
+      emailInstitucional: a.emailInstitucional,
       emailPersonal: a.emailPersonal,
       intentosExtra: a.intentosExtra,
       intentosUsados: misResultados.length,
@@ -96,6 +97,7 @@ const singleSchema = z.object({
   nombres: z.string().min(1),
   apellidos: z.string().min(1),
   email: z.string().email().optional().or(z.literal("")),
+  emailInstitucional: z.string().email().optional().or(z.literal("")),
   emailPersonal: z.string().email().optional().or(z.literal("")),
   intentosExtra: z.number().int().min(0).default(0),
 });
@@ -109,6 +111,7 @@ const bulkSchema = z.object({
       nombres: z.string().min(1),
       apellidos: z.string().min(1),
       email: z.string().nullish(),
+      emailInstitucional: z.string().nullish(),
       emailPersonal: z.string().nullish(),
     })
   ),
@@ -152,6 +155,7 @@ export async function POST(req: NextRequest, { params }: Params) {
             nombres: ap.nombres,
             apellidos: ap.apellidos,
             email: ap.email?.trim() || null,
+            emailInstitucional: ap.emailInstitucional?.trim() || null,
             emailPersonal: ap.emailPersonal?.trim() || null,
             fichaId: id,
           },
@@ -174,7 +178,7 @@ export async function POST(req: NextRequest, { params }: Params) {
     );
   }
 
-  const { cedula, tipoDocumento, nombres, apellidos, email, emailPersonal, intentosExtra } =
+  const { cedula, tipoDocumento, nombres, apellidos, email, emailInstitucional, emailPersonal, intentosExtra } =
     parsed.data;
 
   const existing = await prisma.aprendiz.findFirst({
@@ -194,6 +198,7 @@ export async function POST(req: NextRequest, { params }: Params) {
       nombres,
       apellidos,
       email: email?.trim() || null,
+      emailInstitucional: emailInstitucional?.trim() || null,
       emailPersonal: emailPersonal?.trim() || null,
       intentosExtra,
       fichaId: id,

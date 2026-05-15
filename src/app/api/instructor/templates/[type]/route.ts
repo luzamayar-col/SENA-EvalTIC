@@ -12,15 +12,15 @@ export async function GET(_req: NextRequest, { params }: Params) {
     const XLSX = await import("xlsx");
 
     const templateData = [
-      ["tipoDocumento", "cedula", "nombres", "apellidos", "email"],
-      ["CC", "1020304050", "Juan Carlos", "Pérez Gómez", "jcperez@soy.sena.edu.co"],
-      ["TI", "1000123456", "María Alejandra", "González Ruiz", ""],
-      ["CE", "987654321", "Luis Fernando", "Martínez Díaz", "lmartinez@gmail.com"],
+      ["tipoDocumento", "cedula", "nombres", "apellidos", "email", "Correo Institucional", "Correo Personal"],
+      ["CC", "1020304050", "Juan Carlos", "Pérez Gómez", "jcperez@soy.sena.edu.co", "jcperez@soy.sena.edu.co", "juancarlos@gmail.com"],
+      ["TI", "1000123456", "María Alejandra", "González Ruiz", "", "magonzalez@soy.sena.edu.co", ""],
+      ["CE", "987654321", "Luis Fernando", "Martínez Díaz", "lmartinez@gmail.com", "", "lmartinez@gmail.com"],
     ];
 
     const ws = (XLSX as any).utils.aoa_to_sheet(templateData);
     ws["!cols"] = [
-      { wch: 15 }, { wch: 14 }, { wch: 20 }, { wch: 20 }, { wch: 30 },
+      { wch: 15 }, { wch: 14 }, { wch: 20 }, { wch: 20 }, { wch: 30 }, { wch: 30 }, { wch: 30 },
     ];
 
     const wb = (XLSX as any).utils.book_new();
