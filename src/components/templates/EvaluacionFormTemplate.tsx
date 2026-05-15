@@ -83,8 +83,7 @@ export function EvaluacionFormTemplate({
       emparejamiento: 2,
       umbralMedio: 2,
       umbralAlto: 3,
-      ...defaultValues,
-      // Convertir ISO UTC → hora local del browser para datetime-local
+      ...(defaultValues ? (({ fechaInicio, fechaFin, ...rest }) => rest)(defaultValues) : {}),
       fechaInicio: utcToLocalInput(defaultValues?.fechaInicio),
       fechaFin: utcToLocalInput(defaultValues?.fechaFin),
     },
