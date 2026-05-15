@@ -27,6 +27,7 @@ export default async function FichasPage() {
     },
     orderBy: { creadoEn: "desc" },
   });
+  // fichas incluye: fechaInicio, fechaFin a nivel ficha (nuevos campos)
 
   // Get evaluaciones for the select in the form
   const evaluaciones = await prisma.evaluacion.findMany({
@@ -38,6 +39,8 @@ export default async function FichasPage() {
   const serializedFichas = fichas.map((f) => ({
     ...f,
     creadoEn: f.creadoEn.toISOString(),
+    fechaInicio: f.fechaInicio?.toISOString() ?? null,
+    fechaFin: f.fechaFin?.toISOString() ?? null,
     evaluacion: {
       ...f.evaluacion,
       fechaInicio: f.evaluacion.fechaInicio?.toISOString() ?? null,

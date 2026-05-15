@@ -2,6 +2,7 @@ import { FormularioRegistro } from "@/components/templates/FormularioRegistro";
 import { ShieldCheckIcon, TimerIcon, AlertTriangle } from "lucide-react";
 import { APP_CONFIG } from "@/lib/config";
 import { prisma } from "@/lib/prisma";
+import { getEffectiveDates, isVigente } from "@/lib/effective-dates";
 
 export const dynamic = "force-dynamic";
 
@@ -10,20 +11,46 @@ export default async function LandingPage() {
 
   if (APP_CONFIG.useDatabaseBackend) {
     const now = new Date();
-    fichas = await prisma.ficha.findMany({
+    // WHERE ampliado: incluye fichas donde la evaluación esté vigente
+    // O donde la ficha tenga fechas propias vigentes (override)
+    const rawFichas = await prisma.ficha.findMany({
       where: {
         activa: true,
-        evaluacion: {
-          activa: true,
-          AND: [
-            { OR: [{ fechaInicio: null }, { fechaInicio: { lte: now } }] },
-            { OR: [{ fechaFin: null }, { fechaFin: { gte: now } }] },
-          ],
-        },
+        evaluacion: { activa: true },
+        OR: [
+          // Evaluación dentro de vigencia (comportamiento previo)
+          {
+            evaluacion: {
+              AND: [
+                { OR: [{ fechaInicio: null }, { fechaInicio: { lte: now } }] },
+                { OR: [{ fechaFin: null }, { fechaFin: { gte: now } }] },
+              ],
+            },
+          },
+          // Ficha con override de fechas dentro de vigencia (nuevo)
+          {
+            AND: [
+              { fechaInicio: { not: null } },
+              { fechaInicio: { lte: now } },
+              { OR: [{ fechaFin: null }, { fechaFin: { gte: now } }] },
+            ],
+          },
+        ],
       },
-      select: { numero: true, programa: true },
+      select: {
+        numero: true,
+        programa: true,
+        fechaInicio: true,
+        fechaFin: true,
+        evaluacion: { select: { fechaInicio: true, fechaFin: true } },
+      },
       orderBy: { numero: "asc" },
     });
+
+    // Post-filter JS con fechas efectivas para afinar (ej: ficha.fechaFin < now aunque eval vigente)
+    fichas = rawFichas
+      .filter((f) => isVigente(getEffectiveDates(f, f.evaluacion), now).ok)
+      .map(({ numero, programa }) => ({ numero, programa }));
   }
 
   return (
