@@ -55,8 +55,8 @@ export default async function EditarEvaluacionPage({ params }: Props) {
     seleccion_unica: config.distribucionPreguntas.seleccion_unica,
     seleccion_multiple: config.distribucionPreguntas.seleccion_multiple,
     emparejamiento: config.distribucionPreguntas.emparejamiento,
-    umbralMedio: config.umbralAntiplagio?.medio ?? 3,
-    umbralAlto: config.umbralAntiplagio?.alto ?? 5,
+    umbralMedio: config.umbralAntiplagio?.medio ?? 2,
+    umbralAlto: config.umbralAntiplagio?.alto ?? 3,
   };
 
   const preguntas = evaluacion.preguntas as unknown[];
