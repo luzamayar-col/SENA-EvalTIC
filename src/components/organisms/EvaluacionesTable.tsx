@@ -15,7 +15,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { ConfirmDialog } from "@/components/molecules/ConfirmDialog";
-import { Pencil, Trash2, Users2, BarChart2, FlaskConical, ListChecks, Loader2 } from "lucide-react";
+import { Pencil, Trash2, Users2, BarChart2, FlaskConical, ListChecks, Loader2, Bell } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { useEvaluacionStore } from "@/stores/evaluacion-store";
 
@@ -57,6 +65,13 @@ export function EvaluacionesTable({ evaluaciones }: EvaluacionesTableProps) {
   const [testing, setTesting] = useState<string | null>(null);
   const iniciarEvaluacion = useEvaluacionStore((s) => s.iniciarEvaluacion);
 
+  // Notificación por evaluación
+  const [notificarEvalId, setNotificarEvalId] = useState<string | null>(null);
+  const [notificarMensaje, setNotificarMensaje] = useState("");
+  const [notificando, setNotificando] = useState(false);
+  const [notificarResult, setNotificarResult] = useState<{ enviados: number; sinEmail: number; fichas: number } | null>(null);
+  const [notificarError, setNotificarError] = useState<string | null>(null);
+
   const handleToggle = async (id: string) => {
     setToggling(id);
     await fetch(`/api/instructor/evaluaciones/${id}/toggle-active`, { method: "PATCH" });
@@ -69,6 +84,29 @@ export function EvaluacionesTable({ evaluaciones }: EvaluacionesTableProps) {
     await fetch(`/api/instructor/evaluaciones/${id}`, { method: "DELETE" });
     router.refresh();
     setDeleting(null);
+  };
+
+  const handleNotificar = async () => {
+    if (!notificarEvalId) return;
+    setNotificando(true);
+    setNotificarError(null);
+    try {
+      const res = await fetch(`/api/instructor/evaluaciones/${notificarEvalId}/notificar`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mensaje: notificarMensaje.trim() || undefined }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setNotificarError(data.error ?? "No se pudo enviar la notificación");
+      } else {
+        setNotificarResult(data);
+      }
+    } catch {
+      setNotificarError("Error de red. Intenta nuevamente.");
+    } finally {
+      setNotificando(false);
+    }
   };
 
   const handleProbar = async (id: string) => {
@@ -107,6 +145,7 @@ export function EvaluacionesTable({ evaluaciones }: EvaluacionesTableProps) {
   }
 
   return (
+    <>
     <div className="rounded-xl border border-sena-gray-dark/10 overflow-hidden">
       <Table>
         <TableHeader>
@@ -176,6 +215,21 @@ export function EvaluacionesTable({ evaluaciones }: EvaluacionesTableProps) {
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-1">
+                  {/* Notificar aprendices */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-sena-blue hover:bg-sena-blue/10"
+                    title="Notificar aprendices"
+                    onClick={() => {
+                      setNotificarEvalId(ev.id);
+                      setNotificarMensaje("");
+                      setNotificarResult(null);
+                      setNotificarError(null);
+                    }}
+                  >
+                    <Bell size={14} />
+                  </Button>
                   {/* Test mode */}
                   <Button
                     variant="ghost"
@@ -220,5 +274,75 @@ export function EvaluacionesTable({ evaluaciones }: EvaluacionesTableProps) {
         </TableBody>
       </Table>
     </div>
+
+      {/* Dialog — notificar aprendices de la evaluación */}
+      <Dialog
+        open={!!notificarEvalId}
+        onOpenChange={(open) => { if (!open) setNotificarEvalId(null); }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-sena-blue flex items-center gap-2">
+              <Bell size={16} /> Notificar aprendices
+            </DialogTitle>
+          </DialogHeader>
+
+          {notificarResult ? (
+            <div className="space-y-3 py-2">
+              <div className="bg-sena-green/5 border border-sena-green/20 rounded-md px-4 py-3 text-sm text-sena-blue">
+                <p className="font-semibold">Notificación enviada</p>
+                <p className="mt-1">
+                  Se notificaron <strong>{notificarResult.enviados}</strong> aprendice{notificarResult.enviados !== 1 ? "s" : ""} en <strong>{notificarResult.fichas}</strong> ficha{notificarResult.fichas !== 1 ? "s" : ""}.
+                  {notificarResult.sinEmail > 0 && (
+                    <> {notificarResult.sinEmail} aprendice{notificarResult.sinEmail !== 1 ? "s" : ""} no tiene{notificarResult.sinEmail !== 1 ? "n" : ""} correo personal registrado.</>
+                  )}
+                </p>
+              </div>
+              <Button className="w-full bg-sena-blue hover:bg-sena-blue/90" onClick={() => setNotificarEvalId(null)}>
+                Cerrar
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4 py-2">
+              <p className="text-sm text-sena-gray-dark/70">
+                Se enviará un correo de convocatoria a todos los aprendices con correo personal registrado en todas las fichas de esta evaluación.
+              </p>
+              {notificarError && (
+                <div className="bg-red-50 border border-red-200 rounded-md px-3 py-2 text-sm text-red-700">
+                  {notificarError}
+                </div>
+              )}
+              <div className="space-y-2">
+                <Label htmlFor="notif-eval-msg" className="text-sm font-medium">
+                  Mensaje adicional <span className="text-sena-gray-dark/40 font-normal">(opcional)</span>
+                </Label>
+                <Textarea
+                  id="notif-eval-msg"
+                  value={notificarMensaje}
+                  onChange={(e) => setNotificarMensaje(e.target.value)}
+                  placeholder="Ej: Recuerden ingresar el martes a partir de las 8am..."
+                  className="resize-none text-sm"
+                  rows={3}
+                  maxLength={2000}
+                />
+              </div>
+              <div className="flex gap-2 pt-1">
+                <Button variant="outline" className="flex-1" onClick={() => setNotificarEvalId(null)}>
+                  Cancelar
+                </Button>
+                <Button
+                  className="flex-1 bg-sena-blue hover:bg-sena-blue/90 gap-1.5"
+                  onClick={handleNotificar}
+                  disabled={notificando}
+                >
+                  {notificando ? <Loader2 size={14} className="animate-spin" /> : <Bell size={14} />}
+                  {notificando ? "Enviando..." : "Enviar notificación"}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
