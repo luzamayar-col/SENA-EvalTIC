@@ -81,7 +81,7 @@ export async function POST(req: NextRequest, { params }: Params) {
   const session = await requireInstructor();
   const { id: evaluacionId } = await params;
 
-  // 1. Verificar que la evaluación pertenece al instructor y cargar fichas + aprendices
+  // 1. Verificar que la evaluación pertenece al instructor
   const evaluacion = await prisma.evaluacion.findFirst({
     where: { id: evaluacionId, instructorId: session.user.instructorId },
     select: {
@@ -93,15 +93,12 @@ export async function POST(req: NextRequest, { params }: Params) {
         select: { email: true, resendApiKey: true },
       },
       fichas: {
+        take: 1,
         select: {
-          id: true,
           numero: true,
           programa: true,
           fechaInicio: true,
           fechaFin: true,
-          aprendices: {
-            select: { nombres: true, apellidos: true, emailPersonal: true },
-          },
         },
       },
     },
@@ -135,85 +132,33 @@ export async function POST(req: NextRequest, { params }: Params) {
   const apiKey = safeDecrypt(resendApiKey);
   const resend = new Resend(apiKey);
 
-  // 4. Enviar a todas las fichas
-  let enviados = 0;
-  let sinEmail = 0;
+  // 4. Enviar correo de convocatoria solo al instructor
+  const ficha = evaluacion.fichas[0];
+  const fechaInicio = formatFechaEsCO(ficha?.fechaInicio ?? evaluacion.fechaInicio);
+  const fechaFin    = formatFechaEsCO(ficha?.fechaFin    ?? evaluacion.fechaFin);
 
-  for (const ficha of evaluacion.fichas) {
-    const conEmail = ficha.aprendices.filter((a) => a.emailPersonal);
-    sinEmail += ficha.aprendices.length - conEmail.length;
+  const html = buildHtmlNotificacion({
+    nombres:          "Aprendiz Ejemplo",
+    evaluacionNombre: evaluacion.nombre,
+    fichaNumero:      ficha?.numero ?? "—",
+    fichaPrograma:    ficha?.programa ?? "—",
+    fechaInicio,
+    fechaFin,
+    maxIntentos:      evaluacion.maxIntentos,
+    mensaje,
+  });
 
-    const fechaInicio = formatFechaEsCO(ficha.fechaInicio ?? evaluacion.fechaInicio);
-    const fechaFin    = formatFechaEsCO(ficha.fechaFin    ?? evaluacion.fechaFin);
+  const { error } = await resend.emails.send({
+    from: senderEmail,
+    to: [evaluacion.instructor.email],
+    subject: `Evaluación disponible: ${evaluacion.nombre}`,
+    html,
+  });
 
-    for (const aprendiz of conEmail) {
-      const html = buildHtmlNotificacion({
-        nombres:          aprendiz.nombres,
-        evaluacionNombre: evaluacion.nombre,
-        fichaNumero:      ficha.numero,
-        fichaPrograma:    ficha.programa,
-        fechaInicio,
-        fechaFin,
-        maxIntentos:      evaluacion.maxIntentos,
-        mensaje,
-      });
-
-      try {
-        const { error } = await resend.emails.send({
-          from: senderEmail,
-          to: [aprendiz.emailPersonal!],
-          subject: `Evaluación disponible: ${evaluacion.nombre} — Ficha ${ficha.numero}`,
-          html,
-        });
-        if (!error) enviados++;
-        else console.warn(`Resend error para ${aprendiz.emailPersonal}:`, error);
-      } catch (err) {
-        console.warn(`Fallo de envío para ${aprendiz.emailPersonal}:`, err);
-      }
-    }
+  if (error) {
+    console.warn("Error al enviar correo de prueba:", error);
+    return NextResponse.json({ error: "No se pudo enviar el correo de prueba" }, { status: 500 });
   }
 
-  // 5. Resumen al instructor (fire-and-forget)
-  ;(async () => {
-    try {
-      const htmlResumen = `
-        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
-          <div style="background-color:#00324D;padding:20px;text-align:center;">
-            <h1 style="color:#ffffff;margin:0;font-size:20px;">Resumen de notificación</h1>
-            <p style="color:#ffffff;margin:5px 0 0 0;opacity:0.8;">EvalTIC SENA</p>
-          </div>
-          <div style="padding:24px;background-color:#fafafa;">
-            <p style="font-size:15px;color:#374151;margin-top:0;">
-              La convocatoria fue enviada a los aprendices de <strong>${evaluacion.fichas.length}</strong> ficha${evaluacion.fichas.length !== 1 ? "s" : ""}.
-            </p>
-            <table style="width:100%;border-collapse:collapse;font-size:14px;">
-              <tbody>
-                <tr><td style="padding:7px 0;border-bottom:1px solid #f3f4f6;color:#6b7280;width:50%;">Evaluación</td><td style="padding:7px 0;border-bottom:1px solid #f3f4f6;font-weight:500;">${evaluacion.nombre}</td></tr>
-                <tr><td style="padding:7px 0;border-bottom:1px solid #f3f4f6;color:#6b7280;">Fichas notificadas</td><td style="padding:7px 0;border-bottom:1px solid #f3f4f6;">${evaluacion.fichas.length}</td></tr>
-                <tr><td style="padding:7px 0;border-bottom:1px solid #f3f4f6;color:#6b7280;">Correos enviados</td><td style="padding:7px 0;border-bottom:1px solid #f3f4f6;">${enviados}</td></tr>
-                <tr><td style="padding:7px 0;color:#6b7280;">Sin correo registrado</td><td style="padding:7px 0;">${sinEmail}</td></tr>
-              </tbody>
-            </table>
-            ${mensaje ? `
-            <div style="margin-top:16px;padding:14px;background-color:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;font-size:14px;color:#166534;">
-              <strong>Mensaje enviado a los aprendices:</strong><br/>${mensaje}
-            </div>` : ""}
-            <p style="margin-top:24px;font-size:13px;color:#9ca3af;text-align:center;border-top:1px solid #e5e7eb;padding-top:15px;">
-              Este es un correo automático generado por el sistema EvalTIC del SENA.
-            </p>
-          </div>
-        </div>
-      `;
-      await resend.emails.send({
-        from: senderEmail,
-        to: [evaluacion.instructor.email],
-        subject: `Notificación enviada — ${evaluacion.nombre} (${evaluacion.fichas.length} ficha${evaluacion.fichas.length !== 1 ? "s" : ""})`,
-        html: htmlResumen,
-      });
-    } catch (err) {
-      console.warn("Error al enviar resumen al instructor:", err);
-    }
-  })();
-
-  return NextResponse.json({ enviados, sinEmail, fichas: evaluacion.fichas.length });
+  return NextResponse.json({ enviado: true });
 }

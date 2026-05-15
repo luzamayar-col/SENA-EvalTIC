@@ -69,7 +69,7 @@ export function EvaluacionesTable({ evaluaciones }: EvaluacionesTableProps) {
   const [notificarEvalId, setNotificarEvalId] = useState<string | null>(null);
   const [notificarMensaje, setNotificarMensaje] = useState("");
   const [notificando, setNotificando] = useState(false);
-  const [notificarResult, setNotificarResult] = useState<{ enviados: number; sinEmail: number; fichas: number } | null>(null);
+  const [notificarResult, setNotificarResult] = useState<{ enviado: boolean } | null>(null);
   const [notificarError, setNotificarError] = useState<string | null>(null);
 
   const handleToggle = async (id: string) => {
@@ -283,20 +283,15 @@ export function EvaluacionesTable({ evaluaciones }: EvaluacionesTableProps) {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-sena-blue flex items-center gap-2">
-              <Bell size={16} /> Notificar aprendices
+              <Bell size={16} /> Enviar correo de convocatoria
             </DialogTitle>
           </DialogHeader>
 
           {notificarResult ? (
             <div className="space-y-3 py-2">
               <div className="bg-sena-green/5 border border-sena-green/20 rounded-md px-4 py-3 text-sm text-sena-blue">
-                <p className="font-semibold">Notificación enviada</p>
-                <p className="mt-1">
-                  Se notificaron <strong>{notificarResult.enviados}</strong> aprendice{notificarResult.enviados !== 1 ? "s" : ""} en <strong>{notificarResult.fichas}</strong> ficha{notificarResult.fichas !== 1 ? "s" : ""}.
-                  {notificarResult.sinEmail > 0 && (
-                    <> {notificarResult.sinEmail} aprendice{notificarResult.sinEmail !== 1 ? "s" : ""} no tiene{notificarResult.sinEmail !== 1 ? "n" : ""} correo personal registrado.</>
-                  )}
-                </p>
+                <p className="font-semibold">Correo enviado</p>
+                <p className="mt-1">El correo de convocatoria fue enviado a tu dirección de correo.</p>
               </div>
               <Button className="w-full bg-sena-blue hover:bg-sena-blue/90" onClick={() => setNotificarEvalId(null)}>
                 Cerrar
@@ -305,7 +300,7 @@ export function EvaluacionesTable({ evaluaciones }: EvaluacionesTableProps) {
           ) : (
             <div className="space-y-4 py-2">
               <p className="text-sm text-sena-gray-dark/70">
-                Se enviará un correo de convocatoria a todos los aprendices con correo personal registrado en todas las fichas de esta evaluación.
+                Se enviará el correo de convocatoria a tu dirección de correo.
               </p>
               {notificarError && (
                 <div className="bg-red-50 border border-red-200 rounded-md px-3 py-2 text-sm text-red-700">
@@ -336,7 +331,7 @@ export function EvaluacionesTable({ evaluaciones }: EvaluacionesTableProps) {
                   disabled={notificando}
                 >
                   {notificando ? <Loader2 size={14} className="animate-spin" /> : <Bell size={14} />}
-                  {notificando ? "Enviando..." : "Enviar notificación"}
+                  {notificando ? "Enviando..." : "Enviar correo"}
                 </Button>
               </div>
             </div>
