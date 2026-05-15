@@ -393,11 +393,34 @@ Si en el futuro se verifica un dominio propio en Resend, solo hay que actualizar
 
 En **Vercel Dashboard → Settings → Environment Variables** agregar:
 
-| Variable | Valor |
-|---|---|
-| `DATABASE_URL` | URL directa de Neon |
-| `NEXTAUTH_SECRET` | Secret generado (diferente al de desarrollo) |
-| `NEXTAUTH_URL` | `https://tu-dominio.vercel.app` |
-| `NEXT_PUBLIC_USE_DB_BACKEND` | `true` |
+### Obligatorias
 
-> `RESEND_API_KEY`, `NEXT_PUBLIC_INSTRUCTOR_EMAIL` y `NEXT_PUBLIC_SENDER_EMAIL` ya **no son necesarias** — las API keys de Resend se almacenan por instructor en la base de datos.
+| Variable | Valor | Cómo obtenerla |
+|---|---|---|
+| `DATABASE_URL` | Connection string de Neon (pooler) | Neon console → Connect → Pooled connection |
+| `NEXTAUTH_SECRET` | 32 bytes en hex | `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
+| `NEXTAUTH_URL` | `https://tu-dominio.vercel.app` | URL pública del deploy |
+| `NEXT_PUBLIC_USE_DB_BACKEND` | `true` | Activa el backend Neon |
+
+### Para el seed inicial (primer despliegue)
+
+Solo se necesitan al correr `npx prisma db seed`. Pueden eliminarse después.
+
+| Variable | Descripción | Default si se omite |
+|---|---|---|
+| `INSTRUCTOR_SEED_EMAIL` | Email del instructor admin | — (falla el seed) |
+| `INSTRUCTOR_SEED_PASSWORD` | Contraseña del instructor admin (8+ chars, mayúscula, número, símbolo) | — (falla el seed) |
+| `INSTRUCTOR_SEED_NOMBRE` | Nombre del instructor admin | `Administrador EvalTIC` |
+
+### Opcionales pero recomendadas
+
+| Variable | Descripción | Default si se omite |
+|---|---|---|
+| `ENCRYPTION_KEY` | 64 hex chars (32 bytes) para cifrar API keys de Resend en la DB | Sin cifrado — las keys se guardan en texto plano |
+
+Generar `ENCRYPTION_KEY`:
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+> Las API keys de Resend **no son variables de entorno globales** — cada instructor las configura desde su perfil (`/instructor/perfil`). El `ENCRYPTION_KEY` solo cifra esas keys antes de guardarlas en la BD.
