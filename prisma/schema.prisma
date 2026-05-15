@@ -50,6 +50,8 @@ model Ficha {
   programa     String
   descripcion  String?
   activa       Boolean     @default(true)
+  fechaInicio  DateTime?
+  fechaFin     DateTime?
   evaluacion   Evaluacion  @relation(fields: [evaluacionId], references: [id], onDelete: Cascade)
   evaluacionId String
   resultados   Resultado[]
