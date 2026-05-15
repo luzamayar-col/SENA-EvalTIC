@@ -151,9 +151,17 @@ export function FichasTable({ fichas }: FichasTableProps) {
 
   const handleDelete = async (id: string) => {
     setDeleting(id);
-    await fetch(`/api/instructor/fichas/${id}`, { method: "DELETE" });
-    router.refresh();
-    setDeleting(null);
+    try {
+      const res = await fetch(`/api/instructor/fichas/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        router.refresh();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error ?? "No se pudo eliminar la ficha");
+      }
+    } finally {
+      setDeleting(null);
+    }
   };
 
   if (fichas.length === 0) {

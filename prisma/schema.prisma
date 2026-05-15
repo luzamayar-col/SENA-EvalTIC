@@ -103,7 +103,7 @@ model Resultado {
   anulada                Boolean    @default(false)
   evaluacion             Evaluacion @relation(fields: [evaluacionId], references: [id])
   evaluacionId       String
-  ficha              Ficha      @relation(fields: [fichaId], references: [id])
+  ficha              Ficha      @relation(fields: [fichaId], references: [id], onDelete: Cascade)
   fichaId            String
   presentadoEn       DateTime   @default(now())
 
