@@ -56,3 +56,23 @@ export function isVigente(eff: Effective, now: Date): VigenciaResult {
   }
   return { ok: true };
 }
+
+/**
+ * Convierte un ISO UTC string al formato "YYYY-MM-DDTHH:mm" en hora local
+ * del browser — para poblar inputs datetime-local con la hora correcta.
+ */
+export function utcToLocalInput(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const offsetMs = d.getTimezoneOffset() * 60 * 1000;
+  return new Date(d.getTime() - offsetMs).toISOString().slice(0, 16);
+}
+
+/**
+ * Convierte el valor de un input datetime-local (hora local del browser)
+ * a un ISO UTC string para enviar al API.
+ */
+export function localInputToISO(local: string | null | undefined): string | null {
+  if (!local) return null;
+  return new Date(local).toISOString();
+}

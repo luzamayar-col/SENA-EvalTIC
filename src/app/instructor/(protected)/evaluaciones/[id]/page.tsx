@@ -44,10 +44,10 @@ export default async function EditarEvaluacionPage({ params }: Props) {
     resultadoAprendizaje: evaluacion.resultadoAprendizaje,
     codigoRA: evaluacion.codigoRA,
     fechaInicio: evaluacion.fechaInicio
-      ? evaluacion.fechaInicio.toISOString().slice(0, 16)
+      ? evaluacion.fechaInicio.toISOString()
       : "",
     fechaFin: evaluacion.fechaFin
-      ? evaluacion.fechaFin.toISOString().slice(0, 16)
+      ? evaluacion.fechaFin.toISOString()
       : "",
     timeLimitMinutes: config.timeLimitMinutes,
     passingScorePercentage: config.passingScorePercentage,

@@ -26,7 +26,7 @@ import { ConfirmDialog } from "@/components/molecules/ConfirmDialog";
 import Link from "next/link";
 import { Pencil, Trash2, Loader2, ExternalLink, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getEffectiveDates, isVigente } from "@/lib/effective-dates";
+import { getEffectiveDates, isVigente, utcToLocalInput, localInputToISO } from "@/lib/effective-dates";
 
 interface Ficha {
   id: string;
@@ -101,9 +101,9 @@ export function FichasTable({ fichas }: FichasTableProps) {
       numero: ficha.numero,
       programa: ficha.programa,
       descripcion: ficha.descripcion ?? "",
-      // Convertir ISO → formato datetime-local (YYYY-MM-DDTHH:mm), null → ""
-      fechaInicio: ficha.fechaInicio ? ficha.fechaInicio.slice(0, 16) : "",
-      fechaFin: ficha.fechaFin ? ficha.fechaFin.slice(0, 16) : "",
+      // Convertir ISO UTC → hora local del browser para datetime-local
+      fechaInicio: utcToLocalInput(ficha.fechaInicio),
+      fechaFin: utcToLocalInput(ficha.fechaFin),
     });
   };
 
@@ -133,8 +133,8 @@ export function FichasTable({ fichas }: FichasTableProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...editForm,
-          fechaInicio: editForm.fechaInicio || null,
-          fechaFin: editForm.fechaFin || null,
+          fechaInicio: localInputToISO(editForm.fechaInicio),
+          fechaFin: localInputToISO(editForm.fechaFin),
         }),
       });
       if (!res.ok) {

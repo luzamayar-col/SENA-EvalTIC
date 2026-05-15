@@ -20,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { JsonUploader } from "@/components/molecules/JsonUploader";
 import { Loader2, Save, BookOpen, Settings, CalendarDays, FileQuestion, Clock, Target, RefreshCw, CheckSquare, AlignLeft, Shuffle, ShieldAlert } from "lucide-react";
+import { utcToLocalInput, localInputToISO } from "@/lib/effective-dates";
 
 const evaluacionSchema = z.object({
   nombre: z.string().min(4, "El nombre debe tener al menos 4 caracteres"),
@@ -83,6 +84,9 @@ export function EvaluacionFormTemplate({
       umbralMedio: 2,
       umbralAlto: 3,
       ...defaultValues,
+      // Convertir ISO UTC → hora local del browser para datetime-local
+      fechaInicio: utcToLocalInput(defaultValues?.fechaInicio),
+      fechaFin: utcToLocalInput(defaultValues?.fechaFin),
     },
   });
 
@@ -102,8 +106,8 @@ export function EvaluacionFormTemplate({
       resultadoAprendizaje: values.resultadoAprendizaje,
       codigoRA: values.codigoRA,
       preguntas: preguntas.length > 0 ? preguntas : undefined,
-      fechaInicio: values.fechaInicio || null,
-      fechaFin: values.fechaFin || null,
+      fechaInicio: localInputToISO(values.fechaInicio),
+      fechaFin: localInputToISO(values.fechaFin),
       maxIntentos: values.maxIntentos,
       config: {
         timeLimitMinutes: values.timeLimitMinutes,

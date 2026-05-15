@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, PlusCircle } from "lucide-react";
+import { localInputToISO } from "@/lib/effective-dates";
 
 const fichaSchema = z
   .object({
@@ -82,7 +83,11 @@ export function FichaFormInline({ evaluaciones }: FichaFormInlineProps) {
       const res = await fetch("/api/instructor/fichas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          ...values,
+          fechaInicio: localInputToISO(values.fechaInicio),
+          fechaFin: localInputToISO(values.fechaFin),
+        }),
       });
 
       if (!res.ok) {
