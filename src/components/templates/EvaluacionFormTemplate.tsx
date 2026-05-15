@@ -20,7 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { JsonUploader } from "@/components/molecules/JsonUploader";
-import { Loader2, Save, BookOpen, Settings, CalendarDays, FileQuestion, Clock, Target, RefreshCw, CheckSquare, AlignLeft, Shuffle, ShieldAlert } from "lucide-react";
+import { Loader2, Save, BookOpen, Settings, CalendarDays, FileQuestion, Clock, Target, RefreshCw, CheckSquare, AlignLeft, Shuffle, ShieldAlert, FileDown } from "lucide-react";
 import { utcToLocalInput, localInputToISO } from "@/lib/effective-dates";
 
 const evaluacionSchema = z.object({
@@ -336,10 +336,21 @@ export function EvaluacionFormTemplate({
         {/* Banco de preguntas */}
         <Card className="shadow-sm border-sena-gray-dark/10">
           <CardHeader className="pb-4">
-            <CardTitle className="text-sena-blue flex items-center gap-2 text-base">
-              <FileQuestion size={18} className="text-sena-green" />
-              Banco de preguntas
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sena-blue flex items-center gap-2 text-base">
+                <FileQuestion size={18} className="text-sena-green" />
+                Banco de preguntas
+              </CardTitle>
+              {mode === "edit" && evaluacionId && defaultPreguntas && defaultPreguntas.length > 0 && (
+                <a
+                  href={`/api/instructor/evaluaciones/${evaluacionId}/preguntas`}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-sena-blue border border-sena-blue/30 rounded-lg px-3 py-1.5 hover:bg-sena-blue/5"
+                >
+                  <FileDown size={13} />
+                  Descargar banco
+                </a>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             {defaultPreguntas && defaultPreguntas.length > 0 && preguntas === defaultPreguntas ? (

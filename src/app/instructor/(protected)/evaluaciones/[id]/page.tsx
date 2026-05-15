@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { requireInstructor } from "@/lib/auth-utils";
 import { prisma } from "@/lib/prisma";
 import { EvaluacionFormTemplate } from "@/components/templates/EvaluacionFormTemplate";
-import { Pencil, FileDown } from "lucide-react";
+import { Pencil } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -63,23 +63,12 @@ export default async function EditarEvaluacionPage({ params }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <Pencil size={24} className="text-sena-green" />
-          <div>
-            <h1 className="text-2xl font-black text-sena-blue">Editar Evaluación</h1>
-            <p className="text-sm text-sena-gray-dark/60 mt-0.5">{evaluacion.nombre}</p>
-          </div>
+      <div className="flex items-center gap-3">
+        <Pencil size={24} className="text-sena-green" />
+        <div>
+          <h1 className="text-2xl font-black text-sena-blue">Editar Evaluación</h1>
+          <p className="text-sm text-sena-gray-dark/60 mt-0.5">{evaluacion.nombre}</p>
         </div>
-        {preguntas.length > 0 && (
-          <a
-            href={`/api/instructor/evaluaciones/${evaluacion.id}/preguntas`}
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-sena-blue border border-sena-blue/30 rounded-lg px-3 py-2 hover:bg-sena-blue/5 shrink-0"
-          >
-            <FileDown size={15} />
-            Descargar banco
-          </a>
-        )}
       </div>
 
       <EvaluacionFormTemplate
