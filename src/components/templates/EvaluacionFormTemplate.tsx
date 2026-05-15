@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { JsonUploader } from "@/components/molecules/JsonUploader";
 import { Loader2, Save, BookOpen, Settings, CalendarDays, FileQuestion, Clock, Target, RefreshCw, CheckSquare, AlignLeft, Shuffle, ShieldAlert } from "lucide-react";
@@ -63,6 +64,20 @@ export function EvaluacionFormTemplate({
   const [preguntas, setPreguntas] = useState<unknown[]>(defaultPreguntas ?? []);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  type OpcionExistente = { codigo: string; nombre: string };
+  const [competenciasExistentes, setCompetenciasExistentes] = useState<OpcionExistente[]>([]);
+  const [resultadosExistentes, setResultadosExistentes] = useState<OpcionExistente[]>([]);
+
+  useEffect(() => {
+    fetch("/api/instructor/evaluaciones/competencias")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.competencias) setCompetenciasExistentes(d.competencias);
+        if (d.resultados)   setResultadosExistentes(d.resultados);
+      })
+      .catch(() => {});
+  }, []);
 
   const form = useForm<EvaluacionFormValues>({
     resolver: zodResolver(evaluacionSchema),
@@ -197,6 +212,37 @@ export function EvaluacionFormTemplate({
               )}
             />
             <Separator />
+
+            {/* Selector de competencia existente */}
+            {competenciasExistentes.length > 0 && (
+              <div className="space-y-1.5">
+                <p className="text-xs font-semibold text-sena-gray-dark/60">
+                  Competencias usadas anteriormente
+                </p>
+                <Select
+                  onValueChange={(codigo) => {
+                    const found = competenciasExistentes.find((c) => c.codigo === codigo);
+                    if (found) {
+                      form.setValue("codigoCompetencia", found.codigo, { shouldValidate: true });
+                      form.setValue("competencia", found.nombre, { shouldValidate: true });
+                    }
+                  }}
+                >
+                  <SelectTrigger className="text-sm">
+                    <SelectValue placeholder="Seleccionar competencia existente…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {competenciasExistentes.map((c) => (
+                      <SelectItem key={c.codigo} value={c.codigo}>
+                        <span className="font-mono text-xs text-sena-gray-dark/60 mr-2">{c.codigo}</span>
+                        <span className="truncate">{c.nombre.length > 60 ? c.nombre.slice(0, 60) + "…" : c.nombre}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -224,6 +270,39 @@ export function EvaluacionFormTemplate({
                   </FormItem>
                 )}
               />
+            </div>
+
+            {/* Selector de resultado de aprendizaje existente */}
+            {resultadosExistentes.length > 0 && (
+              <div className="space-y-1.5">
+                <p className="text-xs font-semibold text-sena-gray-dark/60">
+                  Resultados de aprendizaje usados anteriormente
+                </p>
+                <Select
+                  onValueChange={(codigo) => {
+                    const found = resultadosExistentes.find((r) => r.codigo === codigo);
+                    if (found) {
+                      form.setValue("codigoRA", found.codigo, { shouldValidate: true });
+                      form.setValue("resultadoAprendizaje", found.nombre, { shouldValidate: true });
+                    }
+                  }}
+                >
+                  <SelectTrigger className="text-sm">
+                    <SelectValue placeholder="Seleccionar resultado de aprendizaje existente…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {resultadosExistentes.map((r) => (
+                      <SelectItem key={r.codigo} value={r.codigo}>
+                        <span className="font-mono text-xs text-sena-gray-dark/60 mr-2">{r.codigo}</span>
+                        <span className="truncate">{r.nombre.length > 60 ? r.nombre.slice(0, 60) + "…" : r.nombre}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="codigoRA"
