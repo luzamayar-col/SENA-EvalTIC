@@ -62,18 +62,19 @@ model Ficha {
 }
 
 model Aprendiz {
-  id            String   @id @default(cuid())
-  cedula        String
-  tipoDocumento String   @default("CC")
-  nombres       String
-  apellidos     String
-  email         String?
-  emailPersonal String?
-  intentosExtra Int      @default(0)
-  ficha         Ficha    @relation(fields: [fichaId], references: [id], onDelete: Cascade)
-  fichaId       String
-  creadoEn      DateTime @default(now())
-  actualizadoEn DateTime @updatedAt
+  id                  String   @id @default(cuid())
+  cedula              String
+  tipoDocumento       String   @default("CC")
+  nombres             String
+  apellidos           String
+  email               String?
+  emailInstitucional  String?
+  emailPersonal       String?
+  intentosExtra       Int      @default(0)
+  ficha               Ficha    @relation(fields: [fichaId], references: [id], onDelete: Cascade)
+  fichaId             String
+  creadoEn            DateTime @default(now())
+  actualizadoEn       DateTime @updatedAt
 
   @@unique([cedula, fichaId])
 }
