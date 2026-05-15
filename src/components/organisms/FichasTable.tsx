@@ -26,6 +26,7 @@ import { ConfirmDialog } from "@/components/molecules/ConfirmDialog";
 import Link from "next/link";
 import { Pencil, Trash2, Loader2, ExternalLink, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getEffectiveDates, isVigente } from "@/lib/effective-dates";
 
 interface Ficha {
   id: string;
@@ -34,6 +35,8 @@ interface Ficha {
   descripcion: string | null;
   activa: boolean;
   creadoEn: string;
+  fechaInicio: string | null;
+  fechaFin: string | null;
   evaluacion: {
     id: string;
     nombre: string;
@@ -65,10 +68,12 @@ function getEstado(ficha: Ficha): EstadoBadge {
     return { label: "Eval. inactiva", variant: "outline", className: "text-sena-gray-dark/50" };
   }
   const now = new Date();
-  if (ficha.evaluacion.fechaInicio && now < new Date(ficha.evaluacion.fechaInicio)) {
-    return { label: "Programada", variant: "outline", className: "border-amber-400 text-amber-600" };
-  }
-  if (ficha.evaluacion.fechaFin && now > new Date(ficha.evaluacion.fechaFin)) {
+  const eff = getEffectiveDates(ficha, ficha.evaluacion);
+  const vigencia = isVigente(eff, now);
+  if (!vigencia.ok) {
+    if (vigencia.reason === "antes") {
+      return { label: "Programada", variant: "outline", className: "border-amber-400 text-amber-600" };
+    }
     return { label: "Vencida", variant: "destructive" };
   }
   return { label: "Activa", variant: "default", className: "bg-sena-green text-white" };
@@ -83,6 +88,8 @@ export function FichasTable({ fichas }: FichasTableProps) {
     numero: "",
     programa: "",
     descripcion: "",
+    fechaInicio: "",
+    fechaFin: "",
   });
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -94,6 +101,9 @@ export function FichasTable({ fichas }: FichasTableProps) {
       numero: ficha.numero,
       programa: ficha.programa,
       descripcion: ficha.descripcion ?? "",
+      // Convertir ISO → formato datetime-local (YYYY-MM-DDTHH:mm), null → ""
+      fechaInicio: ficha.fechaInicio ? ficha.fechaInicio.slice(0, 16) : "",
+      fechaFin: ficha.fechaFin ? ficha.fechaFin.slice(0, 16) : "",
     });
   };
 
@@ -117,7 +127,11 @@ export function FichasTable({ fichas }: FichasTableProps) {
       const res = await fetch(`/api/instructor/fichas/${editingFicha.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editForm),
+        body: JSON.stringify({
+          ...editForm,
+          fechaInicio: editForm.fechaInicio || null,
+          fechaFin: editForm.fechaFin || null,
+        }),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -332,6 +346,30 @@ export function FichasTable({ fichas }: FichasTableProps) {
                   setEditForm((f) => ({ ...f, descripcion: e.target.value }))
                 }
                 placeholder="Nota adicional..."
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <Label className="font-semibold text-sena-blue text-xs">
+                Inicio de vigencia (opcional — sobreescribe evaluación)
+              </Label>
+              <Input
+                type="datetime-local"
+                value={editForm.fechaInicio}
+                onChange={(e) =>
+                  setEditForm((f) => ({ ...f, fechaInicio: e.target.value }))
+                }
+              />
+            </div>
+            <div className="grid gap-1.5">
+              <Label className="font-semibold text-sena-blue text-xs">
+                Fin de vigencia (opcional — sobreescribe evaluación)
+              </Label>
+              <Input
+                type="datetime-local"
+                value={editForm.fechaFin}
+                onChange={(e) =>
+                  setEditForm((f) => ({ ...f, fechaFin: e.target.value }))
+                }
               />
             </div>
           </div>

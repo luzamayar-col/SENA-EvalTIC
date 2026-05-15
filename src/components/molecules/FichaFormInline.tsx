@@ -25,12 +25,24 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, PlusCircle } from "lucide-react";
 
-const fichaSchema = z.object({
-  numero: z.string().min(4, "El número de ficha debe tener al menos 4 caracteres"),
-  programa: z.string().min(4, "Ingresa el nombre del programa"),
-  descripcion: z.string().optional(),
-  evaluacionId: z.string().min(1, "Selecciona una evaluación"),
-});
+const fichaSchema = z
+  .object({
+    numero: z.string().min(4, "El número de ficha debe tener al menos 4 caracteres"),
+    programa: z.string().min(4, "Ingresa el nombre del programa"),
+    descripcion: z.string().optional(),
+    evaluacionId: z.string().min(1, "Selecciona una evaluación"),
+    fechaInicio: z.string().optional().nullable(),
+    fechaFin: z.string().optional().nullable(),
+  })
+  .refine(
+    (data) => {
+      if (data.fechaInicio && data.fechaFin) {
+        return new Date(data.fechaFin) >= new Date(data.fechaInicio);
+      }
+      return true;
+    },
+    { message: "La fecha de fin debe ser igual o posterior a la de inicio", path: ["fechaFin"] },
+  );
 
 type FichaFormValues = z.infer<typeof fichaSchema>;
 
@@ -56,6 +68,8 @@ export function FichaFormInline({ evaluaciones }: FichaFormInlineProps) {
       programa: "",
       descripcion: "",
       evaluacionId: "",
+      fechaInicio: "",
+      fechaFin: "",
     },
   });
 
@@ -176,6 +190,48 @@ export function FichaFormInline({ evaluaciones }: FichaFormInlineProps) {
                     </FormLabel>
                     <FormControl>
                       <Input placeholder="Nota adicional..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Fechas opcionales por ficha */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+              <FormField
+                control={form.control}
+                name="fechaInicio"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold text-sena-blue text-xs">
+                      Inicio de vigencia (opcional — sobreescribe evaluación)
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="datetime-local"
+                        {...field}
+                        value={field.value ?? ""}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="fechaFin"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold text-sena-blue text-xs">
+                      Fin de vigencia (opcional — sobreescribe evaluación)
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="datetime-local"
+                        {...field}
+                        value={field.value ?? ""}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
