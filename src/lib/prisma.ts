@@ -9,10 +9,13 @@ function createPrismaClient(): PrismaClient {
   const connectionString = process.env.DATABASE_URL;
 
   if (!connectionString) {
-    // Sin DATABASE_URL — el cliente fallará en runtime si se usa;
-    // comportamiento esperado en builds de CI sin DB.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return new PrismaClient({} as any);
+    // Prisma 7 requires adapter — cannot instantiate without one.
+    // Return a proxy that defers the error to actual usage (safe for module evaluation at build time).
+    return new Proxy({} as PrismaClient, {
+      get() {
+        throw new Error("DATABASE_URL is not set — PrismaClient is unavailable");
+      },
+    });
   }
 
   // PrismaNeonHttp usa el protocolo HTTP de Neon, ideal para serverless (Vercel)
