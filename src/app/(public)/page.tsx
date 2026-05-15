@@ -27,12 +27,11 @@ export default async function LandingPage() {
               ],
             },
           },
-          // Ficha con override de fechas dentro de vigencia (nuevo)
+          // Ficha con al menos una fecha propia (post-filter isVigente decide la vigencia exacta)
           {
-            AND: [
+            OR: [
               { fechaInicio: { not: null } },
-              { fechaInicio: { lte: now } },
-              { OR: [{ fechaFin: null }, { fechaFin: { gte: now } }] },
+              { fechaFin: { not: null } },
             ],
           },
         ],

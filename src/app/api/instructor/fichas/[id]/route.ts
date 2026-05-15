@@ -51,6 +51,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
         ...(numero && { numero }),
         ...(programa && { programa }),
         descripcion: descripcion ?? null,
+        // undefined → no modificar; null/"" → limpiar la fecha (quitar override)
         fechaInicio: fechaInicio !== undefined ? (fechaInicio ? new Date(fechaInicio) : null) : undefined,
         fechaFin: fechaFin !== undefined ? (fechaFin ? new Date(fechaFin) : null) : undefined,
       },

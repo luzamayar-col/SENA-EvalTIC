@@ -66,6 +66,7 @@ export async function POST(req: NextRequest) {
         programa,
         descripcion: descripcion ?? null,
         evaluacionId,
+        // fechaInicio/fechaFin: string ISO → Date, vacío/null → null (sin override)
         fechaInicio: fechaInicio ? new Date(fechaInicio) : null,
         fechaFin: fechaFin ? new Date(fechaFin) : null,
       },

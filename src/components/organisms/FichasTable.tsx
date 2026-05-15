@@ -121,6 +121,10 @@ export function FichasTable({ fichas }: FichasTableProps) {
 
   const handleEdit = async () => {
     if (!editingFicha) return;
+    if (editForm.fechaInicio && editForm.fechaFin && editForm.fechaFin < editForm.fechaInicio) {
+      setSaveError("La fecha de fin debe ser igual o posterior a la de inicio.");
+      return;
+    }
     setSaving(true);
     setSaveError(null);
     try {
