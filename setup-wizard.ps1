@@ -283,51 +283,40 @@ if ($envPath) {
 Write-Divider
 Write-Title "Migración de base de datos"
 Write-Host ""
-Write-Info "Ahora hay que aplicar el schema en Neon y crear el instructor admin."
-Write-Info "Esto ejecuta los siguientes comandos:"
-Write-Info "  1. npx prisma db push    → aplica el schema en la BD"
-Write-Info "  2. npx prisma generate   → genera el cliente TypeScript"
-Write-Info "  3. npx prisma db seed    → crea el instructor admin inicial"
+Write-Info "Aplicando el schema en Neon y creando el instructor admin..."
 Write-Host ""
-$runMigration = Read-Host "  ¿Ejecutar ahora? (S/n)"
 
-if ($runMigration -ne "n" -and $runMigration -ne "N") {
-    Write-Host ""
-    Write-Info "Ejecutando prisma db push..."
-    try {
-        npx prisma db push
-        Write-Ok "Schema aplicado en la base de datos"
-    } catch {
-        Write-Err "Error al ejecutar prisma db push"
-        Write-Err $_.Exception.Message
-        Write-Warn "Podés ejecutarlo manualmente: npx prisma db push"
-    }
+Write-Info "[1/3] npx prisma db push — aplica el schema en la BD"
+try {
+    npx prisma db push
+    Write-Ok "Schema aplicado en la base de datos"
+} catch {
+    Write-Err "Error al ejecutar prisma db push"
+    Write-Err $_.Exception.Message
+    Write-Warn "Verificá que DATABASE_URL sea correcta y que la BD esté accesible."
+    exit 1
+}
 
-    Write-Host ""
-    Write-Info "Ejecutando prisma generate..."
-    try {
-        npx prisma generate
-        Write-Ok "Cliente Prisma generado"
-    } catch {
-        Write-Err "Error al ejecutar prisma generate"
-        Write-Err $_.Exception.Message
-    }
+Write-Host ""
+Write-Info "[2/3] npx prisma generate — genera el cliente TypeScript"
+try {
+    npx prisma generate
+    Write-Ok "Cliente Prisma generado"
+} catch {
+    Write-Err "Error al ejecutar prisma generate"
+    Write-Err $_.Exception.Message
+    exit 1
+}
 
-    Write-Host ""
-    Write-Info "Ejecutando prisma db seed (crea el instructor admin)..."
-    try {
-        npx prisma db seed
-        Write-Ok "Seed ejecutado — instructor admin creado"
-    } catch {
-        Write-Err "Error al ejecutar prisma db seed"
-        Write-Err $_.Exception.Message
-        Write-Warn "Podés ejecutarlo manualmente: npx prisma db seed"
-    }
-} else {
-    Write-Warn "Recordá ejecutar manualmente antes de iniciar la app:"
-    Write-Info "  npx prisma db push"
-    Write-Info "  npx prisma generate"
-    Write-Info "  npx prisma db seed"
+Write-Host ""
+Write-Info "[3/3] npx prisma db seed — crea el instructor admin inicial"
+try {
+    npx prisma db seed
+    Write-Ok "Seed ejecutado — instructor admin creado"
+} catch {
+    Write-Err "Error al ejecutar prisma db seed"
+    Write-Err $_.Exception.Message
+    Write-Warn "Podés ejecutarlo manualmente: npx prisma db seed"
 }
 
 # ═══════════════════════════════════════════════════════════
@@ -375,15 +364,20 @@ Write-Warn "Podés eliminar las variables INSTRUCTOR_SEED_* de Vercel."
 Write-Divider
 Write-Title "Configurar Resend (notificaciones por email)"
 Write-Host ""
-Write-Info "Las notificaciones de resultados usan Resend."
-Write-Info "Cada instructor configura su propia API key desde el panel:"
+Write-Info "Las notificaciones de resultados usan Resend para enviar emails."
+Write-Info "No se necesita ninguna variable de entorno global — cada instructor"
+Write-Info "configura su propia API key directamente desde la aplicación:"
 Write-Host ""
-Write-Info "  1. Creá una cuenta gratuita en https://resend.com (3000 mails/mes)"
-Write-Info "  2. Generá una API key en Resend → API Keys"
-Write-Info "  3. En la app: /instructor/perfil → pegá la API key → activá el toggle"
+Write-Info "  1. Crear cuenta gratuita en https://resend.com (3000 mails/mes)"
+Write-Info "  2. Generar una API key en Resend → API Keys"
+Write-Info "  3. En la app ya desplegada:"
+Write-Info "       → Iniciar sesión como instructor"
+Write-Info "       → Ir a Mi Perfil (ícono de usuario, esquina superior derecha)"
+Write-Info "       → Pegar la API key en el campo correspondiente"
+Write-Info "       → Activar el toggle de notificaciones"
 Write-Host ""
-Write-Info "No se necesita ninguna variable de entorno global para Resend."
 Write-Info "Las API keys se cifran con ENCRYPTION_KEY antes de guardarse en la BD."
+Write-Info "Cada instructor gestiona la suya — el admin no necesita centralizar nada."
 
 # ═══════════════════════════════════════════════════════════
 # RESUMEN FINAL
@@ -392,7 +386,7 @@ Write-Divider
 Write-Title "¡Listo! Resumen"
 Write-Host ""
 Write-Ok ".env.local creado con todas las variables"
-Write-Ok "Base de datos migrada y seed ejecutado"
+Write-Ok "Schema aplicado, cliente generado e instructor admin creado"
 Write-Ok "Variables listadas para configurar en Vercel"
 Write-Host ""
 Write-Info "Próximos pasos:"
