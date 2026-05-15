@@ -42,7 +42,7 @@ function buildHtmlNotificacion(params: {
       </div>
       <div style="padding: 24px; background-color: #fafafa;">
         <p style="font-size: 15px; color: #374151; margin-top: 0;">
-          Hola <strong>${nombres}</strong>, tenés una evaluación disponible en el sistema EvalTIC del SENA.
+          Hola <strong>${nombres}</strong>, tienes una evaluación disponible en el sistema EvalTIC del SENA.
         </p>
 
         <h2 style="color: #00324D; border-bottom: 2px solid #39A900; padding-bottom: 5px; font-size: 15px;">Información de la evaluación</h2>
@@ -58,8 +58,8 @@ function buildHtmlNotificacion(params: {
 
         <div style="margin-top: 20px; padding: 14px; background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; font-size: 14px; color: #166534;">
           <strong>¿Cómo presentar la evaluación?</strong><br/>
-          Ingresá a la plataforma EvalTIC con tu número de cédula cuando el período esté activo.
-          Asegurate de tener buena conexión a internet y evitá cambiar de pestaña durante la prueba.
+          Ingresa a la plataforma EvalTIC con tu número de cédula cuando el período esté activo.
+          Asegúrate de tener buena conexión a internet y evita cambiar de pestaña durante la prueba.
         </div>
 
         ${mensaje ? `
@@ -97,6 +97,7 @@ export async function POST(req: NextRequest, { params }: Params) {
           fechaFin: true,
           instructor: {
             select: {
+              email: true,
               resendApiKey: true,
             },
           },
@@ -177,6 +178,49 @@ export async function POST(req: NextRequest, { params }: Params) {
       console.warn(`Fallo de envío para ${aprendiz.emailPersonal}:`, err);
     }
   }
+
+  // Resumen al instructor (fire-and-forget)
+  ;(async () => {
+    try {
+      const instructorEmail = ficha.evaluacion.instructor.email;
+      const htmlResumen = `
+        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
+          <div style="background-color:#00324D;padding:20px;text-align:center;">
+            <h1 style="color:#ffffff;margin:0;font-size:20px;">Resumen de notificación</h1>
+            <p style="color:#ffffff;margin:5px 0 0 0;opacity:0.8;">EvalTIC SENA</p>
+          </div>
+          <div style="padding:24px;background-color:#fafafa;">
+            <p style="font-size:15px;color:#374151;margin-top:0;">
+              La convocatoria de evaluación fue enviada a los aprendices de la ficha <strong>${ficha.numero}</strong>.
+            </p>
+            <table style="width:100%;border-collapse:collapse;font-size:14px;">
+              <tbody>
+                <tr><td style="padding:7px 0;border-bottom:1px solid #f3f4f6;color:#6b7280;width:50%;">Evaluación</td><td style="padding:7px 0;border-bottom:1px solid #f3f4f6;font-weight:500;">${ficha.evaluacion.nombre}</td></tr>
+                <tr><td style="padding:7px 0;border-bottom:1px solid #f3f4f6;color:#6b7280;">Ficha</td><td style="padding:7px 0;border-bottom:1px solid #f3f4f6;">${ficha.numero} — ${ficha.programa}</td></tr>
+                <tr><td style="padding:7px 0;border-bottom:1px solid #f3f4f6;color:#6b7280;">Correos enviados</td><td style="padding:7px 0;border-bottom:1px solid #f3f4f6;">${enviados}</td></tr>
+                <tr><td style="padding:7px 0;color:#6b7280;">Sin correo registrado</td><td style="padding:7px 0;">${sinEmail}</td></tr>
+              </tbody>
+            </table>
+            ${mensaje ? `
+            <div style="margin-top:16px;padding:14px;background-color:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;font-size:14px;color:#166534;">
+              <strong>Mensaje enviado a los aprendices:</strong><br/>${mensaje}
+            </div>` : ""}
+            <p style="margin-top:24px;font-size:13px;color:#9ca3af;text-align:center;border-top:1px solid #e5e7eb;padding-top:15px;">
+              Este es un correo automático generado por el sistema EvalTIC del SENA.
+            </p>
+          </div>
+        </div>
+      `;
+      await resend.emails.send({
+        from: senderEmail,
+        to: [instructorEmail],
+        subject: `Notificación enviada — Ficha ${ficha.numero} — ${ficha.evaluacion.nombre}`,
+        html: htmlResumen,
+      });
+    } catch (err) {
+      console.warn("Error al enviar resumen al instructor:", err);
+    }
+  })();
 
   return NextResponse.json({ enviados, sinEmail });
 }

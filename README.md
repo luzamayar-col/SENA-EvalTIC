@@ -147,14 +147,14 @@ AppConfig       → clave/valor para configuración global (ej: senderEmail)
 
 ### 0. Setup Wizard (recomendado)
 
-Para una configuración guiada completa, ejecutá el wizard incluido en el repositorio:
+Para una configuración guiada completa, ejecute el wizard incluido en el repositorio:
 
 ```powershell
 # En PowerShell, desde la raíz del proyecto
 .\setup-wizard.ps1
 ```
 
-El wizard te guía por cada variable de entorno paso a paso, genera los secrets automáticamente, aplica el schema en Neon y crea el instructor admin. Si preferís configurar todo manualmente, seguí los pasos 1–6.
+El wizard guía cada variable de entorno paso a paso, genera los secrets automáticamente, aplica el schema en Neon y crea el instructor admin. Si prefiere configurar todo manualmente, siga los pasos 1–6.
 
 ---
 

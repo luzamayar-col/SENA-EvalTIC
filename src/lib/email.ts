@@ -140,7 +140,7 @@ function buildHtmlAprendiz(params: {
       </div>
       <div style="padding: 24px; background-color: #fafafa;">
         <p style="font-size: 15px; color: #374151; margin-top: 0;">
-          Hola <strong>${nombres}</strong>, a continuación encontrás el resumen de tu evaluación.
+          Hola <strong>${nombres}</strong>, a continuación encontrarás el resumen de tu evaluación.
         </p>
 
         <div style="text-align: center; margin: 20px 0; padding: 24px; background-color: #ffffff; border-radius: 8px; border: 1px solid #e5e7eb;">
@@ -170,7 +170,7 @@ function buildHtmlAprendiz(params: {
 
         ${!aprobado && intentosRestantes > 0 ? `
         <div style="margin-top: 20px; padding: 14px; background-color: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; font-size: 14px; color: #1d4ed8;">
-          Aún te queda${intentosRestantes > 1 ? "n" : ""} <strong>${intentosRestantes} intento${intentosRestantes > 1 ? "s" : ""}</strong>. Podés volver a presentar la evaluación cuando estés listo.
+          Aún te queda${intentosRestantes > 1 ? "n" : ""} <strong>${intentosRestantes} intento${intentosRestantes > 1 ? "s" : ""}</strong>. Puedes volver a presentar la evaluación cuando estés listo.
         </div>
         ` : ""}
 
@@ -304,5 +304,99 @@ export async function enviarCorreoResultado(
   } catch (err) {
     console.error("enviarCorreoResultado error:", err);
     return { success: false, reason: "internal_error" };
+  }
+}
+
+// ── enviarCorreoPrevisualizacion ─────────────────────────────────────────────
+// Envía al instructor una vista previa del correo que recibiría el aprendiz,
+// usada después de completar una evaluación en modo prueba.
+
+export async function enviarCorreoPrevisualizacion(params: {
+  instructorId: string;
+  evaluacionId: string;
+  fichaId?: string | null;
+  nombres: string;
+  apellidos: string;
+  tipoDocumento?: string;
+  cedula: string;
+  email?: string;
+  puntajeTotal: number;
+  preguntasCorrectas: number;
+  totalPreguntas: number;
+  aprobado: boolean;
+  tiempoUsado: number;
+  incidenciasAntiplagio?: number;
+  umbralAntiplagio?: { medio: number; alto: number };
+}): Promise<void> {
+  try {
+    const {
+      instructorId, evaluacionId, fichaId,
+      nombres, apellidos, tipoDocumento = "CC", cedula,
+      puntajeTotal, preguntasCorrectas, totalPreguntas, aprobado,
+      tiempoUsado, incidenciasAntiplagio = 0, umbralAntiplagio,
+    } = params;
+
+    const [instructor, evaluacion, ficha] = await Promise.all([
+      prisma.instructor.findUnique({
+        where: { id: instructorId },
+        select: { email: true, resendApiKey: true, emailNotificaciones: true },
+      }),
+      prisma.evaluacion.findUnique({
+        where: { id: evaluacionId },
+        select: { nombre: true, maxIntentos: true, config: true },
+      }),
+      fichaId
+        ? prisma.ficha.findUnique({
+            where: { id: fichaId },
+            select: { numero: true, programa: true },
+          })
+        : Promise.resolve(null),
+    ]);
+
+    if (!instructor?.emailNotificaciones || !instructor.resendApiKey) return;
+
+    const senderConfig = await prisma.appConfig.findUnique({
+      where: { clave: "senderEmail" },
+    });
+    const senderEmail = senderConfig?.valor ?? "EvalTIC SENA <onboarding@resend.dev>";
+    const apiKey = safeDecrypt(instructor.resendApiKey);
+    const resend = new Resend(apiKey);
+
+    const umbral = umbralAntiplagio ?? {
+      medio: (evaluacion?.config as any)?.umbralAntiplagio?.medio ?? 3,
+      alto:  (evaluacion?.config as any)?.umbralAntiplagio?.alto  ?? 5,
+    };
+    const fecha = new Date().toLocaleDateString("es-CO", {
+      day: "2-digit", month: "long", year: "numeric",
+    });
+
+    const htmlAprendiz = buildHtmlAprendiz({
+      nombres, apellidos, tipoDocumento, cedula,
+      fichaNumero: ficha?.numero ?? "—",
+      fichaPrograma: ficha?.programa ?? "—",
+      evaluacionNombre: evaluacion?.nombre ?? "—",
+      puntajeTotal, preguntasCorrectas, totalPreguntas, aprobado, tiempoUsado,
+      intento: 1,
+      maxIntentos: evaluacion?.maxIntentos ?? 1,
+      incidencias: incidenciasAntiplagio,
+      umbral,
+      fecha,
+    });
+
+    const banner = `
+      <div style="background-color:#fef3c7;border:2px dashed #d97706;padding:14px 18px;font-family:Arial,sans-serif;font-size:14px;color:#92400e;text-align:center;">
+        <strong>⚗ MODO PRUEBA — Vista previa del correo al aprendiz</strong><br/>
+        Esta es una simulación. No corresponde a un intento real registrado.
+      </div>
+    `;
+
+    await resend.emails.send({
+      from: senderEmail,
+      to: [instructor.email],
+      subject: `[Vista previa] Correo de resultados — ${evaluacion?.nombre ?? evaluacionId}`,
+      html: banner + htmlAprendiz,
+    });
+  } catch (err) {
+    console.warn("enviarCorreoPrevisualizacion error:", err);
   }
 }

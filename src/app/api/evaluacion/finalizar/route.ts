@@ -4,7 +4,7 @@ import { z } from "zod";
 import { Prisma } from "@/generated/prisma/client";
 import { APP_CONFIG } from "@/lib/config";
 import { calcularPuntaje } from "@/lib/score";
-import { enviarCorreoResultado } from "@/lib/email";
+import { enviarCorreoResultado, enviarCorreoPrevisualizacion } from "@/lib/email";
 import allQuestions from "@/data/preguntas.json";
 import fs from "fs";
 import path from "path";
@@ -113,6 +113,24 @@ export async function POST(request: NextRequest) {
             { status: 401 },
           );
         }
+
+        // Fire-and-forget: vista previa del correo al aprendiz enviada al instructor
+        void enviarCorreoPrevisualizacion({
+          instructorId: token.instructorId as string,
+          evaluacionId,
+          fichaId: fichaId ?? null,
+          nombres: nombres ?? "Aprendiz",
+          apellidos: apellidos ?? "Prueba",
+          tipoDocumento: tipoDocumento ?? "CC",
+          cedula,
+          puntajeTotal: resultado.puntajeTotal,
+          preguntasCorrectas: resultado.preguntasCorrectas,
+          totalPreguntas: resultado.totalPreguntas,
+          aprobado: resultado.aprobado,
+          tiempoUsado: tiempoUsado ?? 0,
+          incidenciasAntiplagio: incidenciasAntiplagio ?? 0,
+        });
+
         return NextResponse.json({
           resultado,
           preguntasCompletas: preguntasEvaluadas,
