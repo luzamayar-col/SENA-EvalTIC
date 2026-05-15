@@ -88,7 +88,9 @@ src/
 │           ├── evaluaciones/          # CRUD + toggle activa
 │           │   └── [id]/
 │           │       ├── prueba/        # POST: inicia modo prueba (sin guardar resultado)
-│           │       └── notificar/     # POST: convocatoria a todos los aprendices de todas las fichas
+│           │       ├── notificar/     # POST: correo de convocatoria al instructor (vista previa)
+│           │       ├── preguntas/     # GET: descarga banco de preguntas en formato JSON
+│           │       └── competencias/  # GET: competencias y RAs usados anteriormente
 │           ├── fichas/
 │           │   └── [id]/
 │           │       ├── aprendices/    # GET list + POST single/bulk import
@@ -134,7 +136,7 @@ public/
 ```prisma
 Instructor      → tiene Evaluacion[]
 Evaluacion      → tiene Ficha[], Resultado[]  (maxIntentos configurable)
-Ficha           → tiene Aprendiz[], Resultado[]
+Ficha           → tiene Aprendiz[], Resultado[]  (cascade delete: eliminar ficha borra aprendices y resultados)
 Aprendiz        → cédula + intentosExtra por ficha
 Resultado       → intento (1,2,3...) + esPrueba (true/false)
 AppConfig       → clave/valor para configuración global (ej: senderEmail)
@@ -243,14 +245,17 @@ npm start
 Acceso en `/instructor/login`. Incluye enlace **← Volver al inicio** para regresar a la página pública. Solo para instructores registrados.
 
 ### Dashboard
-- Métricas globales: total resultados, tasa de aprobación, puntaje promedio, evaluaciones activas
+- **Métricas globales**: total presentaciones / total aprendices, tasa de aprobación, promedio global, evaluaciones activas
+- **Cards por evaluación**: grid con presentaciones, tasa de aprobación y promedio propios de cada evaluación, con indicador de color (verde ≥65 %, ámbar ≥40 %, rojo <40 %) y badge Activa/Inactiva
 
 ### Evaluaciones
 - Crear/editar evaluaciones con banco de preguntas (subir `.json` o usar el editor visual)
-- Configurar: tiempo límite, % para aprobar, **máx. intentos**, distribución de tipos de pregunta, **umbrales de alerta antiplagio** (Bajo / Medio / Alto)
+- Configurar: tiempo límite, % para aprobar, **máx. intentos**, distribución de tipos de pregunta, **umbrales de alerta antiplagio** (Bajo / Medio / Alto — por defecto medio = 2, alto = 3)
+- **Selectores de competencia y RA**: desplegables con competencias y resultados de aprendizaje usados anteriormente — al seleccionar uno rellena automáticamente código y nombre
 - **Editor de preguntas** (`/instructor/evaluaciones/[id]/preguntas`): drag-reorder, crear/editar/eliminar preguntas de los 3 tipos
-- **Notificar aprendices** (botón 🔔): envía convocatoria por correo a todos los aprendices de **todas las fichas** de la evaluación; campo de mensaje personalizado opcional; el instructor recibe un resumen de envíos con el conteo por ficha
-- **Modo prueba** (botón ⚗): el instructor presenta la evaluación sin guardar resultado; muestra banner ámbar; envía al instructor una vista previa del correo que recibirían los aprendices
+- **Descargar banco de preguntas**: botón en la sección "Banco de preguntas" al editar y en el editor de preguntas — descarga el banco actual en formato JSON reutilizable
+- **Enviar correo de convocatoria** (botón 🔔 en tabla de evaluaciones): envía el correo de convocatoria **al instructor** para verificar cómo se ve; campo de mensaje personalizado opcional
+- **Modo prueba** (botón ⚗): el instructor presenta la evaluación sin guardar resultado; muestra banner ámbar; envía al instructor una vista previa del correo de resultado (independientemente del flag de notificaciones)
 - Activar/desactivar + fechas de vigencia por evaluación
 
 ### Fichas
