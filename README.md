@@ -17,7 +17,7 @@ Sistema interactivo de evaluación técnica en línea para aprendices del **SENA
 | **Temporizador**            | Límite configurable en minutos con cuenta regresiva visible                                                                  |
 | **Calificación automática** | Puntaje sobre 100 — nota de corte configurable (65 % por defecto)                                                           |
 | **Informe PDF**             | Generado en el cliente; incluye iconos SVG vectorizados, respuestas correctas, retroalimentación y desglose                 |
-| **Notificación por correo** | Envío automático al instructor vía Resend API con CC al aprendiz                                                            |
+| **Notificaciones por correo** | Convocatoria a aprendices por ficha o por evaluación completa (con mensaje personalizado); resultado automático al instructor y al aprendiz al finalizar; vista previa del correo al instructor en modo prueba |
 | **Interfaz Móvil**          | Diseño responsive con modales optimizados para pantallas pequeñas                                                           |
 | **Panel del instructor**    | Dashboard con métricas, gestión completa de evaluaciones, fichas, aprendices, resultados y exportación Excel                |
 | **Modo prueba**             | El instructor puede presentar la evaluación en modo prueba — los resultados no se guardan                                   |
@@ -86,10 +86,13 @@ src/
 │       │   └── validar-ficha/         # GET: valida que la ficha tenga evaluación activa
 │       └── instructor/
 │           ├── evaluaciones/          # CRUD + toggle activa
-│           │   └── [id]/prueba/       # POST: inicia modo prueba (sin guardar resultado)
+│           │   └── [id]/
+│           │       ├── prueba/        # POST: inicia modo prueba (sin guardar resultado)
+│           │       └── notificar/     # POST: convocatoria a todos los aprendices de todas las fichas
 │           ├── fichas/
 │           │   └── [id]/
 │           │       ├── aprendices/    # GET list + POST single/bulk import
+│           │       ├── notificar/     # POST: convocatoria a los aprendices de la ficha
 │           │       └── stats/         # Métricas de la ficha
 │           ├── aprendices/
 │           │   └── [id]/
@@ -246,7 +249,8 @@ Acceso en `/instructor/login`. Incluye enlace **← Volver al inicio** para regr
 - Crear/editar evaluaciones con banco de preguntas (subir `.json` o usar el editor visual)
 - Configurar: tiempo límite, % para aprobar, **máx. intentos**, distribución de tipos de pregunta, **umbrales de alerta antiplagio** (Bajo / Medio / Alto)
 - **Editor de preguntas** (`/instructor/evaluaciones/[id]/preguntas`): drag-reorder, crear/editar/eliminar preguntas de los 3 tipos
-- **Modo prueba** (botón ⚗): el instructor presenta la evaluación sin guardar resultado; muestra banner ámbar
+- **Notificar aprendices** (botón 🔔): envía convocatoria por correo a todos los aprendices de **todas las fichas** de la evaluación; campo de mensaje personalizado opcional; el instructor recibe un resumen de envíos con el conteo por ficha
+- **Modo prueba** (botón ⚗): el instructor presenta la evaluación sin guardar resultado; muestra banner ámbar; envía al instructor una vista previa del correo que recibirían los aprendices
 - Activar/desactivar + fechas de vigencia por evaluación
 
 ### Fichas
@@ -263,6 +267,7 @@ Acceso en `/instructor/login`. Incluye enlace **← Volver al inicio** para regr
   - Conceder intentos extra (+1) por aprendiz
   - Editar/eliminar aprendices
   - Descargar informe PDF del último intento por aprendiz (ícono ↓)
+  - **Notificar aprendices** (botón 🔔): envía convocatoria solo a los aprendices de esa ficha con mensaje personalizado opcional; el instructor recibe copia del resumen
 - **Tab Resultados**: tabla de presentaciones + columna de integridad antiplagio + exportar Excel
 
 ### Resultados
@@ -288,7 +293,7 @@ Acceso en `/instructor/login`. Incluye enlace **← Volver al inicio** para regr
 4. Ve pantalla de confirmación con nombre, ficha, competencia, RA e intentos restantes
 5. Ingresa (o confirma) su correo
 6. Inicia evaluación → responde preguntas → finaliza
-7. Ve resultados con PDF descargable, tarjeta de **integridad de sesión** (incidencias antiplagio) y correo enviado al instructor (CC al aprendiz)
+7. Ve resultados con PDF descargable, tarjeta de **integridad de sesión** (incidencias antiplagio); el instructor recibe el resultado por correo y el aprendiz recibe una copia en su correo personal (si tiene uno registrado)
 
 **Si el aprendiz ya agotó sus intentos:**
 En el paso 4 se muestra el mensaje de intentos agotados y, si existe un resultado previo, aparece el botón **"Descargar mi informe (último intento)"** que genera el PDF directamente en el cliente sin necesidad de cuenta. La seguridad se garantiza verificando que la cédula ingresada coincida con la del resultado en la BD.
