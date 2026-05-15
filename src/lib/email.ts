@@ -353,7 +353,7 @@ export async function enviarCorreoPrevisualizacion(params: {
         : Promise.resolve(null),
     ]);
 
-    if (!instructor?.emailNotificaciones || !instructor.resendApiKey) return;
+    if (!instructor?.resendApiKey) return;
 
     const senderConfig = await prisma.appConfig.findUnique({
       where: { clave: "senderEmail" },
