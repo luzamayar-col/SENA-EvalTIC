@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { APP_CONFIG } from "@/lib/config";
+import { getEffectiveDates, isVigente } from "@/lib/effective-dates";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -27,6 +28,8 @@ export async function GET(req: NextRequest) {
       select: {
         id: true,
         programa: true,
+        fechaInicio: true,
+        fechaFin: true,
         evaluacion: { select: { nombre: true, fechaInicio: true, fechaFin: true } },
       },
     });
@@ -35,19 +38,21 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ valida: false });
     }
 
-    // Validar fechas de vigencia
+    // Validar fechas de vigencia usando fechas efectivas (ficha overrides evaluación)
     const now = new Date();
-    const { fechaInicio, fechaFin } = ficha.evaluacion;
-    if (fechaInicio && now < fechaInicio) {
+    const eff = getEffectiveDates(ficha, ficha.evaluacion);
+    const vigencia = isVigente(eff, now);
+
+    if (!vigencia.ok) {
+      if (vigencia.reason === "antes") {
+        return NextResponse.json({
+          valida: false,
+          error: `Disponible desde el ${vigencia.fecha.toLocaleDateString("es-CO")}`,
+        });
+      }
       return NextResponse.json({
         valida: false,
-        error: `Disponible desde el ${fechaInicio.toLocaleDateString("es-CO")}`,
-      });
-    }
-    if (fechaFin && now > fechaFin) {
-      return NextResponse.json({
-        valida: false,
-        error: `Venció el ${fechaFin.toLocaleDateString("es-CO")}`,
+        error: `Venció el ${vigencia.fecha.toLocaleDateString("es-CO")}`,
       });
     }
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { APP_CONFIG } from "@/lib/config";
 import { shuffleArray } from "@/lib/shuffle";
+import { getEffectiveDates, isVigente } from "@/lib/effective-dates";
 import allQuestions from "@/data/preguntas.json";
 import fs from "fs";
 import path from "path";
@@ -93,21 +94,23 @@ export async function POST(request: Request) {
         );
       }
 
-      // 2. Validar fechas de vigencia de la evaluación
+      // 2. Validar fechas de vigencia usando fechas efectivas (ficha overrides evaluación)
       const now = new Date();
-      const { fechaInicio, fechaFin } = fichaDB.evaluacion;
-      if (fechaInicio && now < fechaInicio) {
+      const eff = getEffectiveDates(fichaDB, fichaDB.evaluacion);
+      const vigencia = isVigente(eff, now);
+
+      if (!vigencia.ok) {
+        if (vigencia.reason === "antes") {
+          return NextResponse.json(
+            {
+              error: `La evaluación aún no está disponible. Fecha de inicio: ${vigencia.fecha.toLocaleDateString("es-CO")}.`,
+            },
+            { status: 403 },
+          );
+        }
         return NextResponse.json(
           {
-            error: `La evaluación aún no está disponible. Fecha de inicio: ${fechaInicio.toLocaleDateString("es-CO")}.`,
-          },
-          { status: 403 },
-        );
-      }
-      if (fechaFin && now > fechaFin) {
-        return NextResponse.json(
-          {
-            error: `La evaluación finalizó el ${fechaFin.toLocaleDateString("es-CO")}.`,
+            error: `La evaluación finalizó el ${vigencia.fecha.toLocaleDateString("es-CO")}.`,
           },
           { status: 403 },
         );

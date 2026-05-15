@@ -8,6 +8,8 @@ const crearFichaSchema = z.object({
   programa: z.string().min(3, "Nombre de programa muy corto").max(300),
   descripcion: z.string().max(500).optional(),
   evaluacionId: z.string().min(1, "evaluacionId requerido").max(100),
+  fechaInicio: z.string().optional().nullable(),
+  fechaFin: z.string().optional().nullable(),
 });
 
 export async function GET(req: NextRequest) {
@@ -47,7 +49,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { numero, programa, descripcion, evaluacionId } = parsed.data;
+    const { numero, programa, descripcion, evaluacionId, fechaInicio, fechaFin } = parsed.data;
 
     // Verificar que la evaluación pertenece al instructor
     const evaluacion = await prisma.evaluacion.findFirst({
@@ -64,6 +66,8 @@ export async function POST(req: NextRequest) {
         programa,
         descripcion: descripcion ?? null,
         evaluacionId,
+        fechaInicio: fechaInicio ? new Date(fechaInicio) : null,
+        fechaFin: fechaFin ? new Date(fechaFin) : null,
       },
     });
 

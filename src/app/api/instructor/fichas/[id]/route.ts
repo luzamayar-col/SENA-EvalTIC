@@ -11,6 +11,8 @@ const editarFichaSchema = z.object({
   numero: z.string().min(1).max(20).optional(),
   programa: z.string().min(3).max(300).optional(),
   descripcion: z.string().max(500).optional().nullable(),
+  fechaInicio: z.string().optional().nullable(),
+  fechaFin: z.string().optional().nullable(),
 });
 
 async function getFichaOrFail(id: string, instructorId: string) {
@@ -41,7 +43,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
       );
     }
 
-    const { numero, programa, descripcion } = parsed.data;
+    const { numero, programa, descripcion, fechaInicio, fechaFin } = parsed.data;
 
     const updated = await prisma.ficha.update({
       where: { id },
@@ -49,6 +51,8 @@ export async function PUT(req: NextRequest, { params }: Params) {
         ...(numero && { numero }),
         ...(programa && { programa }),
         descripcion: descripcion ?? null,
+        fechaInicio: fechaInicio !== undefined ? (fechaInicio ? new Date(fechaInicio) : null) : undefined,
+        fechaFin: fechaFin !== undefined ? (fechaFin ? new Date(fechaFin) : null) : undefined,
       },
     });
 

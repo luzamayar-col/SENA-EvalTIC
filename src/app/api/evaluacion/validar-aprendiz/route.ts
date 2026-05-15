@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { APP_CONFIG } from "@/lib/config";
+import { getEffectiveDates, isVigente } from "@/lib/effective-dates";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -20,24 +21,20 @@ export async function GET(req: NextRequest) {
   try {
     const { prisma } = await import("@/lib/prisma");
 
-    // 1. Buscar ficha activa con evaluacion activa + validar fechas
+    // 1. Buscar ficha activa con evaluacion activa (sin filtrar por fechas — se hace en JS)
     const now = new Date();
     const ficha = await prisma.ficha.findFirst({
       where: {
         numero: fichaNumero,
         activa: true,
-        evaluacion: {
-          activa: true,
-          AND: [
-            { OR: [{ fechaInicio: null }, { fechaInicio: { lte: now } }] },
-            { OR: [{ fechaFin: null }, { fechaFin: { gte: now } }] },
-          ],
-        },
+        evaluacion: { activa: true },
       },
       select: {
         id: true,
         numero: true,
         programa: true,
+        fechaInicio: true,
+        fechaFin: true,
         evaluacion: {
           select: {
             id: true,
@@ -46,6 +43,8 @@ export async function GET(req: NextRequest) {
             resultadoAprendizaje: true,
             maxIntentos: true,
             config: true,
+            fechaInicio: true,
+            fechaFin: true,
             instructor: { select: { email: true } },
           },
         },
@@ -57,6 +56,17 @@ export async function GET(req: NextRequest) {
         encontrado: false,
         error: "Ficha no válida o sin evaluación activa. Verifica el número con tu instructor.",
       });
+    }
+
+    // 1b. Validar vigencia usando fechas efectivas (ficha overrides evaluación)
+    const eff = getEffectiveDates(ficha, ficha.evaluacion);
+    const vigencia = isVigente(eff, now);
+    if (!vigencia.ok) {
+      const msg =
+        vigencia.reason === "antes"
+          ? `La evaluación aún no está disponible. Disponible desde el ${vigencia.fecha.toLocaleDateString("es-CO")}.`
+          : `La evaluación finalizó el ${vigencia.fecha.toLocaleDateString("es-CO")}.`;
+      return NextResponse.json({ encontrado: false, error: msg });
     }
 
     // 2. Buscar aprendiz en el roster
