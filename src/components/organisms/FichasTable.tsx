@@ -295,7 +295,7 @@ export function FichasTable({ fichas }: FichasTableProps) {
                           </Button>
                         }
                         title="¿Eliminar ficha?"
-                        description={`Eliminar la ficha ${ficha.numero} no eliminará los resultados ya registrados.`}
+                        description={`Eliminar la ficha ${ficha.numero} también eliminará todos sus aprendices y resultados registrados. Esta acción no se puede deshacer.`}
                         confirmLabel="Sí, eliminar"
                         onConfirm={() => handleDelete(ficha.id)}
                       />
