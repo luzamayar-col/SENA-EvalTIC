@@ -47,6 +47,11 @@ export async function POST(_req: NextRequest, { params }: Params) {
     delete preguntaCliente.respuestaCorrecta;
     delete preguntaCliente.retroalimentacion;
 
+    // Normalize: external format uses "texto", internal renderer expects "enunciado"
+    if (!preguntaCliente.enunciado && preguntaCliente.texto) {
+      preguntaCliente.enunciado = preguntaCliente.texto;
+    }
+
     if (p.tipo === "seleccion_unica" || p.tipo === "seleccion_multiple") {
       if (config.aleatorizarOpciones) {
         preguntaCliente.opciones = shuffleArray([...preguntaCliente.opciones]);
