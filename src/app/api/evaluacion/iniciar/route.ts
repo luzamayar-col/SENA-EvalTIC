@@ -36,6 +36,11 @@ function prepareQuestionsForClient(
     delete preguntaCliente.respuestaCorrecta;
     delete preguntaCliente.retroalimentacion;
 
+    // Normalize: external format uses "texto", internal renderer expects "enunciado"
+    if (!preguntaCliente.enunciado && preguntaCliente.texto) {
+      preguntaCliente.enunciado = preguntaCliente.texto;
+    }
+
     if (p.tipo === "seleccion_unica" || p.tipo === "seleccion_multiple") {
       if (aleatorizarOpciones) {
         preguntaCliente.opciones = shuffleArray([...preguntaCliente.opciones]);
