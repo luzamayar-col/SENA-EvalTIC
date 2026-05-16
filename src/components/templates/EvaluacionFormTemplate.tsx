@@ -112,7 +112,7 @@ export function EvaluacionFormTemplate({
 
     const payload = {
       nombre: values.nombre,
-      descripcion: values.descripcion || null,
+      descripcion: values.descripcion || undefined,
       competencia: values.competencia,
       codigoCompetencia: values.codigoCompetencia,
       resultadoAprendizaje: values.resultadoAprendizaje,
